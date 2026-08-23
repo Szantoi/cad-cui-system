@@ -7,7 +7,8 @@ export default defineConfig({
     lib: {
       entry: 'src/index.js',
       formats: ['es'],
-      fileName: 'index'
+      fileName: 'index',
+      cssFileName: 'styles'
     },
     rollupOptions: {
       external: ['react', 'react/jsx-runtime', 'react-router-dom']
