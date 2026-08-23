@@ -19,6 +19,14 @@ This separation makes it possible to use the component kit with Canvas, SVG,
 Three.js, WebGL, a custom docking system, or a desktop shell without locking
 the package to one CAD implementation.
 
+## Project tracking
+
+- [Project memory](PROJECT_MEMORY.md) records durable architecture and product
+  decisions for future development sessions.
+- [Project state](PROJECT_STATE.md) records the latest completed increment and
+  verification result.
+- [TODO](TODO.md) contains the focused next-work list.
+
 ## Interaction guarantees
 
 The shared workspace primitives own the small but critical CAD interaction
