@@ -1,0 +1,39 @@
+{
+  "name": "@szantoi/cad-cui-system",
+  "version": "0.1.0",
+  "description": "Reusable CAD-style command UI runtime and cyber HUD component kit for React.",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "./dist/style.css"
+  ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./styles.css": "./dist/style.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18.2 <20",
+    "react-router-dom": ">=6.4 <8"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@vitejs/plugin-react": "^6.0.1",
+    "jsdom": "^29.1.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.18.2",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
+  }
+}
