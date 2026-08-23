@@ -34,5 +34,6 @@ const registry = defineCadCuiSystem({
 </CadCuiProvider>
 ```
 
-The built entry automatically includes the component stylesheet. The source
-contains a longer copy/paste integration example beside `CadCuiProvider`.
+Import `@szantoi/cad-cui-system/styles.css` once in the consuming application.
+The source contains a longer copy/paste integration example beside
+`CadCuiProvider`.

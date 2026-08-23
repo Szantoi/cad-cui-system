@@ -5,11 +5,11 @@
   "private": true,
   "type": "module",
   "sideEffects": [
-    "./dist/style.css"
+    "./dist/index.css"
   ],
   "exports": {
     ".": "./dist/index.js",
-    "./styles.css": "./dist/style.css",
+    "./styles.css": "./dist/index.css",
     "./package.json": "./package.json"
   },
   "files": [
