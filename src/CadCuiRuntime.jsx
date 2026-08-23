@@ -16,6 +16,7 @@ const copyPlacement = placement => Object.freeze({
   surface: text(placement?.surface),
   tab: text(placement?.tab),
   menu: text(placement?.menu),
+  group: text(placement?.group),
   label: text(placement?.label),
   detail: text(placement?.detail),
   icon: text(placement?.icon),

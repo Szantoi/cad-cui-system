@@ -216,6 +216,7 @@ var D = Object.freeze([]), O = Object.freeze({}), k = t(null), A = 1, j = (e) =>
 	surface: j(e?.surface),
 	tab: j(e?.tab),
 	menu: j(e?.menu),
+	group: j(e?.group),
 	label: j(e?.label),
 	detail: j(e?.detail),
 	icon: j(e?.icon),

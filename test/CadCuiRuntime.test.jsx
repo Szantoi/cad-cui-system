@@ -16,7 +16,7 @@ const TEST_CUI = defineCadCuiSystem({
   },
   tabs: [{ id: 'file', label: 'FILE', tone: 'cyan' }],
   commands: [
-    { id: 'open-explorer', label: 'EXPLORER', detail: 'Dokumentumok megnyitása', tone: 'cyan', toolId: 'explorer', intent: { type: 'panel.open', panelId: 'explorer' }, placements: [{ surface: 'ribbon', tab: 'file', order: 10 }, { surface: 'quick-access', order: 10 }, { surface: 'context', menu: 'node', order: 10 }] },
+    { id: 'open-explorer', label: 'EXPLORER', detail: 'Dokumentumok megnyitása', tone: 'cyan', toolId: 'explorer', intent: { type: 'panel.open', panelId: 'explorer' }, placements: [{ surface: 'ribbon', tab: 'file', group: 'MUNKATÉR', order: 10 }, { surface: 'quick-access', order: 10 }, { surface: 'context', menu: 'node', order: 10 }] },
     { id: 'go-knowledge', label: 'TUDÁSTÁR', detail: 'Ugrás a tudástárba', tone: 'green', intent: { type: 'route.navigate', to: '/knowledge?project_id=prj-alpha' }, placements: [{ surface: 'ribbon', tab: 'file', order: 20 }, { surface: 'context', menu: 'node', order: 20 }] },
     { id: 'admin-editor', label: 'SZERKESZTŐ', detail: 'Védett admin parancs', tone: 'magenta', requires: ['admin'], intent: { type: 'panel.open', panelId: 'editor' }, placements: [{ surface: 'ribbon', tab: 'file', order: 30 }] }
   ]
@@ -58,7 +58,9 @@ afterEach(() => {
 
 describe('CAD CUI runtime', () => {
   it('keeps command placement and authorization in the declarative schema', () => {
-    expect(selectCadCuiCommands(TEST_CUI, TEST_CUI.defaultState, { surface: 'ribbon', tabId: 'file' }).map(command => command.id)).toEqual(['open-explorer', 'go-knowledge']);
+    const publicCommands = selectCadCuiCommands(TEST_CUI, TEST_CUI.defaultState, { surface: 'ribbon', tabId: 'file' });
+    expect(publicCommands.map(command => command.id)).toEqual(['open-explorer', 'go-knowledge']);
+    expect(publicCommands[0].placement.group).toBe('MUNKATÉR');
     expect(selectCadCuiCommands(TEST_CUI, TEST_CUI.defaultState, { surface: 'ribbon', tabId: 'file', capabilities: { admin: true } }).map(command => command.id)).toEqual(['open-explorer', 'go-knowledge', 'admin-editor']);
   });
 
