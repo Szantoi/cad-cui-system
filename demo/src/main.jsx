@@ -19,6 +19,7 @@ import {
   CadLinetypePicker,
   CadMeasureReadout,
   CadMenuBar,
+  CadNavigationBar,
   CadObjectSnapMarker,
   CadObjectSnapMenu,
   CadPolarTracker,
@@ -27,15 +28,18 @@ import {
   CadSelectionCycler,
   CadSelectionFilter,
   CadSelectionGrip,
+  CadSelectionSetPanel,
   CadSelectionSummary,
   CadShortcutReference,
   CadSplitPane,
   CadStatusBar,
   CadToastStack,
   CadToolPalette,
-  CadToolbar,
   CadTooltip,
   CadViewportControls,
+  CadViewportScalePicker,
+  CadVisualStylePicker,
+  CadWorkspaceRibbon,
   CadWorkspaceProfileTabs,
   createCadWorkspaceProfile,
   removeCadWorkspaceProfile
@@ -71,6 +75,25 @@ const OBJECT_ROWS = [
   { id: 'dim-04', entity: 'Aligned dimension', layer: 'A-DIM', length: '2400 mm', status: 'Locked' }
 ];
 
+const INITIAL_SELECTION_SETS = [
+  { id: 'primary-shell', label: 'Primary shell', description: 'External walls and core', group: 'Architecture', count: 18 },
+  { id: 'openings', label: 'Doors + windows', description: 'Openings in the active floor', group: 'Architecture', count: 12 },
+  { id: 'annotations', label: 'Dimension review', description: 'Dimensions and markers', group: 'Annotation', count: 9 },
+  { id: 'xref-review', label: 'XREF review', description: 'Protected reference geometry', group: 'Reference', count: 4, locked: true }
+];
+
+const VIEWPORT_SCALE_FACTORS = {
+  '1:1': 1.14,
+  '1:2': 1.1,
+  '1:4': 1.07,
+  '1:5': 1.05,
+  '1:10': 1.03,
+  '1:20': 1.01,
+  '1:25': 1,
+  '1:50': 0.97,
+  '1:100': 0.91
+};
+
 const SHORTCUTS = [
   { id: 'line', group: 'Draw', label: 'Line', shortcut: 'L' },
   { id: 'circle', group: 'Draw', label: 'Circle', shortcut: 'C' },
@@ -91,6 +114,10 @@ function Playground() {
   const [activeTool, setActiveTool] = useState('line');
   const [activeView, setActiveView] = useState('top');
   const [zoom, setZoom] = useState(1);
+  const [ribbonTab, setRibbonTab] = useState('home');
+  const [navigationMode, setNavigationMode] = useState('');
+  const [visualStyle, setVisualStyle] = useState('2d-wireframe');
+  const [viewportScale, setViewportScale] = useState('1:50');
   const [layers, setLayers] = useState(INITIAL_LAYERS);
   const [activeLayerId, setActiveLayerId] = useState('wall');
   const [snapIds, setSnapIds] = useState(['endpoint', 'midpoint', 'intersection']);
@@ -98,6 +125,9 @@ function Playground() {
   const [selectionFilterIds, setSelectionFilterIds] = useState(['line', 'arc', 'block']);
   const [selectedRowIds, setSelectedRowIds] = useState(['line-01']);
   const [selectionCount, setSelectionCount] = useState(1);
+  const [selectionSets, setSelectionSets] = useState(INITIAL_SELECTION_SETS);
+  const [activeSelectionSetId, setActiveSelectionSetId] = useState('primary-shell');
+  const [selectionSetFilter, setSelectionSetFilter] = useState('');
   const [dynamicPoint, setDynamicPoint] = useState({ x: 1180, y: 640, z: 0 });
   const [drafting, setDrafting] = useState({ grid: true, snap: true, ortho: false, polar: true, osnap: true });
   const [propertyState, setPropertyState] = useState({
@@ -214,11 +244,80 @@ function Playground() {
     }
   ], [activeTool, drafting.ortho, drafting.polar]);
 
+  const workspaceRibbonTabs = useMemo(() => [
+    { id: 'home', label: 'HOME', color: '#64d8ff' },
+    { id: 'view', label: 'VIEW', color: '#b7df6a' },
+    { id: 'draft', label: 'DRAFT', color: '#ffc261' }
+  ], []);
+
+  const workspaceRibbonCommands = useMemo(() => [
+    { id: 'line', tabId: 'home', groupId: 'draw', groupLabel: 'DRAW', order: 10, label: 'LINE', shortcut: 'L', icon: <span>╱</span>, active: activeTool === 'line', toggle: true },
+    { id: 'circle', tabId: 'home', groupId: 'draw', groupLabel: 'DRAW', order: 20, label: 'CIRCLE', shortcut: 'C', icon: <span>○</span>, active: activeTool === 'circle', toggle: true },
+    { id: 'arc', tabId: 'home', groupId: 'draw', groupLabel: 'DRAW', order: 30, label: 'ARC', shortcut: 'A', icon: <span>◜</span>, active: activeTool === 'arc', toggle: true },
+    { id: 'move', tabId: 'home', groupId: 'modify', groupLabel: 'MODIFY', order: 40, label: 'MOVE', shortcut: 'M', icon: <span>↗</span>, active: activeTool === 'move', toggle: true },
+    { id: 'trim', tabId: 'home', groupId: 'modify', groupLabel: 'MODIFY', order: 50, label: 'TRIM', shortcut: 'TR', icon: <span>✂</span>, active: activeTool === 'trim', toggle: true },
+    { id: 'offset', tabId: 'home', groupId: 'modify', groupLabel: 'MODIFY', order: 60, label: 'OFFSET', shortcut: 'O', icon: <span>⇆</span>, active: activeTool === 'offset', toggle: true },
+    { id: 'insert', tabId: 'home', groupId: 'content', groupLabel: 'CONTENT', order: 70, label: 'INSERT', shortcut: 'I', icon: <span>⊞</span> },
+
+    { id: 'view-top', tabId: 'view', groupId: 'views', groupLabel: 'VIEWS', order: 10, label: 'TOP', icon: <span>▣</span>, active: activeView === 'top', toggle: true },
+    { id: 'view-iso', tabId: 'view', groupId: 'views', groupLabel: 'VIEWS', order: 20, label: 'ISO', icon: <span>◇</span>, active: activeView === 'iso', toggle: true },
+    { id: 'zoom-in', tabId: 'view', groupId: 'navigate', groupLabel: 'NAVIGATE', order: 30, label: 'ZOOM IN', shortcut: '+', icon: <span>+</span> },
+    { id: 'zoom-out', tabId: 'view', groupId: 'navigate', groupLabel: 'NAVIGATE', order: 40, label: 'ZOOM OUT', shortcut: '−', icon: <span>−</span> },
+    { id: 'zoom-extents', tabId: 'view', groupId: 'navigate', groupLabel: 'NAVIGATE', order: 50, label: 'EXTENTS', shortcut: 'E', icon: <span>⤢</span> },
+
+    { id: 'grid', tabId: 'draft', groupId: 'drafting', groupLabel: 'DRAFTING', order: 10, label: 'GRID', icon: <span>▦</span>, active: drafting.grid, toggle: true },
+    { id: 'snap', tabId: 'draft', groupId: 'drafting', groupLabel: 'DRAFTING', order: 20, label: 'SNAP', icon: <span>⌖</span>, active: drafting.snap, toggle: true },
+    { id: 'ortho', tabId: 'draft', groupId: 'drafting', groupLabel: 'DRAFTING', order: 30, label: 'ORTHO', icon: <span>⌜</span>, active: drafting.ortho, toggle: true },
+    { id: 'polar', tabId: 'draft', groupId: 'drafting', groupLabel: 'DRAFTING', order: 40, label: 'POLAR', icon: <span>∠</span>, active: drafting.polar, toggle: true },
+    { id: 'osnap', tabId: 'draft', groupId: 'drafting', groupLabel: 'DRAFTING', order: 50, label: 'OSNAP', icon: <span>✣</span>, active: drafting.osnap, toggle: true },
+    { id: 'measure', tabId: 'draft', groupId: 'inquiry', groupLabel: 'INQUIRY', order: 60, label: 'MEASURE', icon: <span>↔</span>, active: activeTool === 'measure', toggle: true }
+  ], [activeTool, activeView, drafting]);
+
+  const handleRibbonCommand = command => {
+    const commandId = command?.id;
+    if (!commandId) return;
+
+    if (Object.prototype.hasOwnProperty.call(drafting, commandId)) {
+      const nextActive = !drafting[commandId];
+      setDrafting(current => ({ ...current, [commandId]: !current[commandId] }));
+      report('Drafting mode', `${commandId.toUpperCase()} ${nextActive ? 'enabled' : 'disabled'}`);
+      return;
+    }
+
+    if (commandId === 'view-top' || commandId === 'view-iso') {
+      const nextView = commandId === 'view-top' ? 'top' : 'iso';
+      setActiveView(nextView);
+      report('Viewport', `${nextView.toUpperCase()} view active.`);
+      return;
+    }
+    if (commandId === 'zoom-in') {
+      setZoom(value => Math.min(1.35, value + 0.1));
+      report('Viewport', 'Zoomed in.');
+      return;
+    }
+    if (commandId === 'zoom-out') {
+      setZoom(value => Math.max(0.7, value - 0.1));
+      report('Viewport', 'Zoomed out.');
+      return;
+    }
+    if (commandId === 'zoom-extents') {
+      setZoom(1);
+      report('Viewport', 'Zoom extents restored.');
+      return;
+    }
+    if (commandId === 'insert') {
+      setActiveInspectorTab('blocks');
+      report('Command', 'INSERT opened the Blocks palette.');
+      return;
+    }
+    selectTool(command);
+  };
+
   const commandHistory = events.map(event => ({ id: event.id, label: event.message.split(':')[0], detail: event.message.split(':').slice(1).join(':').trim(), tone: event.tone }));
   const menuItems = [
     { id: 'file', label: 'File', items: [{ id: 'new-layout', label: 'New layout', shortcut: 'Ctrl+N' }, { type: 'separator' }, { id: 'export', label: 'Export drawing', shortcut: 'Ctrl+E' }] },
     { id: 'edit', label: 'Edit', items: [{ id: 'undo', label: 'Undo', shortcut: 'Ctrl+Z' }, { id: 'clear-selection', label: 'Clear selection', shortcut: 'Esc' }] },
-    { id: 'view', label: 'View', items: [{ id: 'properties', label: 'Properties', checked: activeInspectorTab === 'properties' }, { id: 'blocks', label: 'Blocks', checked: activeInspectorTab === 'blocks' }, { id: 'data', label: 'Data table', checked: activeInspectorTab === 'data' }] },
+    { id: 'view', label: 'View', items: [{ id: 'properties', label: 'Properties', checked: activeInspectorTab === 'properties' }, { id: 'blocks', label: 'Blocks', checked: activeInspectorTab === 'blocks' }, { id: 'data', label: 'Data table', checked: activeInspectorTab === 'data' }, { id: 'sets', label: 'Selection sets', checked: activeInspectorTab === 'sets' }] },
     { id: 'help', label: 'Help', items: [{ id: 'shortcuts', label: 'Keyboard shortcuts', shortcut: 'F1' }, { id: 'about', label: 'About this sandbox' }] }
   ];
 
@@ -226,7 +325,7 @@ function Playground() {
     if (!item?.id) return;
     if (item.id === 'new-layout') return addLayout();
     if (item.id === 'clear-selection') return setClearDialogOpen(true);
-    if (['properties', 'blocks', 'data'].includes(item.id)) return setActiveInspectorTab(item.id);
+    if (['properties', 'blocks', 'data', 'sets'].includes(item.id)) return setActiveInspectorTab(item.id);
     if (item.id === 'shortcuts' || item.id === 'about') return setHelpOpen(true);
     report('Menu action', `${item.label} is a host-owned command.`);
   };
@@ -298,6 +397,46 @@ function Playground() {
         onAccept={candidate => { setSelectionCount(1); report('Selection', `${candidate.label} accepted.`); }}
         onCancel={() => report('Selection', 'Cycle cancelled.')}
       />
+    </div>,
+    sets: <div className="cad-demo__sets-pane">
+      <CadSelectionSetPanel
+        sets={selectionSets}
+        activeId={activeSelectionSetId}
+        filter={selectionSetFilter}
+        onFilterChange={setSelectionSetFilter}
+        onChange={(id, selectionSet) => {
+          setActiveSelectionSetId(id);
+          record(`Selection set: ${selectionSet?.label || id} active.`);
+        }}
+        onApply={selectionSet => {
+          const count = Number(selectionSet?.count ?? 0);
+          setSelectionCount(count);
+          report('Selection set', `${selectionSet.label} applied (${count} objects).`);
+        }}
+        onCreate={() => {
+          const id = nextId('selection-set');
+          const selectionSet = {
+            id,
+            label: `Current selection ${selectionSets.length + 1}`,
+            description: 'A host-owned snapshot from the sandbox',
+            group: 'Session',
+            count: selectionCount
+          };
+          setSelectionSets(current => [...current, selectionSet]);
+          setActiveSelectionSetId(id);
+          report('Selection set', `${selectionSet.label} created.`);
+        }}
+        onRename={selectionSet => report('Selection set', `Rename request for ${selectionSet.label} sent to the host.`)}
+        onDelete={selectionSet => {
+          const fallbackId = selectionSets.find(item => item.id !== selectionSet.id)?.id || '';
+          setSelectionSets(current => current.filter(item => item.id !== selectionSet.id));
+          setActiveSelectionSetId(current => current === selectionSet.id ? fallbackId : current);
+          report('Selection set', `${selectionSet.label} deleted.`);
+        }}
+      />
+      <CadDockPanel title="Host boundary" collapsible defaultCollapsed>
+        <p className="cad-demo__sets-note">Named sets are plain records. The host decides how a selected set maps to real drawing entities.</p>
+      </CadDockPanel>
     </div>
   };
 
@@ -311,15 +450,31 @@ function Playground() {
       <CadMenuBar items={menuItems} onAction={handleMenuAction} />
 
       <section className="cad-demo-ribbon" aria-label="Command ribbon">
-        <CadToolbar groups={toolbarGroups} onAction={selectTool} />
-        <div className="cad-demo-ribbon__styles" aria-label="Current object style">
-          <span>STYLE</span>
-          <CadColorPickerButton value={propertyState.color} label="Object color" onChange={color => { setPropertyState(current => ({ ...current, color })); report('Style', 'Color changed.'); }} />
-          <CadLinetypePicker value={propertyState.linetype} onChange={linetype => { setPropertyState(current => ({ ...current, linetype })); report('Style', 'Linetype changed.'); }} />
-          <CadLineweightPicker value={propertyState.lineweight} onChange={lineweight => { setPropertyState(current => ({ ...current, lineweight })); report('Style', 'Lineweight changed.'); }} />
-          <CadAnnotationScalePicker value={propertyState.annotationScale} onChange={annotationScale => setPropertyState(current => ({ ...current, annotationScale }))} label="Scale" />
-          <CadPopover label="Sandbox scope" trigger={<button type="button" className="cad-demo-ribbon__scope">UI ONLY</button>} content={<p className="cad-demo-popover-copy">The SVG viewport is a neutral canvas stand-in. Every control here emits and retains host-owned React state.</p>} />
-        </div>
+        <CadWorkspaceRibbon
+          className="cad-demo-ribbon__workspace"
+          tabs={workspaceRibbonTabs}
+          commands={workspaceRibbonCommands}
+          activeTab={ribbonTab}
+          compact
+          identity={<span className="cad-demo-ribbon__identity"><b>COMMAND</b><em>MODULES</em></span>}
+          status={`ACTIVE: ${activeTool.toUpperCase()} · ${activeView.toUpperCase()} · ${viewportScale}`}
+          endSlot={<div className="cad-demo-ribbon__styles" aria-label="Current object and viewport style">
+            <span>STYLE / VIEW</span>
+            <CadColorPickerButton value={propertyState.color} label="Object color" onChange={color => { setPropertyState(current => ({ ...current, color })); report('Style', 'Color changed.'); }} />
+            <CadLinetypePicker value={propertyState.linetype} onChange={linetype => { setPropertyState(current => ({ ...current, linetype })); report('Style', 'Linetype changed.'); }} />
+            <CadLineweightPicker value={propertyState.lineweight} onChange={lineweight => { setPropertyState(current => ({ ...current, lineweight })); report('Style', 'Lineweight changed.'); }} />
+            <CadAnnotationScalePicker value={propertyState.annotationScale} onChange={annotationScale => { setPropertyState(current => ({ ...current, annotationScale })); report('Style', `Annotation scale ${annotationScale}.`); }} label="Scale" />
+            <CadVisualStylePicker value={visualStyle} label="Display" onChange={style => { setVisualStyle(style); report('Viewport', `Visual style ${style}.`); }} />
+            <CadViewportScalePicker value={viewportScale} label="VP scale" onChange={scale => { setViewportScale(scale); report('Viewport', `Viewport scale ${scale}.`); }} onManage={() => report('Viewport', 'Scale management requested.')} />
+            <CadPopover label="Sandbox scope" trigger={<button type="button" className="cad-demo-ribbon__scope">UI ONLY</button>} content={<p className="cad-demo-popover-copy">The SVG viewport is a neutral canvas stand-in. Every control here emits and retains host-owned React state.</p>} />
+          </div>}
+          onActiveTabChange={(id, tab) => {
+            setRibbonTab(id);
+            record(`Ribbon: ${tab?.label || id} tab active.`);
+          }}
+          onMinimizedChange={minimized => record(`Ribbon: ${minimized ? 'compact' : 'expanded'}.`)}
+          onCommand={handleRibbonCommand}
+        />
       </section>
 
       <section className="cad-demo-workspace">
@@ -356,9 +511,9 @@ function Playground() {
             minSize={48}
             maxSize={80}
             onSizeChange={setRightPaneSize}
-            primary={<section className="cad-demo-viewport" aria-label="SVG drawing viewport mockup">
-              <div className="cad-demo-viewport__meta"><span>MODEL SPACE / {activeView.toUpperCase()}</span><span>{Math.round(zoom * 100)}%</span></div>
-              <svg className="cad-demo-viewport__drawing" style={{ transform: `scale(${zoom})` }} viewBox="0 0 1000 620" role="img" aria-label="Technical drawing mockup">
+            primary={<section className="cad-demo-viewport" data-visual-style={visualStyle} data-viewport-scale={viewportScale} aria-label="SVG drawing viewport mockup">
+              <div className="cad-demo-viewport__meta"><span>MODEL SPACE / {activeView.toUpperCase()} / {visualStyle.toUpperCase()}</span><span>{Math.round(zoom * 100)}% · VP {viewportScale}</span></div>
+              <svg className="cad-demo-viewport__drawing" style={{ transform: `scale(${zoom * (VIEWPORT_SCALE_FACTORS[viewportScale] || 1)})` }} viewBox="0 0 1000 620" role="img" aria-label="Technical drawing mockup">
                 <defs><pattern id="cad-demo-grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M 25 0 L 0 0 0 25" fill="none" stroke="currentColor" strokeWidth="0.6" /></pattern></defs>
                 <rect width="1000" height="620" fill="url(#cad-demo-grid)" className="cad-demo-grid" />
                 <g className="cad-demo-plan" fill="none">
@@ -373,7 +528,20 @@ function Playground() {
                   <text x="832" y="310" transform="rotate(90 832 310)" className="cad-demo-plan__label">5600</text>
                 </g>
               </svg>
-              <div className="cad-demo-viewport__controls"><CadViewportControls activeView={activeView} onViewChange={setActiveView} onZoomIn={() => setZoom(value => Math.min(1.35, value + 0.1))} onZoomOut={() => setZoom(value => Math.max(0.7, value - 0.1))} onZoomExtents={() => setZoom(1)} /></div>
+              <div className="cad-demo-viewport__controls"><CadViewportControls activeView={activeView} onViewChange={view => { setActiveView(view); record(`Viewport: ${String(view).toUpperCase()} view active.`); }} onZoomIn={() => { setZoom(value => Math.min(1.35, value + 0.1)); record('Viewport: Zoomed in.'); }} onZoomOut={() => { setZoom(value => Math.max(0.7, value - 0.1)); record('Viewport: Zoomed out.'); }} onZoomExtents={() => { setZoom(1); record('Viewport: Zoom extents restored.'); }} /></div>
+              <div className="cad-demo-viewport__navigation">
+                <CadNavigationBar
+                  activeId={navigationMode}
+                  onActiveChange={id => setNavigationMode(id)}
+                  onPan={() => record('Navigation: Pan mode toggled.')}
+                  onZoomIn={() => { setZoom(value => Math.min(1.35, value + 0.1)); record('Navigation: Zoomed in.'); }}
+                  onZoomOut={() => { setZoom(value => Math.max(0.7, value - 0.1)); record('Navigation: Zoomed out.'); }}
+                  onZoomWindow={() => record('Navigation: Zoom window requested.')}
+                  onZoomExtents={() => { setZoom(1); record('Navigation: Zoom extents restored.'); }}
+                  onOrbit={() => record('Navigation: Orbit mode toggled.')}
+                  onHome={() => { setActiveView('top'); setZoom(1); report('Navigation', 'Home view restored.'); }}
+                />
+              </div>
               <CadSelectionSummary className="cad-demo-viewport__selection" count={selectionCount} entityLabel="objects" fields={[{ label: 'Tool', value: activeTool.toUpperCase() }]} />
               <CadMeasureReadout className="cad-demo-viewport__measure" distance="4200 mm" angle="90°" />
               <CadDynamicInput className="cad-demo-viewport__dynamic" value={dynamicPoint} onChange={setDynamicPoint} onSubmit={point => report('Point accepted', formatPoint(point))} prompt={`Specify ${activeTool} point`} />
@@ -385,7 +553,7 @@ function Playground() {
             </section>}
             secondary={<aside className="cad-demo-inspector">
               <CadDockTabs
-                items={[{ id: 'properties', label: 'Properties' }, { id: 'blocks', label: 'Blocks' }, { id: 'data', label: 'Data', badge: selectedRowIds.length || undefined }]}
+                items={[{ id: 'properties', label: 'Properties' }, { id: 'blocks', label: 'Blocks' }, { id: 'data', label: 'Data', badge: selectedRowIds.length || undefined }, { id: 'sets', label: 'Sets', badge: selectionSets.length || undefined }]}
                 activeId={activeInspectorTab}
                 onChange={setActiveInspectorTab}
                 renderPanel={item => inspectorContent[item.id]}
@@ -431,6 +599,12 @@ function Playground() {
 
 const rootElement = typeof document === 'undefined' ? null : document.getElementById('root');
 
-if (rootElement) createRoot(rootElement).render(<Playground />);
+// Vite may re-evaluate this module after an export-shape change elsewhere in
+// the package. Reusing the root keeps the interactive sandbox stable during
+// those development-only refreshes.
+const rootKey = '__cadCuiPlaygroundRoot';
+const root = rootElement && (rootElement[rootKey] || (rootElement[rootKey] = createRoot(rootElement)));
+
+if (root) root.render(<Playground />);
 
 export { Playground };

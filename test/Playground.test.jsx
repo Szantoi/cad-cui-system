@@ -57,4 +57,21 @@ describe('interactive CAD CUI playground', () => {
     expect(toast).toHaveTextContent('Insert complete');
     expect(screen.getByText('2 objects')).toBeInTheDocument();
   });
+
+  it('keeps workspace ribbon, viewport style, and named selection sets in host-owned state', () => {
+    render(<Playground />);
+
+    fireEvent.click(screen.getByRole('tab', { name: 'VIEW' }));
+    expect(screen.getByRole('tab', { name: 'VIEW' })).toHaveAttribute('aria-selected', 'true');
+
+    fireEvent.change(screen.getByLabelText('Display'), { target: { value: 'x-ray' } });
+    expect(screen.getByLabelText('SVG drawing viewport mockup')).toHaveAttribute('data-visual-style', 'x-ray');
+
+    fireEvent.click(screen.getByRole('tab', { name: /Sets/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Doors + windows' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Select' }));
+
+    expect(screen.getByText('Selection set: Doors + windows applied (12 objects).')).toBeInTheDocument();
+    expect(screen.getByText('12 objects')).toBeInTheDocument();
+  });
 });

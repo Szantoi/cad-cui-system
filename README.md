@@ -67,17 +67,150 @@ const registry = defineCadCuiSystem({
 </CadCuiProvider>
 ```
 
+### Grouped commands and host state
+
+Command groups are opt-in, so existing registries keep the original flat
+ribbon markup. Add `groups` plus a placement `groupId` when a workspace wants
+the more familiar DRAW / MODIFY / VIEW structure. The host can supply
+non-serializable, live state separately through `commandStates`; it is shared
+by the ribbon, quick access, context menus and command palette.
+
+```jsx
+const registry = defineCadCuiSystem({
+  id: 'model-space',
+  tabs: [{ id: 'home', label: 'HOME', tone: 'cyan' }],
+  groups: [
+    { id: 'draw', label: 'DRAW', tab: 'home', control: 'toggle', order: 10 },
+    { id: 'modify', label: 'MODIFY', tab: 'home', order: 20 }
+  ],
+  commands: [
+    {
+      id: 'line', label: 'LINE', intent: { type: 'draw.line' },
+      placements: [{ surface: 'ribbon', tab: 'home', groupId: 'draw', control: 'toggle' }]
+    }
+  ]
+});
+
+<CadCuiProvider
+  registry={registry}
+  commandStates={{
+    line: { active: activeTool === 'line', badge: pendingPointCount },
+    'modify.move': { disabled: selectionCount === 0 }
+  }}
+  handlers={{ 'draw.line': startLine }}
+>
+  <CadCuiRibbon />
+</CadCuiProvider>
+```
+
+Each state record accepts `visible`, `disabled` (or `enabled: false`), `active`
+and `badge`; `commandStates` may be an object, `Map`, or a resolver function.
+Handlers keep receiving the immutable registry record as `event.command`; the
+additive `event.resolvedCommand` includes the live effective state.
+
+## Renderer-agnostic workspace ribbon
+
+`CadWorkspaceRibbon` is a self-contained Model Space ribbon surface: it does
+not depend on `CadCuiProvider`, React Router, a docking manager, or a drawing
+engine. The host supplies its tabs, visible command records, icon mapping and
+callbacks. This makes it suitable for a graph, Canvas/SVG, WebGL or desktop
+CAD workspace without sharing host-specific chrome.
+
+Commands may use either plain UI fields (`tabId`, `groupId`, `groupLabel`,
+`order`) or the `placement` fields created by `defineCadCuiSystem`. Use
+`groupCadWorkspaceRibbonCommands` when the host keeps commands as one flat
+list; pass `groups` directly when it already owns the group layout.
+
+```jsx
+import { useState } from 'react';
+import {
+  CadWorkspaceRibbon,
+  groupCadWorkspaceRibbonCommands
+} from '@szantoi/cad-cui-system';
+
+const tabs = [
+  { id: 'view', label: 'VIEW', tone: 'cyan', color: '#53c9ff' },
+  { id: 'edit', label: 'EDIT', tone: 'magenta', color: '#f08cff' }
+];
+
+const visibleCommands = [
+  { id: 'layers', label: 'LAYERS', icon: 'layers', badge: 3,
+    placement: { tab: 'view', group: 'DISPLAY', order: 10 } },
+  { id: 'connect', label: 'CONNECT', icon: 'link', tone: 'magenta',
+    placement: { tab: 'edit', group: 'RELATIONS', order: 10 } }
+];
+
+function WorkspaceRibbon() {
+  const [activeTab, setActiveTab] = useState('view');
+  const [minimized, setMinimized] = useState(false);
+  const commandGroups = groupCadWorkspaceRibbonCommands(visibleCommands, { tabId: activeTab });
+
+  return <CadWorkspaceRibbon
+    tabs={tabs}
+    activeTab={activeTab}
+    onActiveTabChange={(id) => setActiveTab(id)}
+    groups={commandGroups}
+    minimized={minimized}
+    onMinimizedChange={setMinimized}
+    identity={<>◈ <strong>MODEL</strong></>}
+    status={<span>3 ACTIVE LAYERS · SNAP ON</span>}
+    renderIcon={(command) => {
+      const Icon = iconMap[command.icon];
+      return Icon ? <Icon size={15} /> : null;
+    }}
+    onCommand={(command) => runWorkspaceCommand(command.id)}
+  />;
+}
+```
+
+The public interaction contract is intentionally small:
+
+- `onActiveTabChange(id, tab, event)` and `onMinimizedChange(value, event)`
+  support controlled or standalone state.
+- `onCommand(command, context, event)` emits the original command record;
+  `context` includes the active tab, group and `source: 'workspace-ribbon'`.
+- `renderIcon(command, context)` and `renderCommand(command, context)` are
+  escape hatches for host icon libraries and exceptional commands. The latter
+  receives `context.execute` and accessible `context.buttonProps`.
+- `identity`, `renderIdentity`, `status`, `renderStatus`, `endSlot`, and
+  `renderMinimizeControl` are slots rather than application-specific props.
+
+## Engine-free viewport context
+
+`CadNavigationBar`, `CadVisualStylePicker`, `CadViewportScalePicker`, and
+`CadSelectionSetPanel` are deliberately UI-only. They expose controlled or
+uncontrolled values and report serializable user intent; pan, zoom, rendering,
+selection storage and named-set management stay in the host application.
+
+```jsx
+<CadNavigationBar
+  activeId={navigationMode}
+  onActiveChange={setNavigationMode}
+  onZoomIn={() => setViewportZoom(zoom => zoom + 0.1)}
+  onZoomExtents={fitViewport}
+/>
+<CadVisualStylePicker value={visualStyle} onChange={setVisualStyle} />
+<CadViewportScalePicker value={viewportScale} onChange={setViewportScale} />
+<CadSelectionSetPanel
+  sets={namedSelectionSets}
+  activeId={activeSetId}
+  onChange={setActiveSetId}
+  onApply={(set) => applySelectionIds(set.entityIds)}
+  onCreate={createSelectionSet}
+/>
+```
+
 ## CAD workspace catalog
 
 | Family | Components |
 | --- | --- |
 | Drawing workspace | `CadSplitPane`, `CadDrawingSpaceTabs` (`CadLayoutTabs` / `CadDocumentTabs` aliases), `CadWorkspaceProfileTabs`, workspace-profile helpers, `CadDockTabs`, `CadDockPanel`, `CadStatusBar`, `CadStatusToggle`, `CadCommandLine`, `CadCommandHistory`, `CadCommandOptions` |
-| Tools and menus | `CadToolbar`, `CadToolbarGroup`, `CadToolPalette`, `CadToolButton`, `CadToggleButton`, `CadSplitButton`, `CadShortcutHint`, `CadMenu`, `CadMenuItem`, `CadMenuSeparator`, `CadOverflowMenu`, `CadMenuBar`, `CadSubmenu` |
+| Tools and menus | `CadWorkspaceRibbon`, `groupCadWorkspaceRibbonCommands`, `CadToolbar`, `CadToolbarGroup`, `CadToolPalette`, `CadToolButton`, `CadToggleButton`, `CadSplitButton`, `CadShortcutHint`, `CadMenu`, `CadMenuItem`, `CadMenuSeparator`, `CadOverflowMenu`, `CadMenuBar`, `CadSubmenu` |
 | Precision input and style | `CadNumericInput`, `CadUnitInput`, `CadAngleInput`, `CadCoordinateInput`, `CadColorSwatch`, `CadLinetypePreview`, `CadLineweightPreview`, `CadColorPicker`, `CadColorPickerButton`, `CadLinetypePicker`, `CadLineweightPicker` |
 | Drafting overlays | `CadDynamicInput`, `CadObjectSnapMenu`, `CadGripToolbar`, `CadConstraintBar`, `CadAnnotationScalePicker`, `CadViewPresetPicker`, `CadPolarTracker`, `CadObjectSnapMarker`, `CadSelectionGrip` |
-| Viewport feedback | `CadViewCube`, `CadUcsIndicator`, `CadViewportControls`, `CadSelectionSummary`, `CadMeasureReadout` |
+| Viewport feedback and navigation | `CadViewCube`, `CadUcsIndicator`, `CadViewportControls`, `CadNavigationBar`, `CadVisualStylePicker`, `CadViewportScalePicker`, `CadSelectionSummary`, `CadMeasureReadout` |
 | Inspector and catalog palettes | `CadFilterBar`, `CadPropertyGrid`, `CadPropertySection`, `CadPropertyRow`, `CadPropertyField`, `CadLayerPicker`, `CadLayerPanel`, `CadLayerRow`, `CadObjectTree`, `CadTaskProgress`, `CadReferenceList`, `CadBlockPalette`, `CadBlockTile`, `CadBlockInsertOptions`, `CadQuickProperties` |
-| Data and selection | `CadDataGrid`, `CadSelectionFilter`, `CadSelectionCycler` |
+| Data and selection | `CadDataGrid`, `CadSelectionFilter`, `CadSelectionCycler`, `CadSelectionSetPanel` |
 | Dialogs and feedback | `CadDialog`, `CadConfirmDialog`, `CadToast`, `CadToastStack`, `CadPopover`, `CadTooltip`, `CadShortcutReference`, `CadCommandPrompt` |
 
 All workspace components use the `.cad-*` CSS namespace and inherit the host

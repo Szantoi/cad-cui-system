@@ -69,13 +69,20 @@ button { cursor: pointer; }
 .cad-demo-titlebar__help { width: 1.2rem; height: 1.2rem; border: 1px solid rgba(227, 242, 244, 0.22); border-radius: 50%; color: #cdd9dc; background: transparent; font-size: 0.68rem; font-weight: 800; }
 .cad-demo-titlebar__help:hover, .cad-demo-titlebar__help:focus-visible { border-color: var(--cad-ui-accent); color: #0f1518; background: var(--cad-ui-accent); outline: 0; }
 
-.cad-demo-ribbon { display: flex; min-width: 0; align-items: stretch; border-bottom: 1px solid var(--cad-ui-border-soft); background: #24292d; }
-.cad-demo-ribbon > .cad-toolbar { border: 0; border-right: 1px solid var(--cad-ui-border-soft); box-shadow: none; }
+.cad-demo-ribbon { min-width: 0; border-bottom: 1px solid var(--cad-ui-border-soft); background: #24292d; }
+.cad-demo-ribbon > .cad-workspace-ribbon { width: 100%; border: 0; box-shadow: none; }
+.cad-demo-ribbon__identity { display: inline-grid; gap: 0.04rem; min-width: 4.15rem; padding-inline: 0.12rem; line-height: 1; }
+.cad-demo-ribbon__identity b { color: #eaf0f1; font-family: Bahnschrift, sans-serif; font-size: 0.56rem; font-weight: 900; letter-spacing: 0.12em; }
+.cad-demo-ribbon__identity em { color: #64d8ff; font-size: 0.42rem; font-style: normal; font-weight: 800; letter-spacing: 0.12em; }
+.cad-demo-ribbon .cad-workspace-ribbon__end-slot { min-width: 0; margin-left: auto; }
 .cad-demo-ribbon__styles { display: flex; min-width: 0; align-items: center; gap: 0.32rem; padding: 0.3rem 0.46rem; overflow-x: auto; }
 .cad-demo-ribbon__styles > span { color: #87959c; font-size: 0.48rem; font-weight: 800; letter-spacing: 0.1em; }
-.cad-demo-ribbon__styles .cad-annotation-scale-picker { display: inline-grid; grid-template-columns: auto auto; align-items: center; gap: 0.22rem; }
-.cad-demo-ribbon__styles .cad-annotation-scale-picker label { color: #87959c; font-size: 0.48rem; }
-.cad-demo-ribbon__styles .cad-annotation-scale-picker select { min-height: 1.6rem; max-width: 4rem; }
+.cad-demo-ribbon__styles :is(.cad-annotation-scale-picker, .cad-visual-style-picker, .cad-viewport-scale-picker) { display: inline-grid; grid-template-columns: auto auto; align-items: center; gap: 0.22rem; }
+.cad-demo-ribbon__styles :is(.cad-annotation-scale-picker, .cad-visual-style-picker, .cad-viewport-scale-picker) label { color: #87959c; font-size: 0.48rem; }
+.cad-demo-ribbon__styles :is(.cad-annotation-scale-picker, .cad-visual-style-picker, .cad-viewport-scale-picker) select { min-height: 1.6rem; max-width: 5.6rem; }
+.cad-demo-ribbon__styles :is(.cad-visual-style-picker__control, .cad-viewport-scale-picker__control) { display: inline-flex; align-items: center; gap: 0.16rem; }
+.cad-demo-ribbon__styles .cad-visual-style-picker__preview { width: 0.58rem; height: 0.58rem; border: 1px solid rgba(234, 240, 241, 0.38); background: #64d8ff; }
+.cad-demo-ribbon__styles .cad-viewport-scale-picker__control > button { min-height: 1.6rem; border: 1px solid rgba(100, 216, 255, 0.36); color: #9fdff4; background: rgba(100, 216, 255, 0.06); font-size: 0.45rem; font-weight: 800; letter-spacing: 0.03em; }
 .cad-demo-ribbon__scope { min-height: 1.6rem; border: 1px solid rgba(255, 194, 97, 0.5); padding: 0.15rem 0.3rem; color: #ffc261; background: rgba(255, 194, 97, 0.07); font-size: 0.47rem; font-weight: 800; letter-spacing: 0.06em; }
 .cad-demo-popover-copy { width: 14rem; margin: 0; color: #dbe7e9; font: 600 0.59rem/1.5 var(--cad-ui-font); }
 
@@ -98,6 +105,17 @@ button { cursor: pointer; }
 .cad-demo-viewport__meta { position: absolute; z-index: 4; top: 0.5rem; left: 0.55rem; display: flex; gap: 0.48rem; color: #9dafb6; font-size: 0.5rem; font-weight: 800; letter-spacing: 0.08em; }
 .cad-demo-viewport__meta span:last-child { color: #b7df6a; }
 .cad-demo-viewport__drawing { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; transform-origin: 50% 50%; color: rgba(99, 219, 251, 0.14); transition: transform 160ms ease; }
+.cad-demo-viewport[data-visual-style='hidden'] .cad-demo-grid { opacity: 0.22; }
+.cad-demo-viewport[data-visual-style='hidden'] .cad-demo-plan__furniture { opacity: 0.28; }
+.cad-demo-viewport[data-visual-style='conceptual'] { background: radial-gradient(circle at 48% 44%, rgba(100, 216, 255, 0.13), transparent 48%), #10191d; }
+.cad-demo-viewport[data-visual-style='conceptual'] .cad-demo-viewport__drawing { filter: saturate(1.36) drop-shadow(0 0 0.35rem rgba(100, 216, 255, 0.16)); }
+.cad-demo-viewport[data-visual-style='realistic'] { background: radial-gradient(ellipse at 50% 56%, #344649, #0e1315 68%); }
+.cad-demo-viewport[data-visual-style='realistic'] .cad-demo-viewport__drawing { color: rgba(150, 211, 210, 0.1); filter: saturate(0.78) contrast(1.12) drop-shadow(0 0.2rem 0.22rem rgba(0, 0, 0, 0.46)); }
+.cad-demo-viewport[data-visual-style='shaded'], .cad-demo-viewport[data-visual-style='shaded-with-edges'] { background: radial-gradient(circle at 50% 50%, #2d4144, #11191c 70%); }
+.cad-demo-viewport[data-visual-style='shaded'] .cad-demo-plan { stroke-width: 9; }
+.cad-demo-viewport[data-visual-style='shaded-with-edges'] .cad-demo-plan { stroke-width: 10; filter: drop-shadow(0 0 0.2rem rgba(233, 240, 241, 0.24)); }
+.cad-demo-viewport[data-visual-style='x-ray'] .cad-demo-viewport__drawing { color: rgba(100, 216, 255, 0.26); opacity: 0.74; filter: saturate(1.45); }
+.cad-demo-viewport[data-visual-style='x-ray'] .cad-demo-plan { opacity: 0.68; }
 .cad-demo-grid { color: rgba(99, 219, 251, 0.15); }
 .cad-demo-plan { stroke: #e1e9ea; stroke-width: 8; vector-effect: non-scaling-stroke; }
 .cad-demo-plan__door { stroke: #ffc261; stroke-width: 4; }
@@ -106,6 +124,9 @@ button { cursor: pointer; }
 .cad-demo-plan__dimension { stroke: #ef97ff; stroke-width: 2; }
 .cad-demo-plan__label { fill: #ef97ff; stroke: none; font: 700 16px "Cascadia Mono", monospace; letter-spacing: 2px; }
 .cad-demo-viewport__controls { position: absolute; z-index: 5; top: 0.55rem; right: 0.55rem; }
+.cad-demo-viewport__navigation { position: absolute; z-index: 6; top: 3.2rem; right: 0.55rem; }
+.cad-demo-viewport__navigation .cad-navigation-bar { border: 1px solid rgba(185, 218, 226, 0.28); box-shadow: 0 0.42rem 1.1rem rgba(0, 0, 0, 0.28); }
+.cad-demo-viewport__navigation .cad-navigation-bar__label { display: none; }
 .cad-demo-viewport__selection { position: absolute; z-index: 5; bottom: 0.55rem; left: 0.55rem; }
 .cad-demo-viewport__measure { position: absolute; z-index: 5; right: 0.55rem; bottom: 0.55rem; }
 .cad-demo-viewport__dynamic { position: absolute; z-index: 6; top: 52%; left: 45%; transform: translate(-15%, -50%); }
@@ -118,8 +139,9 @@ button { cursor: pointer; }
 
 .cad-demo-inspector { display: grid; min-width: 15.5rem; height: 100%; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden; background: #202529; }
 .cad-demo-inspector > .cad-dock-tabs { min-height: 0; overflow: auto; }
-.cad-demo__properties-pane, .cad-demo__blocks-pane, .cad-demo__data-pane { display: grid; gap: 0.45rem; padding: 0.45rem; }
-.cad-demo__properties-pane .cad-quick-properties, .cad-demo__properties-pane .cad-dock-panel, .cad-demo__blocks-pane .cad-block-palette, .cad-demo__blocks-pane .cad-dock-panel, .cad-demo__data-pane > * { border: 1px solid var(--cad-ui-border-soft); }
+.cad-demo__properties-pane, .cad-demo__blocks-pane, .cad-demo__data-pane, .cad-demo__sets-pane { display: grid; gap: 0.45rem; padding: 0.45rem; }
+.cad-demo__properties-pane .cad-quick-properties, .cad-demo__properties-pane .cad-dock-panel, .cad-demo__blocks-pane .cad-block-palette, .cad-demo__blocks-pane .cad-dock-panel, .cad-demo__data-pane > *, .cad-demo__sets-pane > * { border: 1px solid var(--cad-ui-border-soft); }
+.cad-demo__sets-note { margin: 0; padding: 0.1rem; color: #91a0a8; font-size: 0.56rem; line-height: 1.48; }
 .cad-demo__restore-palette { width: 100%; min-height: 2.2rem; border: 1px dashed rgba(100, 216, 255, 0.55); color: #64d8ff; background: rgba(100, 216, 255, 0.06); font-size: 0.58rem; font-weight: 800; letter-spacing: 0.05em; }
 .cad-demo-events { border-top: 1px solid var(--cad-ui-border-soft); color: #9baab0; background: #161a1d; }
 .cad-demo-events header { display: flex; align-items: center; justify-content: space-between; padding: 0.32rem 0.46rem; color: #7e9098; font-size: 0.47rem; font-weight: 900; letter-spacing: 0.08em; }

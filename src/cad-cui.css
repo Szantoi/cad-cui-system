@@ -491,6 +491,74 @@ label.cad-ui-data-row:focus-within {
 .cad-cui-command-grid--ribbon { margin-top: 0.5rem; gap: 0.5rem; }
 .cad-cui-stack--regular { gap: 0.5rem; }
 
+.cad-cui-command-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  gap: 0.5rem;
+}
+
+.cad-cui-command-group {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--cui-accent) 20%, var(--cui-border));
+  background: linear-gradient(150deg, color-mix(in srgb, var(--cui-accent) 5%, transparent), rgba(0, 0, 0, 0.12));
+}
+
+.cad-cui-command-group > header {
+  display: flex;
+  min-height: 1.55rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--cui-accent) 17%, var(--cui-border));
+  padding: 0.25rem 0.42rem;
+  color: var(--cui-accent);
+  font: 900 0.39rem/1 var(--cui-font);
+  letter-spacing: 0.1em;
+}
+
+.cad-cui-command-group > header small {
+  overflow: hidden;
+  color: var(--cui-muted);
+  font: 700 0.35rem/1.2 var(--cui-font);
+  letter-spacing: 0.025em;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cad-cui-command-group .cad-cui-command-grid {
+  grid-template-columns: repeat(auto-fit, minmax(5.4rem, 1fr));
+  padding: 0.32rem;
+}
+
+.cad-cui-command-group .cad-ui-action,
+.cad-cui-quick-access .cad-ui-action {
+  position: relative;
+}
+
+.cad-cui-command-group .cad-ui-action[data-active='true'],
+.cad-cui-quick-access .cad-ui-action[data-active='true'] {
+  border-color: var(--cad-ui-item-accent);
+  color: #07111d;
+  background: var(--cad-ui-item-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 22%, transparent);
+}
+
+.cad-ui-action [data-cui-command-badge] {
+  display: inline-grid;
+  min-width: 0.95rem;
+  height: 0.95rem;
+  place-items: center;
+  margin-left: 0.12rem;
+  border: 1px solid color-mix(in srgb, currentColor 56%, transparent);
+  border-radius: 999px;
+  padding-inline: 0.18rem;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  font: 900 0.37rem/1 var(--cui-font);
+  font-style: normal;
+}
+
 .cad-cui-quick-access {
   display: flex;
   flex-wrap: wrap;
@@ -544,7 +612,8 @@ label.cad-ui-data-row:focus-within {
 :where(
   .cad-drawing-space-tabs, .cad-dock-panel, .cad-dock-tabs, .cad-status-bar,
   .cad-command-line, .cad-view-cube, .cad-viewport-controls,
-  .cad-selection-summary, .cad-measure-readout, .cad-toolbar,
+  .cad-selection-summary, .cad-measure-readout, .cad-toolbar, .cad-workspace-ribbon,
+  .cad-navigation-bar, .cad-visual-style-picker, .cad-viewport-scale-picker, .cad-selection-set-panel,
   .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu,
   .cad-overflow-menu, .cad-filter-bar, .cad-property-grid, .cad-layer-picker,
   .cad-layer-panel, .cad-object-tree, .cad-task-progress, .cad-reference-list
@@ -565,7 +634,8 @@ label.cad-ui-data-row:focus-within {
 :where(
   .cad-drawing-space-tabs, .cad-dock-panel, .cad-dock-tabs, .cad-status-bar,
   .cad-command-line, .cad-view-cube, .cad-viewport-controls,
-  .cad-selection-summary, .cad-measure-readout, .cad-toolbar,
+  .cad-selection-summary, .cad-measure-readout, .cad-toolbar, .cad-workspace-ribbon,
+  .cad-navigation-bar, .cad-visual-style-picker, .cad-viewport-scale-picker, .cad-selection-set-panel,
   .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu,
   .cad-overflow-menu, .cad-filter-bar, .cad-property-grid, .cad-layer-picker,
   .cad-layer-panel, .cad-object-tree, .cad-task-progress, .cad-reference-list
@@ -573,7 +643,8 @@ label.cad-ui-data-row:focus-within {
 :where(
   .cad-drawing-space-tabs, .cad-dock-panel, .cad-dock-tabs, .cad-status-bar,
   .cad-command-line, .cad-view-cube, .cad-viewport-controls,
-  .cad-selection-summary, .cad-measure-readout, .cad-toolbar,
+  .cad-selection-summary, .cad-measure-readout, .cad-toolbar, .cad-workspace-ribbon,
+  .cad-navigation-bar, .cad-visual-style-picker, .cad-viewport-scale-picker, .cad-selection-set-panel,
   .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu,
   .cad-overflow-menu, .cad-filter-bar, .cad-property-grid, .cad-layer-picker,
   .cad-layer-panel, .cad-object-tree, .cad-task-progress, .cad-reference-list
@@ -581,7 +652,8 @@ label.cad-ui-data-row:focus-within {
 :where(
   .cad-drawing-space-tabs, .cad-dock-panel, .cad-dock-tabs, .cad-status-bar,
   .cad-command-line, .cad-view-cube, .cad-viewport-controls,
-  .cad-selection-summary, .cad-measure-readout, .cad-toolbar,
+  .cad-selection-summary, .cad-measure-readout, .cad-toolbar, .cad-workspace-ribbon,
+  .cad-navigation-bar, .cad-visual-style-picker, .cad-viewport-scale-picker, .cad-selection-set-panel,
   .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu,
   .cad-overflow-menu, .cad-filter-bar, .cad-property-grid, .cad-layer-picker,
   .cad-layer-panel, .cad-object-tree, .cad-task-progress, .cad-reference-list
@@ -598,6 +670,561 @@ label.cad-ui-data-row:focus-within {
   letter-spacing: 0.02em;
   opacity: 0.75;
   white-space: nowrap;
+}
+
+/* Workspace ribbon -------------------------------------------------------- */
+
+.cad-workspace-ribbon {
+  --cad-ribbon-accent: var(--cad-workspace-accent);
+  display: grid;
+  min-width: 0;
+  border: 1px solid var(--cad-workspace-border);
+  color: var(--cad-workspace-text);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--cad-ribbon-accent) 7%, transparent), transparent 26%),
+    linear-gradient(180deg, color-mix(in srgb, var(--cad-workspace-raised) 98%, #fff), var(--cad-workspace-bg));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 0 rgba(0, 0, 0, 0.38);
+}
+
+.cad-workspace-ribbon__tabbar {
+  display: flex;
+  min-width: 0;
+  min-height: 2.08rem;
+  align-items: stretch;
+  border-bottom: 1px solid var(--cad-workspace-border);
+  background: color-mix(in srgb, var(--cad-workspace-inset) 73%, transparent);
+}
+
+.cad-workspace-ribbon__identity {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.34rem;
+  border-right: 1px solid var(--cad-workspace-border);
+  padding: 0.28rem 0.58rem;
+  color: var(--cad-ribbon-accent);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cad-workspace-ribbon__tabs {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.cad-workspace-ribbon__tab {
+  --cad-ribbon-tab-accent: var(--cad-ribbon-accent);
+  position: relative;
+  display: inline-flex;
+  min-width: max-content;
+  align-items: center;
+  gap: 0.28rem;
+  border: 0;
+  border-right: 1px solid color-mix(in srgb, var(--cad-workspace-border) 88%, transparent);
+  padding: 0.3rem 0.68rem 0.27rem;
+  color: var(--cad-workspace-muted);
+  background: transparent;
+  font: 800 0.58rem/1 var(--cad-ui-font, "IBM Plex Mono", monospace);
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.cad-workspace-ribbon__tab::after {
+  position: absolute;
+  right: 0.38rem;
+  bottom: 0;
+  left: 0.38rem;
+  height: 2px;
+  content: "";
+  background: var(--cad-ribbon-tab-accent);
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.cad-workspace-ribbon__tab[data-tone='cyan'] { --cad-ribbon-tab-accent: #53c9ff; }
+.cad-workspace-ribbon__tab[data-tone='green'] { --cad-ribbon-tab-accent: #9add4b; }
+.cad-workspace-ribbon__tab[data-tone='amber'] { --cad-ribbon-tab-accent: #ffb554; }
+.cad-workspace-ribbon__tab[data-tone='magenta'] { --cad-ribbon-tab-accent: #f08cff; }
+.cad-workspace-ribbon__tab[data-tone='violet'] { --cad-ribbon-tab-accent: #b9a1ff; }
+.cad-workspace-ribbon__tab[data-active='true'],
+.cad-workspace-ribbon__tab:hover:not(:disabled),
+.cad-workspace-ribbon__tab:focus-visible {
+  color: #fff;
+  background: color-mix(in srgb, var(--cad-ribbon-tab-accent) 13%, transparent);
+  outline: 0;
+}
+
+.cad-workspace-ribbon__tab[data-active='true']::after,
+.cad-workspace-ribbon__tab:hover:not(:disabled)::after,
+.cad-workspace-ribbon__tab:focus-visible::after { opacity: 1; transform: scaleX(1); }
+.cad-workspace-ribbon__tab:disabled { opacity: 0.36; cursor: not-allowed; }
+.cad-workspace-ribbon__tab-icon { display: inline-grid; place-items: center; color: var(--cad-ribbon-tab-accent); }
+
+.cad-workspace-ribbon__end-slot {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  margin-left: auto;
+  padding-inline: 0.35rem;
+  gap: 0.25rem;
+}
+
+.cad-workspace-ribbon__minimize {
+  display: inline-flex;
+  min-width: 4.55rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.24rem;
+  border: 0;
+  border-left: 1px solid var(--cad-workspace-border);
+  padding: 0.22rem 0.42rem;
+  color: var(--cad-workspace-muted);
+  background: transparent;
+  font: 800 0.48rem/1 var(--cad-ui-font, "IBM Plex Mono", monospace);
+  letter-spacing: 0.07em;
+  cursor: pointer;
+}
+
+.cad-workspace-ribbon__minimize > span { color: var(--cad-ribbon-accent); font-size: 0.78rem; }
+.cad-workspace-ribbon__minimize:hover,
+.cad-workspace-ribbon__minimize:focus-visible { color: #fff; background: color-mix(in srgb, var(--cad-ribbon-accent) 12%, transparent); outline: 0; }
+
+.cad-workspace-ribbon__commands {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+  min-height: 4.58rem;
+  outline: 0;
+}
+
+.cad-workspace-ribbon__commands:focus-visible { box-shadow: inset 0 0 0 1px var(--cad-ribbon-accent); }
+
+.cad-workspace-ribbon__groups {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.cad-workspace-ribbon__group {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--cad-workspace-border);
+}
+
+.cad-workspace-ribbon__group-tools {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  padding: 0.21rem 0.24rem 0.13rem;
+  gap: 0.13rem;
+}
+
+.cad-workspace-ribbon__tool {
+  --cad-ribbon-tool-accent: var(--cad-ribbon-accent);
+  position: relative;
+  display: inline-flex;
+  min-width: 3.3rem;
+  min-height: 3.32rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border: 1px solid transparent;
+  padding: 0.22rem 0.34rem;
+  color: var(--cad-workspace-text);
+  background: transparent;
+  font: 800 0.52rem/1.04 var(--cad-ui-font, "IBM Plex Mono", monospace);
+  letter-spacing: 0.025em;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.cad-workspace-ribbon__tool[data-tone='cyan'] { --cad-ribbon-tool-accent: #53c9ff; }
+.cad-workspace-ribbon__tool[data-tone='green'] { --cad-ribbon-tool-accent: #9add4b; }
+.cad-workspace-ribbon__tool[data-tone='amber'] { --cad-ribbon-tool-accent: #ffb554; }
+.cad-workspace-ribbon__tool[data-tone='magenta'] { --cad-ribbon-tool-accent: #f08cff; }
+.cad-workspace-ribbon__tool[data-tone='violet'] { --cad-ribbon-tool-accent: #b9a1ff; }
+.cad-workspace-ribbon__tool[data-tone='neutral'] { --cad-ribbon-tool-accent: #b4bdc7; }
+
+.cad-workspace-ribbon__tool-icon,
+.cad-workspace-ribbon__tool-badge-only {
+  position: relative;
+  display: inline-grid;
+  min-width: 1rem;
+  min-height: 1rem;
+  place-items: center;
+  color: var(--cad-ribbon-tool-accent);
+}
+
+.cad-workspace-ribbon__tool-icon em,
+.cad-workspace-ribbon__tool-badge-only em {
+  position: absolute;
+  right: -0.42rem;
+  bottom: -0.32rem;
+  display: grid;
+  min-width: 0.86rem;
+  height: 0.86rem;
+  place-items: center;
+  border: 1px solid var(--cad-workspace-bg);
+  border-radius: 50%;
+  color: #101417;
+  background: var(--cad-ribbon-tool-accent);
+  font-size: 0.43rem;
+  font-style: normal;
+}
+
+.cad-workspace-ribbon__tool-label { max-width: 5.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cad-workspace-ribbon__tool .cad-shortcut-hint { position: absolute; right: 0.16rem; bottom: 0.13rem; padding: 0.02rem 0.12rem; font-size: 0.4rem; opacity: 0; transition: opacity 120ms ease; }
+.cad-workspace-ribbon__tool:hover:not(:disabled),
+.cad-workspace-ribbon__tool:focus-visible,
+.cad-workspace-ribbon__tool[data-active='true'] {
+  border-color: color-mix(in srgb, var(--cad-ribbon-tool-accent) 66%, var(--cad-workspace-border));
+  color: #fff;
+  background: color-mix(in srgb, var(--cad-ribbon-tool-accent) 13%, transparent);
+  outline: 0;
+}
+
+.cad-workspace-ribbon__tool:hover:not(:disabled) .cad-shortcut-hint,
+.cad-workspace-ribbon__tool:focus-visible .cad-shortcut-hint { opacity: 0.76; }
+.cad-workspace-ribbon__tool:active:not(:disabled) { transform: translateY(1px); }
+.cad-workspace-ribbon__tool:disabled { opacity: 0.36; cursor: not-allowed; }
+
+.cad-workspace-ribbon__group-label {
+  min-height: 1.08rem;
+  border-top: 1px solid color-mix(in srgb, var(--cad-workspace-border) 72%, transparent);
+  padding: 0.22rem 0.35rem;
+  color: var(--cad-workspace-muted);
+  font-size: 0.43rem;
+  font-weight: 900;
+  letter-spacing: 0.085em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.cad-workspace-ribbon__status {
+  display: flex;
+  min-width: 8.4rem;
+  max-width: 18rem;
+  align-items: center;
+  border-left: 1px solid var(--cad-workspace-border);
+  padding: 0.38rem 0.55rem;
+  color: var(--cad-workspace-muted);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+}
+
+.cad-workspace-ribbon__content { min-width: 0; }
+.cad-workspace-ribbon--compact .cad-workspace-ribbon__commands { min-height: 3.56rem; }
+.cad-workspace-ribbon--compact .cad-workspace-ribbon__tool { min-width: 2.55rem; min-height: 2.56rem; padding: 0.18rem 0.26rem; }
+.cad-workspace-ribbon--compact .cad-workspace-ribbon__tool-label { max-width: 3.7rem; font-size: 0.46rem; }
+.cad-workspace-ribbon--compact .cad-workspace-ribbon__group-label { display: none; }
+.cad-workspace-ribbon--compact .cad-workspace-ribbon__group-tools { padding-block: 0.16rem; }
+.cad-workspace-ribbon--minimized .cad-workspace-ribbon__tabbar { border-bottom: 0; }
+
+/* Viewport navigation and named selection sets -------------------------- */
+
+.cad-navigation-bar {
+  --cad-context-accent: var(--cad-workspace-accent);
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--cad-workspace-border);
+  color: var(--cad-workspace-text);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cad-workspace-raised) 96%, #fff), var(--cad-workspace-bg));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0.28rem 0.8rem rgba(0, 0, 0, 0.2);
+}
+
+.cad-navigation-bar__tools {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  gap: 0.1rem;
+  padding: 0.16rem;
+}
+
+.cad-navigation-bar--vertical { width: max-content; max-height: 100%; }
+.cad-navigation-bar--vertical .cad-navigation-bar__tools { flex-direction: column; }
+
+.cad-navigation-bar__action {
+  position: relative;
+  display: grid;
+  min-width: 2.1rem;
+  min-height: 2.1rem;
+  grid-template-columns: 0.95rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.28rem;
+  border: 1px solid transparent;
+  padding: 0.24rem 0.34rem;
+  color: var(--cad-workspace-muted);
+  background: transparent;
+  font: 800 0.52rem/1 var(--cad-ui-font, "IBM Plex Mono", monospace);
+  letter-spacing: 0.025em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease, background-color 120ms ease, transform 120ms ease;
+}
+
+.cad-navigation-bar--horizontal .cad-navigation-bar__action {
+  min-width: 2.58rem;
+  grid-template-columns: 1rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.cad-navigation-bar__glyph {
+  display: grid;
+  width: 0.95rem;
+  height: 0.95rem;
+  place-items: center;
+  color: var(--cad-context-accent);
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+.cad-navigation-bar__action > svg { color: var(--cad-context-accent); }
+.cad-navigation-bar__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cad-navigation-bar--horizontal .cad-navigation-bar__label { max-width: 3.9rem; font-size: 0.45rem; }
+
+.cad-navigation-bar__action:hover:not(:disabled),
+.cad-navigation-bar__action:focus-visible,
+.cad-navigation-bar__action[data-active='true'] {
+  border-color: color-mix(in srgb, var(--cad-context-accent) 68%, var(--cad-workspace-border));
+  color: #fff;
+  background: color-mix(in srgb, var(--cad-context-accent) 14%, transparent);
+  outline: 0;
+}
+
+.cad-navigation-bar__action:focus-visible { box-shadow: 0 0 0 1px color-mix(in srgb, var(--cad-context-accent) 42%, transparent); }
+.cad-navigation-bar__action:active:not(:disabled) { transform: translateY(1px); }
+.cad-navigation-bar__action:disabled { opacity: 0.38; cursor: not-allowed; }
+.cad-navigation-bar__separator { width: 1px; min-height: 1.4rem; margin: 0.2rem 0.06rem; background: var(--cad-workspace-border); }
+.cad-navigation-bar--vertical .cad-navigation-bar__separator { width: auto; height: 1px; min-height: 1px; margin: 0.06rem 0.2rem; }
+
+.cad-visual-style-picker,
+.cad-viewport-scale-picker {
+  --cad-context-accent: var(--cad-workspace-accent);
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+  color: var(--cad-workspace-text);
+}
+
+.cad-visual-style-picker > label,
+.cad-viewport-scale-picker > label {
+  color: var(--cad-workspace-muted);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.cad-visual-style-picker__control,
+.cad-viewport-scale-picker__control {
+  display: flex;
+  min-width: 0;
+  min-height: 2rem;
+  align-items: stretch;
+  border: 1px solid var(--cad-workspace-strong-border);
+  color: var(--cad-workspace-text);
+  background: var(--cad-workspace-inset);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.cad-visual-style-picker:focus-within .cad-visual-style-picker__control,
+.cad-viewport-scale-picker:focus-within .cad-viewport-scale-picker__control {
+  border-color: var(--cad-context-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cad-context-accent) 24%, transparent);
+}
+
+.cad-visual-style-picker__control > select,
+.cad-viewport-scale-picker__control > select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 0.2rem 0.38rem;
+  color: inherit;
+  background: transparent;
+  color-scheme: dark;
+  font: 800 0.6rem/1 var(--cad-ui-font, "IBM Plex Mono", monospace);
+  letter-spacing: 0.025em;
+  outline: 0;
+  cursor: pointer;
+}
+
+.cad-visual-style-picker__control > select:disabled,
+.cad-viewport-scale-picker__control > select:disabled { color: var(--cad-workspace-muted); cursor: not-allowed; opacity: 0.46; }
+.cad-visual-style-picker__control > select option,
+.cad-viewport-scale-picker__control > select option { color: var(--cad-workspace-text); background: var(--cad-workspace-bg); }
+
+.cad-visual-style-picker__preview {
+  display: block;
+  width: 2.08rem;
+  flex: 0 0 2.08rem;
+  border-right: 1px solid var(--cad-workspace-border);
+  background: linear-gradient(135deg, #78dafd 0 2px, transparent 2px 100%), repeating-linear-gradient(0deg, rgba(120, 218, 253, 0.22) 0 1px, transparent 1px 4px), #1b242a;
+}
+
+.cad-visual-style-picker__preview[data-style='hidden'] { background: repeating-linear-gradient(135deg, rgba(172, 182, 192, 0.42) 0 1px, transparent 1px 4px), #1f252a; }
+.cad-visual-style-picker__preview[data-style='conceptual'] { background: linear-gradient(145deg, #2d8d99, #355ca5 48%, #173c4a); }
+.cad-visual-style-picker__preview[data-style='realistic'] { background: linear-gradient(145deg, #93815c, #355e48 48%, #1d2f32); }
+.cad-visual-style-picker__preview[data-style='shaded'] { background: linear-gradient(145deg, #5e9baa, #263a68 48%, #172331); }
+.cad-visual-style-picker__preview[data-style='shaded-with-edges'] { background: linear-gradient(135deg, rgba(107, 220, 255, 0.7) 0 2px, transparent 2px 100%), linear-gradient(145deg, #4c7290, #202c4c); }
+.cad-visual-style-picker__preview[data-style='x-ray'] { background: repeating-linear-gradient(45deg, rgba(118, 253, 218, 0.3) 0 1px, transparent 1px 4px), #1d4950; }
+
+.cad-viewport-scale-picker__control > button {
+  flex: 0 0 auto;
+  border: 0;
+  border-left: 1px solid var(--cad-workspace-border);
+  padding: 0.2rem 0.42rem;
+  color: var(--cad-context-accent);
+  background: transparent;
+  font: 900 0.5rem/1 var(--cad-ui-font, "IBM Plex Mono", monospace);
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.cad-viewport-scale-picker__control > button:hover:not(:disabled),
+.cad-viewport-scale-picker__control > button:focus-visible { color: #fff; background: color-mix(in srgb, var(--cad-context-accent) 15%, transparent); outline: 0; }
+.cad-viewport-scale-picker__control > button:disabled { color: var(--cad-workspace-muted); cursor: not-allowed; opacity: 0.46; }
+
+.cad-selection-set-panel {
+  --cad-selection-set-accent: var(--cad-workspace-accent);
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--cad-workspace-border);
+  color: var(--cad-workspace-text);
+  background: linear-gradient(165deg, color-mix(in srgb, var(--cad-workspace-raised) 84%, transparent), var(--cad-workspace-bg));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0.38rem 0.9rem rgba(0, 0, 0, 0.24);
+}
+
+.cad-selection-set-panel__header {
+  display: flex;
+  min-height: 2.08rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.42rem;
+  border-bottom: 1px solid var(--cad-workspace-border);
+  padding: 0.3rem 0.42rem;
+  background: color-mix(in srgb, var(--cad-workspace-raised) 78%, transparent);
+}
+
+.cad-selection-set-panel__header > span { display: inline-flex; min-width: 0; align-items: center; gap: 0.35rem; }
+.cad-selection-set-panel__header h2 { overflow: hidden; margin: 0; font-size: 0.58rem; font-weight: 900; letter-spacing: 0.07em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.cad-selection-set-panel__header output { display: grid; min-width: 1.08rem; height: 1.08rem; place-items: center; border: 1px solid color-mix(in srgb, var(--cad-selection-set-accent) 50%, var(--cad-workspace-border)); color: var(--cad-selection-set-accent); font-size: 0.46rem; font-weight: 900; }
+
+.cad-selection-set-panel__create,
+.cad-selection-set-panel__actions > button {
+  min-height: 1.58rem;
+  border: 1px solid var(--cad-workspace-border);
+  padding: 0.18rem 0.35rem;
+  color: var(--cad-workspace-muted);
+  background: transparent;
+  font: 900 0.48rem/1 var(--cad-ui-font, "IBM Plex Mono", monospace);
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+
+.cad-selection-set-panel__create { color: var(--cad-selection-set-accent); }
+.cad-selection-set-panel__create:hover:not(:disabled),
+.cad-selection-set-panel__create:focus-visible,
+.cad-selection-set-panel__actions > button:hover:not(:disabled),
+.cad-selection-set-panel__actions > button:focus-visible {
+  border-color: var(--cad-selection-set-accent);
+  color: #fff;
+  background: color-mix(in srgb, var(--cad-selection-set-accent) 14%, transparent);
+  outline: 0;
+}
+
+.cad-selection-set-panel__create:disabled,
+.cad-selection-set-panel__actions > button:disabled { cursor: not-allowed; opacity: 0.38; }
+
+.cad-selection-set-panel__filter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.22rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--cad-workspace-border) 72%, transparent);
+  padding: 0.32rem 0.42rem;
+}
+
+.cad-selection-set-panel__filter > label { grid-column: 1 / -1; color: var(--cad-workspace-muted); font-size: 0.48rem; font-weight: 800; letter-spacing: 0.065em; text-transform: uppercase; }
+.cad-selection-set-panel__filter > input { width: 100%; min-width: 0; min-height: 1.76rem; border: 1px solid var(--cad-workspace-border); padding: 0.2rem 0.34rem; color: var(--cad-workspace-text); background: var(--cad-workspace-inset); font: 700 0.58rem/1 var(--cad-ui-font, "IBM Plex Mono", monospace); outline: 0; }
+.cad-selection-set-panel__filter:focus-within > input { border-color: var(--cad-selection-set-accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--cad-selection-set-accent) 22%, transparent); }
+.cad-selection-set-panel__filter > button { width: 1.76rem; height: 1.76rem; border: 1px solid var(--cad-workspace-border); color: var(--cad-workspace-muted); background: transparent; font-size: 0.9rem; cursor: pointer; }
+.cad-selection-set-panel__filter > button:hover, .cad-selection-set-panel__filter > button:focus-visible { border-color: var(--cad-selection-set-accent); color: #fff; background: color-mix(in srgb, var(--cad-selection-set-accent) 12%, transparent); outline: 0; }
+
+.cad-selection-set-panel__list { display: grid; max-height: min(16rem, 45vh); margin: 0; padding: 0; overflow: auto; list-style: none; }
+.cad-selection-set-panel__list > li { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; border-bottom: 1px solid color-mix(in srgb, var(--cad-workspace-border) 70%, transparent); }
+.cad-selection-set-panel__list > li:last-child { border-bottom: 0; }
+
+.cad-selection-set-panel__set {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.12rem 0.36rem;
+  border: 0;
+  border-left: 2px solid transparent;
+  padding: 0.38rem 0.42rem;
+  color: var(--cad-workspace-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+}
+
+.cad-selection-set-panel__set-name { overflow: hidden; font: 800 0.59rem/1.1 var(--cad-ui-font, "IBM Plex Mono", monospace); letter-spacing: 0.025em; text-overflow: ellipsis; white-space: nowrap; }
+.cad-selection-set-panel__set small { grid-column: 1 / -1; overflow: hidden; color: var(--cad-workspace-muted); font-size: 0.48rem; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.cad-selection-set-panel__set em { color: var(--cad-selection-set-accent); font-size: 0.43rem; font-style: normal; font-weight: 900; letter-spacing: 0.055em; text-transform: uppercase; white-space: nowrap; }
+.cad-selection-set-panel__list > li > output { display: grid; min-width: 1.72rem; place-items: center; border-left: 1px solid color-mix(in srgb, var(--cad-workspace-border) 72%, transparent); padding: 0.18rem 0.32rem; color: var(--cad-workspace-muted); font-size: 0.54rem; font-weight: 900; }
+
+.cad-selection-set-panel__list > li[data-selected='true'] .cad-selection-set-panel__set,
+.cad-selection-set-panel__set:hover:not(:disabled),
+.cad-selection-set-panel__set:focus-visible {
+  border-left-color: var(--cad-selection-set-accent);
+  color: #fff;
+  background: color-mix(in srgb, var(--cad-selection-set-accent) 12%, transparent);
+  outline: 0;
+}
+
+.cad-selection-set-panel__set:focus-visible { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cad-selection-set-accent) 55%, transparent); }
+.cad-selection-set-panel__set:disabled { color: var(--cad-workspace-muted); cursor: not-allowed; opacity: 0.42; }
+.cad-selection-set-panel__list > li[data-selected='true'] > output { color: var(--cad-selection-set-accent); background: color-mix(in srgb, var(--cad-selection-set-accent) 7%, transparent); }
+
+.cad-selection-set-panel__empty { margin: 0; padding: 0.85rem 0.45rem; color: var(--cad-workspace-muted); font-size: 0.54rem; line-height: 1.4; text-align: center; }
+.cad-selection-set-panel__actions { display: flex; flex-wrap: wrap; gap: 0.22rem; border-top: 1px solid var(--cad-workspace-border); padding: 0.34rem 0.42rem; background: color-mix(in srgb, var(--cad-workspace-inset) 55%, transparent); }
+.cad-selection-set-panel__actions > button:first-child { color: var(--cad-selection-set-accent); }
+
+@media (max-width: 780px) {
+  .cad-navigation-bar--horizontal { width: 100%; overflow-x: auto; }
+  .cad-navigation-bar--horizontal .cad-navigation-bar__tools { min-width: max-content; }
+  .cad-navigation-bar--horizontal .cad-navigation-bar__label { display: none; }
+  .cad-selection-set-panel__list { max-height: min(13rem, 42vh); }
+  .cad-selection-set-panel__actions > button { flex: 1 1 auto; }
 }
 
 /* Toolbar, tools and inputs ------------------------------------------------ */
@@ -1757,6 +2384,14 @@ select.cad-property-field { width: 100%; cursor: pointer; }
   .cad-ui-action,
   .cad-ui-icon-action,
   .cad-tool-button,
+  .cad-workspace-ribbon__tab,
+  .cad-workspace-ribbon__tool,
+  .cad-navigation-bar__action,
+  .cad-visual-style-picker__control,
+  .cad-viewport-scale-picker__control,
+  .cad-selection-set-panel__set,
+  .cad-selection-set-panel__create,
+  .cad-selection-set-panel__actions > button,
   .cad-drawing-space-tabs__item > button {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
