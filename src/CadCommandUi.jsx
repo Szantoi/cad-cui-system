@@ -86,8 +86,8 @@ export function CadToolbarGroup({ label, items = [], onAction, className, childr
     <div className="cad-toolbar-group__tools">
       {asArray(items).map((item, index) => {
         if (item?.type === 'separator') return <span key={item.id || `separator-${index}`} className="cad-toolbar-group__separator" role="separator" aria-orientation="vertical" />;
+        const key = item.id || `${itemLabel(item)}-${index}`;
         const common = {
-          key: item.id || `${itemLabel(item)}-${index}`,
           icon: item.icon,
           label: itemLabel(item),
           shortcut: item.shortcut,
@@ -99,9 +99,9 @@ export function CadToolbarGroup({ label, items = [], onAction, className, childr
           className: item.className
         };
         const execute = event => callItemAction(item, event, onAction);
-        if (item?.type === 'split') return <CadSplitButton {...common} menu={item.menu} menuOpen={item.menuOpen} onMenuOpenChange={(nextValue, event) => item.onMenuOpenChange?.(nextValue, item, event)} onClick={execute} />;
-        if (item?.toggle) return <CadToggleButton {...common} onChange={(nextValue, event) => { item.onChange?.(nextValue, item, event); onAction?.({ ...item, active: nextValue }, event); }} />;
-        return <CadToolButton {...common} onClick={execute} />;
+        if (item?.type === 'split') return <CadSplitButton key={key} {...common} menu={item.menu} menuOpen={item.menuOpen} onMenuOpenChange={(nextValue, event) => item.onMenuOpenChange?.(nextValue, item, event)} onClick={execute} />;
+        if (item?.toggle) return <CadToggleButton key={key} {...common} onChange={(nextValue, event) => { item.onChange?.(nextValue, item, event); onAction?.({ ...item, active: nextValue }, event); }} />;
+        return <CadToolButton key={key} {...common} onClick={execute} />;
       })}
       {children}
     </div>

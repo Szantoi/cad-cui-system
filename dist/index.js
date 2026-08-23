@@ -909,8 +909,7 @@ function ke({ label: e, items: t = [], onAction: n, className: r, children: i })
 					role: "separator",
 					"aria-orientation": "vertical"
 				}, e.id || `separator-${t}`);
-				let r = {
-					key: e.id || `${H(e)}-${t}`,
+				let r = e.id || `${H(e)}-${t}`, i = {
 					icon: e.icon,
 					label: H(e),
 					shortcut: e.shortcut,
@@ -920,25 +919,25 @@ function ke({ label: e, items: t = [], onAction: n, className: r, children: i })
 					badge: e.badge,
 					title: e.title || e.detail,
 					className: e.className
-				}, i = (t) => Te(e, t, n);
+				}, a = (t) => Te(e, t, n);
 				return e?.type === "split" ? /* @__PURE__ */ h(Oe, {
-					...r,
+					...i,
 					menu: e.menu,
 					menuOpen: e.menuOpen,
 					onMenuOpenChange: (t, n) => e.onMenuOpenChange?.(t, e, n),
-					onClick: i
-				}) : e?.toggle ? /* @__PURE__ */ h(De, {
-					...r,
+					onClick: a
+				}, r) : e?.toggle ? /* @__PURE__ */ h(De, {
+					...i,
 					onChange: (t, r) => {
 						e.onChange?.(t, e, r), n?.({
 							...e,
 							active: t
 						}, r);
 					}
-				}) : /* @__PURE__ */ h(Ee, {
-					...r,
-					onClick: i
-				});
+				}, r) : /* @__PURE__ */ h(Ee, {
+					...i,
+					onClick: a
+				}, r);
 			}), i]
 		}), e && /* @__PURE__ */ h("span", {
 			className: "cad-toolbar-group__label",
@@ -1463,8 +1462,7 @@ function qe({ mode: e = "point", fields: t, value: n, defaultValue: r = {}, onCh
 			/* @__PURE__ */ g("div", {
 				className: "cad-dynamic-input__fields",
 				children: [v.map((e, t) => {
-					let n = {
-						key: e.id || t,
+					let n = e.id || t, r = {
 						id: `cad-dynamic-${_}-${e.id || t}`,
 						label: e.label || e.id,
 						value: S[e.id] ?? "",
@@ -1477,9 +1475,9 @@ function qe({ mode: e = "point", fields: t, value: n, defaultValue: r = {}, onCh
 						showSteppers: !1
 					};
 					return e.type === "angle" ? /* @__PURE__ */ h(Ne, {
-						...n,
+						...r,
 						unit: e.unit || "°"
-					}) : e.type === "unit" ? /* @__PURE__ */ h(Me, { ...n }) : /* @__PURE__ */ h(K, { ...n });
+					}, n) : e.type === "unit" ? /* @__PURE__ */ h(Me, { ...r }, n) : /* @__PURE__ */ h(K, { ...r }, n);
 				}), p]
 			}),
 			a && /* @__PURE__ */ g("button", {

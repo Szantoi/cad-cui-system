@@ -58,8 +58,8 @@ export function CadDynamicInput({ mode = 'point', fields, value, defaultValue = 
     <output className="cad-dynamic-input__prompt">{prompt}</output>
     <div className="cad-dynamic-input__fields">
       {resolvedFields.map((field, index) => {
+        const key = field.id || index;
         const common = {
-          key: field.id || index,
           id: `cad-dynamic-${generatedId}-${field.id || index}`,
           label: field.label || field.id,
           value: resolvedValues[field.id] ?? '',
@@ -71,9 +71,9 @@ export function CadDynamicInput({ mode = 'point', fields, value, defaultValue = 
           onValueChange: (nextValue, event) => updateField(field, nextValue, event),
           showSteppers: false
         };
-        if (field.type === 'angle') return <CadAngleInput {...common} unit={field.unit || '°'} />;
-        if (field.type === 'unit') return <CadUnitInput {...common} />;
-        return <CadNumericInput {...common} />;
+        if (field.type === 'angle') return <CadAngleInput key={key} {...common} unit={field.unit || '°'} />;
+        if (field.type === 'unit') return <CadUnitInput key={key} {...common} />;
+        return <CadNumericInput key={key} {...common} />;
       })}
       {children}
     </div>
