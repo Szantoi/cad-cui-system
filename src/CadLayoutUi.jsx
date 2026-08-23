@@ -41,78 +41,103 @@ const colorLabel = color => {
  * Engine-independent resizable panel split. `size` is the primary pane's
  * percentage; the semantic separator is keyboard-operable as well as draggable.
  */
-export function CadSplitPane({ orientation = 'horizontal', size, defaultSize = 30, minSize = 12, maxSize = 88, keyboardStep = 5, primary, secondary, onSizeChange, onResizeStart, onResizeEnd, className, ...props }) {
+export function CadSplitPane({ orientation = 'horizontal', size, defaultSize = 30, minSize = 12, maxSize = 88, keyboardStep = 5, primary, secondary, onSizeChange, onResizeStart, onResizeEnd, separatorLabel = 'Resize panels', className, ...props }) {
   const rootRef = useRef(null);
   const dragRef = useRef(null);
   const latestSizeRef = useRef(defaultSize);
+  const setSizeRef = useRef(null);
+  const onResizeEndRef = useRef(onResizeEnd);
   const moveHandlerRef = useRef(null);
   const endHandlerRef = useRef(null);
+  const removeListenersRef = useRef(null);
+  const parsedMinSize = Number(minSize);
+  const parsedMaxSize = Number(maxSize);
+  const resolvedMinSize = Number.isFinite(parsedMinSize) ? parsedMinSize : 0;
+  const resolvedMaxSize = Math.max(resolvedMinSize, Number.isFinite(parsedMaxSize) ? parsedMaxSize : 100);
+  const parsedDefaultSize = Number(defaultSize);
+  const fallbackSize = clamp(Number.isFinite(parsedDefaultSize) ? parsedDefaultSize : resolvedMinSize, resolvedMinSize, resolvedMaxSize);
+  const parsedKeyboardStep = Number(keyboardStep);
+  const resolvedKeyboardStep = Number.isFinite(parsedKeyboardStep) && parsedKeyboardStep > 0 ? parsedKeyboardStep : 5;
   const [currentSize, setSize] = useControllableState(size, defaultSize, (nextValue, meta, event) => onSizeChange?.(nextValue, meta, event));
-  const normalizedSize = clamp(Number(currentSize) || defaultSize, Number(minSize), Number(maxSize));
+  const parsedCurrentSize = Number(currentSize);
+  const normalizedSize = clamp(Number.isFinite(parsedCurrentSize) ? parsedCurrentSize : fallbackSize, resolvedMinSize, resolvedMaxSize);
   const axis = orientation === 'vertical' ? 'y' : 'x';
   const separatorOrientation = orientation === 'vertical' ? 'horizontal' : 'vertical';
-  if (!dragRef.current) latestSizeRef.current = normalizedSize;
+  latestSizeRef.current = normalizedSize;
+  setSizeRef.current = setSize;
+  onResizeEndRef.current = onResizeEnd;
+  if (!removeListenersRef.current) removeListenersRef.current = () => {
+    if (typeof window === 'undefined') return;
+    window.removeEventListener('pointermove', moveHandlerRef.current);
+    window.removeEventListener('pointerup', endHandlerRef.current);
+    window.removeEventListener('pointercancel', endHandlerRef.current);
+  };
   if (!moveHandlerRef.current) moveHandlerRef.current = event => {
     const drag = dragRef.current;
     const root = rootRef.current;
-    if (!drag || !root || (event.pointerId !== undefined && drag.pointerId !== undefined && event.pointerId !== drag.pointerId)) return;
+    if (!drag || !root || (drag.pointerId !== null && event.pointerId !== drag.pointerId)) return;
     const rect = root.getBoundingClientRect();
     const total = drag.orientation === 'vertical' ? rect.height : rect.width;
     const offset = drag.orientation === 'vertical' ? event.clientY - rect.top : event.clientX - rect.left;
+    if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(offset)) return;
     const next = clamp(Math.round(((offset / Math.max(total, 1)) * 100) * 10) / 10, drag.minSize, drag.maxSize);
     latestSizeRef.current = next;
-    drag.setSize(next, { source: 'pointer', axis: drag.axis }, event);
+    setSizeRef.current?.(next, { source: 'pointer', axis: drag.axis }, event);
   };
   if (!endHandlerRef.current) endHandlerRef.current = event => {
     const drag = dragRef.current;
-    if (!drag || (event.pointerId !== undefined && drag.pointerId !== undefined && event.pointerId !== drag.pointerId)) return;
+    if (!drag || (drag.pointerId !== null && event.pointerId !== drag.pointerId)) return;
     dragRef.current = null;
-    window.removeEventListener('pointermove', moveHandlerRef.current);
-    window.removeEventListener('pointerup', endHandlerRef.current);
-    window.removeEventListener('pointercancel', endHandlerRef.current);
-    try { drag.divider?.releasePointerCapture?.(drag.pointerId); } catch { /* Pointer capture may already be released. */ }
-    drag.onResizeEnd?.(latestSizeRef.current, event);
+    removeListenersRef.current?.();
+    try { if (drag.pointerId !== null) drag.divider?.releasePointerCapture?.(drag.pointerId); } catch { /* Pointer capture may already be released. */ }
+    const finalSize = clamp(Number(latestSizeRef.current), drag.minSize, drag.maxSize);
+    latestSizeRef.current = finalSize;
+    onResizeEndRef.current?.(finalSize, event);
   };
   useEffect(() => () => {
-    window.removeEventListener('pointermove', moveHandlerRef.current);
-    window.removeEventListener('pointerup', endHandlerRef.current);
-    window.removeEventListener('pointercancel', endHandlerRef.current);
+    const drag = dragRef.current;
     dragRef.current = null;
+    removeListenersRef.current?.();
+    try { if (drag?.pointerId !== null && drag?.pointerId !== undefined) drag.divider?.releasePointerCapture?.(drag.pointerId); } catch { /* Pointer capture may already be released. */ }
   }, []);
   const startDragging = event => {
-    if (event.button !== undefined && event.button !== 0) return;
+    if (event.button !== 0 || dragRef.current) return;
     event.preventDefault();
-    if (dragRef.current) endHandlerRef.current(event);
     latestSizeRef.current = normalizedSize;
     dragRef.current = {
-      pointerId: event.pointerId,
+      pointerId: event.pointerId ?? null,
       divider: event.currentTarget,
       orientation,
-      minSize: Number(minSize),
-      maxSize: Number(maxSize),
-      axis,
-      setSize,
-      onResizeEnd
+      minSize: resolvedMinSize,
+      maxSize: resolvedMaxSize,
+      axis
     };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
+    try { if (event.pointerId !== undefined) event.currentTarget.setPointerCapture?.(event.pointerId); } catch { /* Pointer capture is not available in every host environment. */ }
     onResizeStart?.(normalizedSize, event);
     window.addEventListener('pointermove', moveHandlerRef.current);
     window.addEventListener('pointerup', endHandlerRef.current);
     window.addEventListener('pointercancel', endHandlerRef.current);
   };
   const resizeByKey = (amount, event) => {
-    const next = clamp(normalizedSize + amount, Number(minSize), Number(maxSize));
-    setSize(next, { source: 'keyboard', axis }, event);
+    const baseSize = clamp(Number(latestSizeRef.current), resolvedMinSize, resolvedMaxSize);
+    const next = clamp(baseSize + amount, resolvedMinSize, resolvedMaxSize);
+    latestSizeRef.current = next;
+    setSizeRef.current?.(next, { source: 'keyboard', axis }, event);
+  };
+  const resizeTo = (next, event) => {
+    const resolvedSize = clamp(next, resolvedMinSize, resolvedMaxSize);
+    latestSizeRef.current = resolvedSize;
+    setSizeRef.current?.(resolvedSize, { source: 'keyboard', axis }, event);
   };
   return <section {...props} ref={rootRef} className={cx('cad-split-pane', `cad-split-pane--${orientation}`, className)} style={{ '--cad-split-size': `${normalizedSize}%`, ...props.style }}>
     <div className="cad-split-pane__primary">{primary}</div>
-    <div className="cad-split-pane__divider" role="separator" aria-orientation={separatorOrientation} aria-valuemin={minSize} aria-valuemax={maxSize} aria-valuenow={Math.round(normalizedSize)} tabIndex={0} onPointerDown={startDragging} onKeyDown={event => {
+    <div className="cad-split-pane__divider" role="separator" aria-label={separatorLabel} aria-orientation={separatorOrientation} aria-valuemin={resolvedMinSize} aria-valuemax={resolvedMaxSize} aria-valuenow={normalizedSize} aria-valuetext={`${normalizedSize}%`} tabIndex={0} onPointerDown={startDragging} onPointerCancel={endHandlerRef.current} onLostPointerCapture={endHandlerRef.current} onKeyDown={event => {
       const increaseKeys = orientation === 'vertical' ? ['ArrowDown', 'ArrowRight'] : ['ArrowRight', 'ArrowDown'];
       const decreaseKeys = orientation === 'vertical' ? ['ArrowUp', 'ArrowLeft'] : ['ArrowLeft', 'ArrowUp'];
-      if (increaseKeys.includes(event.key)) { event.preventDefault(); resizeByKey(Number(keyboardStep), event); }
-      if (decreaseKeys.includes(event.key)) { event.preventDefault(); resizeByKey(-Number(keyboardStep), event); }
-      if (event.key === 'Home') { event.preventDefault(); setSize(Number(minSize), { source: 'keyboard', axis }, event); }
-      if (event.key === 'End') { event.preventDefault(); setSize(Number(maxSize), { source: 'keyboard', axis }, event); }
+      if (increaseKeys.includes(event.key)) { event.preventDefault(); resizeByKey(resolvedKeyboardStep, event); return; }
+      if (decreaseKeys.includes(event.key)) { event.preventDefault(); resizeByKey(-resolvedKeyboardStep, event); return; }
+      if (event.key === 'Home') { event.preventDefault(); resizeTo(resolvedMinSize, event); return; }
+      if (event.key === 'End') { event.preventDefault(); resizeTo(resolvedMaxSize, event); }
     }}><span aria-hidden="true" /></div>
     <div className="cad-split-pane__secondary">{secondary}</div>
   </section>;
@@ -120,12 +145,14 @@ export function CadSplitPane({ orientation = 'horizontal', size, defaultSize = 3
 
 function CadMenuBarMenu({ item, open, onToggle, onAction, onClose }) {
   const entries = normalizeItems(item?.items);
-  return <span className={cx('cad-menu-bar__menu', open && 'cad-menu-bar__menu--open')}>
-    <button type="button" role="menuitem" data-menu-id={item.id} aria-haspopup="menu" aria-expanded={open} onClick={event => onToggle(item, event)}>{itemLabel(item)}{item?.shortcut && <CadShortcutHint shortcut={item.shortcut} />}</button>
-    {open && <div className="cad-menu-bar__popup" role="menu" aria-label={itemLabel(item)}>{entries.map(entry => entry.type === 'separator'
+  const popupId = `cad-menu-bar-popup-${useId()}`;
+  const hasEntries = entries.length > 0;
+  return <div className={cx('cad-menu-bar__menu', open && 'cad-menu-bar__menu--open')} data-menu-id={item.id} role="none">
+    <button type="button" role="menuitem" data-menu-id={item.id} aria-haspopup={hasEntries ? 'menu' : undefined} aria-expanded={hasEntries ? open : undefined} aria-controls={open ? popupId : undefined} disabled={item?.disabled} onClick={event => { if (hasEntries && !item?.disabled) onToggle(item, event); }}>{itemLabel(item)}{item?.shortcut && <CadShortcutHint shortcut={item.shortcut} />}</button>
+    {open && <div id={popupId} className="cad-menu-bar__popup" role="menu" aria-label={itemLabel(item)}>{entries.map(entry => entry.type === 'separator'
       ? <div key={entry.id} className="cad-menu-bar__separator" role="separator" />
       : <CadSubmenu key={entry.id} item={entry} onAction={onAction} onClose={onClose} />)}</div>}
-  </span>;
+  </div>;
 }
 
 /** Nested menu entry used inside `CadMenuBar`. */
@@ -140,33 +167,98 @@ export function CadSubmenu({ item, onAction, onClose, className }) {
     onAction?.(item, event);
     onClose?.(event);
   };
-  return <span className={cx('cad-submenu', open && 'cad-submenu--open', className)}>
+  return <div className={cx('cad-submenu', open && 'cad-submenu--open', className)} role="none">
     <button type="button" role={item?.checked === undefined ? 'menuitem' : 'menuitemcheckbox'} aria-checked={item?.checked === undefined ? undefined : Boolean(item.checked)} aria-haspopup={hasChildren ? 'menu' : undefined} aria-expanded={hasChildren ? open : undefined} disabled={item?.disabled} data-checked={item?.checked ? 'true' : 'false'} onClick={select}><span className="cad-submenu__check" aria-hidden="true">{item?.checked ? '✓' : ''}</span><span className="cad-submenu__label">{itemLabel(item)}</span>{item?.shortcut && <CadShortcutHint shortcut={item.shortcut} />}{hasChildren && <span className="cad-submenu__caret" aria-hidden="true">›</span>}</button>
     {hasChildren && open && <div className="cad-submenu__popup" role="menu" aria-label={itemLabel(item)}>{entries.map(entry => entry.type === 'separator' ? <div key={entry.id} className="cad-menu-bar__separator" role="separator" /> : <CadSubmenu key={entry.id} item={entry} onAction={onAction} onClose={onClose} />)}</div>}
-  </span>;
+  </div>;
 }
 
 /** Top-level menu bar with composable nested menus; it complements `CadMenu`. */
 export function CadMenuBar({ items = [], openId, defaultOpenId = '', onOpenChange, onAction, label = 'CAD application menu', className, ...props }) {
   const normalizedItems = useMemo(() => normalizeItems(items), [items]);
   const [currentOpenId, setOpenId] = useControllableState(openId, defaultOpenId, (nextValue, item, event) => onOpenChange?.(nextValue, item, event));
-  const openMenu = normalizedItems.find(item => item.id === currentOpenId);
-  const changeMenu = (item, event) => setOpenId(item.id === currentOpenId ? '' : item.id, item, event);
+  const rootRef = useRef(null);
+  const pendingFirstItemFocusRef = useRef('');
+  const openMenu = normalizedItems.find(item => item.id === currentOpenId && !item.disabled && normalizeItems(item.items).length > 0);
+  const activeOpenId = openMenu?.id || '';
+  const focusTopLevelMenu = menuId => {
+    if (!menuId || typeof window === 'undefined') return;
+    window.requestAnimationFrame(() => {
+      const menu = [...(rootRef.current?.querySelectorAll('.cad-menu-bar__menu') || [])].find(element => element.dataset.menuId === menuId);
+      menu?.querySelector(':scope > button:not(:disabled)')?.focus?.();
+    });
+  };
+  const focusFirstMenuItem = menuId => {
+    const menu = [...(rootRef.current?.querySelectorAll('.cad-menu-bar__menu') || [])].find(element => element.dataset.menuId === menuId);
+    menu?.querySelector('.cad-menu-bar__popup [role^="menuitem"]:not(:disabled)')?.focus?.();
+  };
+  const closeMenu = (item, event, restoreFocus = false) => {
+    if (!activeOpenId) return;
+    setOpenId('', item || openMenu, event);
+    if (restoreFocus) focusTopLevelMenu(item?.id || activeOpenId);
+  };
+  const changeMenu = (item, event) => {
+    if (item?.disabled || normalizeItems(item?.items).length === 0) return;
+    if (item.id === activeOpenId) {
+      closeMenu(item, event);
+      return;
+    }
+    setOpenId(item.id, item, event);
+  };
+  useEffect(() => {
+    const pendingMenuId = pendingFirstItemFocusRef.current;
+    if (!pendingMenuId || pendingMenuId !== activeOpenId || typeof window === 'undefined') return undefined;
+    pendingFirstItemFocusRef.current = '';
+    const frame = window.requestAnimationFrame(() => focusFirstMenuItem(pendingMenuId));
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeOpenId]);
+  useEffect(() => {
+    if (!activeOpenId || typeof document === 'undefined') return undefined;
+    const onPointerDown = event => {
+      if (!rootRef.current?.contains(event.target)) closeMenu(openMenu, event);
+    };
+    const onKeyDown = event => {
+      if (event.defaultPrevented || event.key !== 'Escape') return;
+      event.preventDefault();
+      closeMenu(openMenu, event, true);
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [activeOpenId, openMenu, setOpenId]);
   const focusRelative = (event, offset) => {
     const buttons = [...event.currentTarget.querySelectorAll(':scope > .cad-menu-bar__menu > button:not(:disabled)')];
-    const index = Math.max(0, buttons.indexOf(document.activeElement));
+    if (!buttons.length) return;
+    const activeIndex = buttons.indexOf(document.activeElement);
+    const index = activeIndex >= 0 ? activeIndex : Math.max(0, buttons.findIndex(button => button.dataset.menuId === activeOpenId));
     const next = buttons[(index + offset + buttons.length) % buttons.length];
     next?.focus();
     const id = next?.dataset.menuId;
-    if (id && currentOpenId) setOpenId(id, normalizedItems.find(item => item.id === id), event);
+    if (id && activeOpenId) setOpenId(id, normalizedItems.find(item => item.id === id), event);
   };
-  return <nav {...props} className={cx('cad-menu-bar', className)} role="menubar" aria-label={label} onKeyDown={event => {
+  return <nav {...props} ref={rootRef} className={cx('cad-menu-bar', className)} role="menubar" aria-label={label} onKeyDown={event => {
+    props.onKeyDown?.(event);
+    if (event.defaultPrevented) return;
     if (event.key === 'ArrowRight') { event.preventDefault(); focusRelative(event, 1); }
     if (event.key === 'ArrowLeft') { event.preventDefault(); focusRelative(event, -1); }
-    if (event.key === 'Escape') { event.preventDefault(); setOpenId('', openMenu, event); }
-    if (event.key === 'ArrowDown' && document.activeElement?.getAttribute('role') === 'menuitem') { event.preventDefault(); const active = normalizedItems.find(item => item.id === document.activeElement.dataset.menuId); if (active) setOpenId(active.id, active, event); }
+    if (event.key === 'Escape' && activeOpenId) { event.preventDefault(); closeMenu(openMenu, event, true); }
+    if (event.key === 'ArrowDown' && document.activeElement?.dataset.menuId) {
+      const active = normalizedItems.find(item => item.id === document.activeElement.dataset.menuId);
+      if (active && !active.disabled && normalizeItems(active.items).length > 0) {
+        event.preventDefault();
+        if (active.id === activeOpenId) {
+          window.requestAnimationFrame(() => focusFirstMenuItem(active.id));
+        } else {
+          pendingFirstItemFocusRef.current = active.id;
+          setOpenId(active.id, active, event);
+        }
+      }
+    }
   }}>
-    {normalizedItems.map(item => <CadMenuBarMenu key={item.id} item={item} open={currentOpenId === item.id} onToggle={changeMenu} onAction={onAction} onClose={event => setOpenId('', item, event)} />)}
+    {normalizedItems.map(item => <CadMenuBarMenu key={item.id} item={item} open={activeOpenId === item.id} onToggle={changeMenu} onAction={onAction} onClose={event => closeMenu(item, event, true)} />)}
   </nav>;
 }
 

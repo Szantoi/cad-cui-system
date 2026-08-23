@@ -1,6 +1,6 @@
 {
   "name": "@szantoi/cad-cui-system",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Reusable React runtime and modular CAD workspace component kit.",
   "private": true,
   "type": "module",

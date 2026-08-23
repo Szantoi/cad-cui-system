@@ -1461,7 +1461,8 @@ select.cad-property-field { width: 100%; cursor: pointer; }
 .cad-menu-bar__menu { position: relative; display: inline-flex; }
 .cad-menu-bar__menu > button { display: inline-flex; min-height: 1.9rem; align-items: center; gap: 0.32rem; border: 0; border-right: 1px solid var(--cad-menu-bar-border); padding: 0.28rem 0.52rem; color: var(--cad-menu-bar-text); background: transparent; font: 800 0.61rem/1 var(--cad-ui-font, "IBM Plex Mono", monospace); letter-spacing: 0.035em; cursor: pointer; }
 .cad-menu-bar__menu:last-child > button { border-right: 0; }
-.cad-menu-bar__menu > button:hover, .cad-menu-bar__menu > button:focus-visible, .cad-menu-bar__menu--open > button { color: #fff; background: color-mix(in srgb, var(--cad-menu-bar-accent) 16%, transparent); outline: 0; }
+.cad-menu-bar__menu > button:hover:not(:disabled), .cad-menu-bar__menu > button:focus-visible, .cad-menu-bar__menu--open > button { color: #fff; background: color-mix(in srgb, var(--cad-menu-bar-accent) 16%, transparent); outline: 0; }
+.cad-menu-bar__menu > button:disabled { opacity: 0.42; cursor: not-allowed; }
 .cad-menu-bar__menu > button .cad-shortcut-hint { font-size: 0.43rem; }
 .cad-menu-bar__popup, .cad-submenu__popup { position: absolute; z-index: 70; min-width: 12rem; padding: 0.2rem; border: 1px solid color-mix(in srgb, var(--cad-menu-bar-border) 80%, #fff); color: var(--cad-menu-bar-text); background: #282d31; box-shadow: 0 0.6rem 1.25rem rgba(0,0,0,0.48); }
 .cad-menu-bar__popup { top: calc(100% + 1px); left: -1px; }
@@ -1508,6 +1509,7 @@ select.cad-property-field { width: 100%; cursor: pointer; }
 .cad-dialog[data-tone='danger'] { --cad-overlay-accent: #ff8b8b; }
 .cad-dialog[data-tone='amber'] { --cad-overlay-accent: #ffc261; }
 .cad-dialog[data-tone='success'] { --cad-overlay-accent: #9add4b; }
+.cad-dialog:focus-visible { outline: 2px solid var(--cad-overlay-accent); outline-offset: 3px; }
 .cad-dialog__header { display: flex; min-width: 0; align-items: flex-start; justify-content: space-between; gap: 0.75rem; border-bottom: 1px solid var(--cad-overlay-border); padding: 0.68rem 0.78rem; background: linear-gradient(90deg, color-mix(in srgb, var(--cad-overlay-accent) 13%, transparent), transparent 65%); }
 .cad-dialog__header h2 { margin: 0; color: #fff; font-size: 0.76rem; font-weight: 900; letter-spacing: 0.07em; text-transform: uppercase; }
 .cad-dialog__header p { margin: 0.24rem 0 0; color: var(--cad-overlay-muted); font-size: 0.59rem; font-weight: 600; line-height: 1.45; }

@@ -19,6 +19,22 @@ This separation makes it possible to use the component kit with Canvas, SVG,
 Three.js, WebGL, a custom docking system, or a desktop shell without locking
 the package to one CAD implementation.
 
+## Interaction guarantees
+
+The shared workspace primitives own the small but critical CAD interaction
+details, so each consuming screen behaves the same way:
+
+- `CadSplitPane` supports pointer and keyboard resizing, ignores non-primary
+  pointers and always clears an interrupted drag.
+- `CadDialog` traps focus, restores the initiating control on close and makes
+  the safe action the first focus target for destructive confirmations.
+- `CadMenuBar` and `CadPopover` close on `Escape` or outside interaction and
+  return focus to their invoking control. Generic popovers are `region`s;
+  pass `contentRole="dialog"` only for an actual dialog-like overlay.
+
+These contracts are intentionally independent of the host router, docking
+engine and drawing renderer.
+
 Import the stylesheet once in the consuming application:
 
 ```js

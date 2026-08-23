@@ -156,6 +156,7 @@ describe('CAD overlay interactions', () => {
       <>
         <CadPopover
           label="Layer options"
+          contentRole="dialog"
           trigger={<button type="button">Layer tools</button>}
           content={<button type="button">Freeze layer</button>}
           onOpenChange={onOpenChange}

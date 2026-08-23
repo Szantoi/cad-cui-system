@@ -7,8 +7,32 @@ const callBoth = (first, second) => event => {
   if (!event.defaultPrevented) second?.(event);
 };
 
-const focusableSelector = '[data-autofocus], button:not(:disabled):not([tabindex="-1"]), input:not(:disabled):not([tabindex="-1"]), select:not(:disabled):not([tabindex="-1"]), textarea:not(:disabled):not([tabindex="-1"]), [href]:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])';
-const focusableChildren = container => [...(container?.querySelectorAll(focusableSelector) || [])].filter(element => !element.hidden && element.getAttribute('aria-hidden') !== 'true');
+const focusableSelector = 'button:not(:disabled):not([tabindex="-1"]), input:not(:disabled):not([tabindex="-1"]), select:not(:disabled):not([tabindex="-1"]), textarea:not(:disabled):not([tabindex="-1"]), [contenteditable="true"]:not([tabindex="-1"]), [href]:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])';
+
+const isFocusable = element => Boolean(
+  element
+  && !element.hidden
+  && !element.closest?.('[hidden], [aria-hidden="true"], [inert]')
+  && element.getAttribute('aria-hidden') !== 'true'
+  && element.getAttribute('aria-disabled') !== 'true'
+  && !element.hasAttribute('disabled')
+);
+
+const focusableChildren = container => [...(container?.querySelectorAll(focusableSelector) || [])].filter(isFocusable);
+const focusElement = element => {
+  if (!element?.isConnected) return;
+  try {
+    element.focus({ preventScroll: true });
+  } catch {
+    element.focus?.();
+  }
+};
+
+const isTopmostDialog = dialog => {
+  if (typeof document === 'undefined' || !dialog) return false;
+  const dialogs = document.querySelectorAll('[data-cad-dialog="true"]');
+  return dialogs[dialogs.length - 1] === dialog;
+};
 
 /**
  * Accessible modal shell for CAD settings, block insertion and destructive
@@ -19,37 +43,50 @@ export function CadDialog({ open = false, onClose, title, description, actions, 
   const titleId = `cad-dialog-title-${generatedId}`;
   const descriptionId = `cad-dialog-description-${generatedId}`;
   const dialogRef = useRef(null);
-  const previouslyFocused = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const closeOnEscapeRef = useRef(closeOnEscape);
+  const { 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, 'aria-describedby': ariaDescribedBy, onKeyDown, ...dialogProps } = props;
+
+  onCloseRef.current = onClose;
+  closeOnEscapeRef.current = closeOnEscape;
 
   useEffect(() => {
     if (!open || typeof document === 'undefined') return undefined;
-    previouslyFocused.current = document.activeElement;
+    const restoreTarget = document.activeElement;
     const focusInitial = () => {
       const dialog = dialogRef.current;
+      if (!isTopmostDialog(dialog)) return;
       const focusable = focusableChildren(dialog);
-      (focusable[0] || dialog)?.focus?.();
+      const preferred = focusable.find(element => element.hasAttribute('data-autofocus'));
+      focusElement(preferred || focusable[0] || dialog);
     };
     const onWindowKeyDown = event => {
-      if (event.key === 'Escape' && closeOnEscape) {
+      const dialog = dialogRef.current;
+      if (event.defaultPrevented || !isTopmostDialog(dialog)) return;
+      if (event.key === 'Escape' && closeOnEscapeRef.current) {
         event.preventDefault();
-        onClose?.(event);
+        onCloseRef.current?.(event);
         return;
       }
       if (event.key !== 'Tab') return;
-      const focusable = focusableChildren(dialogRef.current);
+      const focusable = focusableChildren(dialog);
       if (!focusable.length) {
         event.preventDefault();
-        dialogRef.current?.focus();
+        focusElement(dialog);
         return;
       }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
+      const activeElement = document.activeElement;
+      if (!dialog?.contains(activeElement)) {
         event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+        focusElement(event.shiftKey ? last : first);
+      } else if (event.shiftKey && activeElement === first) {
         event.preventDefault();
-        first.focus();
+        focusElement(last);
+      } else if (!event.shiftKey && activeElement === last) {
+        event.preventDefault();
+        focusElement(first);
       }
     };
     const timer = window.setTimeout(focusInitial, 0);
@@ -57,14 +94,18 @@ export function CadDialog({ open = false, onClose, title, description, actions, 
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener('keydown', onWindowKeyDown);
-      previouslyFocused.current?.focus?.();
+      focusElement(restoreTarget);
     };
-  }, [closeOnEscape, onClose, open]);
+  }, [open]);
 
   if (!open) return null;
-  return <div className="cad-dialog-backdrop" data-tone={tone} role="presentation" onMouseDown={event => { if (closeOnBackdrop && event.target === event.currentTarget) onClose?.(event); }}>
-    <section {...props} ref={dialogRef} tabIndex={-1} className={cx('cad-dialog', className)} data-tone={tone} role="dialog" aria-modal="true" aria-label={title ? undefined : props['aria-label'] || 'CAD dialog'} aria-labelledby={title ? titleId : undefined} aria-describedby={description ? descriptionId : undefined} onKeyDown={event => props.onKeyDown?.(event)}>
-      <header className="cad-dialog__header"><div>{title && <h2 id={titleId}>{title}</h2>}{description && <p id={descriptionId}>{description}</p>}</div>{onClose && <button type="button" className="cad-dialog__close" aria-label={`Close ${title || 'dialog'}`} onClick={onClose}>×</button>}</header>
+  const resolvedLabelledBy = title ? titleId : ariaLabelledBy;
+  const resolvedDescribedBy = [description ? descriptionId : undefined, ariaDescribedBy].filter(Boolean).join(' ') || undefined;
+  const resolvedLabel = resolvedLabelledBy ? undefined : ariaLabel || 'CAD dialog';
+  const closeLabel = typeof title === 'string' && title.trim() ? `Close ${title}` : 'Close dialog';
+  return <div className="cad-dialog-backdrop" data-tone={tone} role="presentation" onMouseDown={event => { if (closeOnBackdrop && event.target === event.currentTarget) onCloseRef.current?.(event); }}>
+    <section {...dialogProps} ref={dialogRef} tabIndex={-1} className={cx('cad-dialog', className)} data-cad-dialog="true" data-tone={tone} role="dialog" aria-modal="true" aria-label={resolvedLabel} aria-labelledby={resolvedLabelledBy} aria-describedby={resolvedDescribedBy} onKeyDown={event => onKeyDown?.(event)}>
+      <header className="cad-dialog__header"><div>{title && <h2 id={titleId}>{title}</h2>}{description && <p id={descriptionId}>{description}</p>}</div>{onClose && <button type="button" className="cad-dialog__close" aria-label={closeLabel} onClick={onClose}>×</button>}</header>
       <div className="cad-dialog__body">{children}</div>
       {actions && <footer className="cad-dialog__footer">{actions}</footer>}
     </section>
@@ -96,39 +137,58 @@ export function CadToastStack({ toasts = [], onDismiss, placement = 'bottom-righ
 }
 
 /** Lightweight popover with a composable trigger, useful for quick CAD selectors. */
-export function CadPopover({ trigger, content, open, defaultOpen = false, onOpenChange, placement = 'bottom-start', label = 'More options', contentRole = 'dialog', closeOnOutside = true, restoreFocus = true, className, contentClassName, ...props }) {
+export function CadPopover({ trigger, content, open, defaultOpen = false, onOpenChange, placement = 'bottom-start', label = 'More options', contentRole = 'region', closeOnOutside = true, closeOnEscape = true, restoreFocus = true, className, contentClassName, ...props }) {
   const generatedId = useId();
   const panelId = `cad-popover-${generatedId}`;
   const rootRef = useRef(null);
+  const wasOpenRef = useRef(open === undefined ? defaultOpen : open);
   const [isOpen, setOpen] = useControllableState(open, defaultOpen, (nextValue, event) => onOpenChange?.(nextValue, event));
-  const restoreTriggerFocus = () => {
-    if (!restoreFocus) return;
-    window.requestAnimationFrame(() => rootRef.current?.querySelector('button:not(:disabled), [tabindex]:not([tabindex="-1"])')?.focus?.());
-  };
-  const close = event => {
-    setOpen(false, event);
-    restoreTriggerFocus();
-  };
+  const resolvedContentRole = contentRole === false ? undefined : contentRole;
+  const popupAriaHasPopup = ['dialog', 'grid', 'listbox', 'menu', 'tree'].includes(resolvedContentRole) ? resolvedContentRole : undefined;
+  const close = event => setOpen(false, event);
   const toggle = event => setOpen(!isOpen, event);
+
   useEffect(() => {
-    if (!isOpen || !closeOnOutside || typeof document === 'undefined') return undefined;
+    const wasOpen = wasOpenRef.current;
+    wasOpenRef.current = isOpen;
+    if (!wasOpen || isOpen || !restoreFocus || typeof window === 'undefined') return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const triggerElement = rootRef.current?.querySelector('[data-cad-popover-trigger="true"]');
+      if (triggerElement && document.contains(triggerElement)) triggerElement.focus?.();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isOpen, restoreFocus]);
+
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return undefined;
     const onPointerDown = event => {
-      if (!rootRef.current?.contains(event.target)) close(event);
+      if (closeOnOutside && !rootRef.current?.contains(event.target)) setOpen(false, event);
     };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [closeOnOutside, isOpen]);
+    const onKeyDown = event => {
+      if (!closeOnEscape || event.defaultPrevented || event.key !== 'Escape') return;
+      event.preventDefault();
+      setOpen(false, event);
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [closeOnEscape, closeOnOutside, isOpen, setOpen]);
+
   const triggerElement = isValidElement(trigger)
     ? cloneElement(trigger, {
-      'aria-haspopup': trigger.props['aria-haspopup'] || 'dialog',
+      'data-cad-popover-trigger': 'true',
+      'aria-haspopup': trigger.props['aria-haspopup'] ?? popupAriaHasPopup,
       'aria-expanded': isOpen,
       'aria-controls': isOpen ? panelId : undefined,
       onClick: callBoth(trigger.props.onClick, toggle)
     })
-    : <button type="button" className="cad-popover__fallback-trigger" aria-haspopup="dialog" aria-expanded={isOpen} aria-controls={isOpen ? panelId : undefined} onClick={toggle}>{trigger || 'Options'}</button>;
-  return <div {...props} ref={rootRef} className={cx('cad-popover', `cad-popover--${placement}`, className)} onKeyDown={event => { props.onKeyDown?.(event); if (!event.defaultPrevented && event.key === 'Escape' && isOpen) { event.preventDefault(); close(event); } }}>
+    : <button type="button" data-cad-popover-trigger="true" className="cad-popover__fallback-trigger" aria-haspopup={popupAriaHasPopup} aria-expanded={isOpen} aria-controls={isOpen ? panelId : undefined} onClick={toggle}>{trigger || 'Options'}</button>;
+  return <div {...props} ref={rootRef} className={cx('cad-popover', `cad-popover--${placement}`, className)} onKeyDown={event => { props.onKeyDown?.(event); if (!event.defaultPrevented && closeOnEscape && event.key === 'Escape' && isOpen) { event.preventDefault(); close(event); } }}>
     {triggerElement}
-    {isOpen && <section id={panelId} className={cx('cad-popover__content', contentClassName)} role={contentRole} aria-label={label}>{typeof content === 'function' ? content({ close }) : content}</section>}
+    {isOpen && <div id={panelId} className={cx('cad-popover__content', contentClassName)} role={resolvedContentRole} aria-label={label}>{typeof content === 'function' ? content({ close }) : content}</div>}
   </div>;
 }
 
