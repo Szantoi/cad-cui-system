@@ -183,6 +183,58 @@ The public interaction contract is intentionally small:
 - `identity`, `renderIdentity`, `status`, `renderStatus`, `endSlot`, and
   `renderMinimizeControl` are slots rather than application-specific props.
 
+### Compact hierarchical ribbon
+
+`CadCompactWorkspaceRibbon` is the lightweight companion for a minimized
+workspace. It preserves the same command placement contract as the full
+ribbon, but intentionally reveals it in three deliberate steps: **tab →
+group → command**. Its popover opens below the selected tab, closes on a
+second tab click, `Escape`, or an outside interaction, and never needs a
+router or docking manager.
+
+```jsx
+import { useMemo, useState } from 'react';
+import { CadCompactWorkspaceRibbon } from '@szantoi/cad-cui-system';
+
+function CompactWorkspaceCommands({ isLayersPanelOpen, toggleLayersPanel, zoomToFit }) {
+  const [openTabId, setOpenTabId] = useState(null);
+  const [openGroupId, setOpenGroupId] = useState(null);
+  const commands = useMemo(() => [
+    {
+      id: 'layers', label: 'LAYERS', toggle: true,
+      active: isLayersPanelOpen,
+      placement: { tab: 'view', group: 'DISPLAY', order: 10 }
+    },
+    {
+      id: 'fit', label: 'ZOOM EXTENTS',
+      placement: { tab: 'view', group: 'CAMERA', order: 20 }
+    }
+  ], [isLayersPanelOpen]);
+
+  return <CadCompactWorkspaceRibbon
+    tabs={[{ id: 'view', label: 'VIEW', tone: 'cyan' }]}
+    commands={commands}
+    openTabId={openTabId}
+    openGroupId={openGroupId}
+    onOpenTabChange={setOpenTabId}
+    onOpenGroupChange={setOpenGroupId}
+    onCommand={(command) => {
+      if (command.id === 'layers') toggleLayersPanel();
+      if (command.id === 'fit') zoomToFit();
+    }}
+  />;
+}
+```
+
+`closeOnCommand` is `false` by default. That lets a host expose an open/close
+panel command as a real toggle: keep the compact menu visible, click once to
+open the panel, then click the same command again to close it. Set
+`closeOnCommand` only for one-shot actions that should immediately return to
+Model Space. `openTabId` and `openGroupId` are each controlled or standalone;
+their change callbacks receive the id, resolved record and interaction event.
+Use `resolveCadCompactWorkspaceRibbonGroups` when a host needs the same
+resolved hierarchy outside the component.
+
 ## Customizable workspace panels
 
 `CadWorkspacePanelManager` is the shared CAD-style flyout for choosing which
@@ -311,7 +363,7 @@ selection storage and named-set management stay in the host application.
 | Family | Components |
 | --- | --- |
 | Drawing workspace | `CadSplitPane`, `CadDrawingSpaceTabs` (`CadLayoutTabs` / `CadDocumentTabs` aliases), `CadWorkspaceProfileTabs`, workspace-profile helpers, `CadWorkspacePanelManager` (`CadWorkspacePanelPreferences` alias), workspace-panel preference helpers, `CadDockTabs`, `CadDockPanel`, `CadStatusBar`, `CadStatusToggle`, `CadCommandLine`, `CadCommandHistory`, `CadCommandOptions` |
-| Tools and menus | `CadWorkspaceRibbon`, `groupCadWorkspaceRibbonCommands`, `CadToolbar`, `CadToolbarGroup`, `CadToolPalette`, `CadToolButton`, `CadToggleButton`, `CadSplitButton`, `CadShortcutHint`, `CadMenu`, `CadMenuItem`, `CadMenuSeparator`, `CadOverflowMenu`, `CadMenuBar`, `CadSubmenu` |
+| Tools and menus | `CadWorkspaceRibbon`, `CadCompactWorkspaceRibbon`, `groupCadWorkspaceRibbonCommands`, `resolveCadCompactWorkspaceRibbonGroups`, `CadToolbar`, `CadToolbarGroup`, `CadToolPalette`, `CadToolButton`, `CadToggleButton`, `CadSplitButton`, `CadShortcutHint`, `CadMenu`, `CadMenuItem`, `CadMenuSeparator`, `CadOverflowMenu`, `CadMenuBar`, `CadSubmenu` |
 | Precision input and style | `CadNumericInput`, `CadUnitInput`, `CadAngleInput`, `CadCoordinateInput`, `CadColorSwatch`, `CadLinetypePreview`, `CadLineweightPreview`, `CadColorPicker`, `CadColorPickerButton`, `CadLinetypePicker`, `CadLineweightPicker` |
 | Drafting overlays | `CadDynamicInput`, `CadObjectSnapMenu`, `CadGripToolbar`, `CadConstraintBar`, `CadAnnotationScalePicker`, `CadViewPresetPicker`, `CadPolarTracker`, `CadObjectSnapMarker`, `CadSelectionGrip` |
 | Viewport feedback and navigation | `CadViewCube`, `CadUcsIndicator`, `CadViewportControls`, `CadNavigationBar`, `CadVisualStylePicker`, `CadViewportScalePicker`, `CadSelectionSummary`, `CadMeasureReadout` |

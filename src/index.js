@@ -4,6 +4,7 @@ export * from './GraphCadUi.jsx';
 export * from './CadCuiRuntime.jsx';
 export * from './CadCommandUi.jsx';
 export * from './CadWorkspaceRibbon.jsx';
+export * from './CadCompactWorkspaceRibbon.jsx';
 export * from './CadContextUi.jsx';
 export * from './CadWorkspaceCustomizationUi.jsx';
 export * from './CadDraftingUi.jsx';

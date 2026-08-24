@@ -939,6 +939,109 @@ label.cad-ui-data-row:focus-within {
 .cad-workspace-ribbon--compact .cad-workspace-ribbon__group-tools { padding-block: 0.16rem; }
 .cad-workspace-ribbon--minimized .cad-workspace-ribbon__tabbar { border-bottom: 0; }
 
+/* Compact hierarchical ribbon ------------------------------------------------
+   A CAD ribbon should not force a full-height panel back into Model Space.
+   This disclosure keeps the dense tab chrome, then deliberately reveals the
+   command taxonomy one level at a time: tab → group → command. */
+.cad-compact-workspace-ribbon { position: relative; z-index: 12; }
+.cad-compact-workspace-ribbon .cad-workspace-ribbon__tabbar { border-bottom: 0; }
+.cad-compact-workspace-ribbon .cad-workspace-ribbon__tabs { overflow: visible; }
+.cad-compact-workspace-ribbon__popover { position: relative; display: inline-flex; flex: 0 0 auto; min-width: 0; }
+.cad-compact-workspace-ribbon__popover > .cad-workspace-ribbon__tab { height: 100%; }
+.cad-compact-workspace-ribbon .cad-compact-workspace-ribbon__disclosure {
+  --cad-ui-accent: var(--cad-compact-ribbon-accent, var(--cad-workspace-accent));
+  width: min(26rem, calc(100vw - 1rem));
+  min-width: min(17rem, calc(100vw - 1rem));
+  max-height: min(31rem, calc(100vh - 5rem));
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)) 72%, var(--cad-workspace-border));
+  border-top-width: 2px;
+  color: var(--cad-workspace-text);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)) 10%, transparent), transparent 62%),
+    linear-gradient(180deg, color-mix(in srgb, var(--cad-workspace-raised) 94%, #fff), var(--cad-workspace-bg));
+  box-shadow: 0 0.9rem 2.2rem rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.cad-compact-workspace-ribbon__disclosure-body { display: grid; min-width: 0; }
+.cad-compact-workspace-ribbon__disclosure-header {
+  display: flex;
+  min-height: 2.26rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.72rem;
+  border-bottom: 1px solid var(--cad-workspace-border);
+  padding: 0.34rem 0.55rem;
+  background: color-mix(in srgb, var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)) 8%, var(--cad-workspace-inset));
+}
+.cad-compact-workspace-ribbon__disclosure-header span,
+.cad-compact-workspace-ribbon__disclosure-header strong,
+.cad-compact-workspace-ribbon__commands-heading span,
+.cad-compact-workspace-ribbon__commands-heading small,
+.cad-compact-workspace-ribbon__disclosure-footer {
+  font-family: var(--cad-ui-font, "IBM Plex Mono", monospace);
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+.cad-compact-workspace-ribbon__disclosure-header span { color: var(--cad-workspace-muted); font-size: 0.48rem; font-weight: 800; }
+.cad-compact-workspace-ribbon__disclosure-header strong { color: var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)); font-size: 0.62rem; font-weight: 900; }
+.cad-compact-workspace-ribbon__groups { display: grid; gap: 0.22rem; padding: 0.4rem; }
+.cad-compact-workspace-ribbon__group {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto 1rem;
+  min-height: 2.2rem;
+  align-items: center;
+  gap: 0.38rem;
+  border: 1px solid color-mix(in srgb, var(--cad-workspace-border) 82%, transparent);
+  padding: 0.25rem 0.38rem;
+  color: var(--cad-workspace-text);
+  background: color-mix(in srgb, var(--cad-workspace-inset) 74%, transparent);
+  font: 800 0.57rem/1.15 var(--cad-ui-font, "IBM Plex Mono", monospace);
+  letter-spacing: 0.045em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+.cad-compact-workspace-ribbon__group-index { color: var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)); font-size: 0.48rem; opacity: 0.76; }
+.cad-compact-workspace-ribbon__group small { min-width: 1.28rem; color: var(--cad-workspace-muted); font-size: 0.48rem; text-align: right; }
+.cad-compact-workspace-ribbon__group b { color: var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)); font-size: 0.82rem; font-weight: 500; text-align: center; }
+.cad-compact-workspace-ribbon__group[data-active='true'],
+.cad-compact-workspace-ribbon__group:hover,
+.cad-compact-workspace-ribbon__group:focus-visible {
+  border-color: var(--cad-compact-ribbon-accent, var(--cad-workspace-accent));
+  color: #fff;
+  background: color-mix(in srgb, var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)) 14%, var(--cad-workspace-inset));
+  outline: 0;
+}
+.cad-compact-workspace-ribbon__group[data-active='true'] { box-shadow: inset 2px 0 0 var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)); }
+.cad-compact-workspace-ribbon__commands { border-top: 1px solid var(--cad-workspace-border); padding: 0.46rem; background: color-mix(in srgb, var(--cad-workspace-bg) 82%, #000); }
+.cad-compact-workspace-ribbon__commands-heading { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: 0.45rem; margin-bottom: 0.38rem; }
+.cad-compact-workspace-ribbon__commands-heading span { overflow: hidden; color: var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)); font-size: 0.56rem; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.cad-compact-workspace-ribbon__commands-heading small { flex: 0 0 auto; color: var(--cad-workspace-muted); font-size: 0.45rem; font-weight: 800; }
+.cad-compact-workspace-ribbon__command-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.7rem, 1fr)); gap: 0.25rem; }
+.cad-compact-workspace-ribbon__command {
+  min-width: 0;
+  min-height: 2.82rem;
+  justify-content: flex-start;
+  gap: 0.32rem;
+  border-color: color-mix(in srgb, var(--cad-workspace-border) 84%, transparent);
+  padding: 0.34rem 0.4rem;
+  text-align: left;
+}
+.cad-compact-workspace-ribbon__command .cad-tool-button__label { overflow: hidden; font-size: 0.54rem; text-overflow: ellipsis; white-space: nowrap; }
+.cad-compact-workspace-ribbon__command-icon { display: inline-grid; flex: 0 0 auto; place-items: center; color: var(--cad-tool-accent, var(--cad-compact-ribbon-accent, var(--cad-workspace-accent))); }
+.cad-compact-workspace-ribbon__command[data-active='true'] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cad-tool-accent, var(--cad-compact-ribbon-accent, var(--cad-workspace-accent))) 36%, transparent); }
+.cad-compact-workspace-ribbon__empty { margin: 0; padding: 1rem 0.58rem; color: var(--cad-workspace-muted); font: 700 0.54rem/1.45 var(--cad-ui-font, "IBM Plex Mono", monospace); text-align: center; }
+.cad-compact-workspace-ribbon__disclosure-footer { display: flex; min-height: 2.04rem; align-items: center; justify-content: space-between; gap: 0.45rem; border-top: 1px solid var(--cad-workspace-border); padding: 0.25rem 0.4rem 0.25rem 0.55rem; color: var(--cad-workspace-muted); font-size: 0.44rem; font-weight: 800; }
+.cad-compact-workspace-ribbon__disclosure-footer button { border: 1px solid color-mix(in srgb, var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)) 48%, var(--cad-workspace-border)); padding: 0.22rem 0.36rem; color: var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)); background: transparent; font: 900 0.47rem/1 var(--cad-ui-font, "IBM Plex Mono", monospace); letter-spacing: 0.07em; cursor: pointer; }
+.cad-compact-workspace-ribbon__disclosure-footer button:hover,
+.cad-compact-workspace-ribbon__disclosure-footer button:focus-visible { color: #fff; border-color: var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)); background: color-mix(in srgb, var(--cad-compact-ribbon-accent, var(--cad-workspace-accent)) 16%, transparent); outline: 0; }
+
+@media (max-width: 640px) {
+  .cad-compact-workspace-ribbon .cad-compact-workspace-ribbon__disclosure { width: min(22rem, calc(100vw - 0.75rem)); min-width: min(15.5rem, calc(100vw - 0.75rem)); }
+  .cad-compact-workspace-ribbon__command-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* Viewport navigation and named selection sets -------------------------- */
 
 .cad-navigation-bar {
