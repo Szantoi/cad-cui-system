@@ -362,7 +362,7 @@ selection storage and named-set management stay in the host application.
 
 | Family | Components |
 | --- | --- |
-| Drawing workspace | `CadSplitPane`, `CadDrawingSpaceTabs` (`CadLayoutTabs` / `CadDocumentTabs` aliases), `CadWorkspaceProfileTabs`, workspace-profile helpers, `CadWorkspacePanelManager` (`CadWorkspacePanelPreferences` alias), workspace-panel preference helpers, `CadDockTabs`, `CadDockPanel`, `CadStatusBar`, `CadStatusToggle`, `CadCommandLine`, `CadCommandHistory`, `CadCommandOptions` |
+| Drawing workspace | `CadSplitPane`, `CadDrawingSpaceTabs` (`CadLayoutTabs` / `CadDocumentTabs` aliases), `CadWorkspaceProfileTabs`, workspace-profile helpers, `CadWorkspacePanelManager` (`CadWorkspacePanelPreferences` alias), workspace-panel preference helpers, `CadDockTabs`, `CadDockPanel`, `CadWorkspaceDockModeControl`, `CadWorkspaceDockRail`, `CadWorkspaceDockResizeHandle`, `CadWorkspaceDockZone`, `useCadWorkspaceDock`, `useCadWorkspaceDockRail`, `CadStatusBar`, `CadStatusToggle`, `CadCommandLine`, `CadCommandHistory`, `CadCommandOptions` |
 | Tools and menus | `CadWorkspaceRibbon`, `CadCompactWorkspaceRibbon`, `groupCadWorkspaceRibbonCommands`, `resolveCadCompactWorkspaceRibbonGroups`, `CadToolbar`, `CadToolbarGroup`, `CadToolPalette`, `CadToolButton`, `CadToggleButton`, `CadSplitButton`, `CadShortcutHint`, `CadMenu`, `CadMenuItem`, `CadMenuSeparator`, `CadOverflowMenu`, `CadMenuBar`, `CadSubmenu` |
 | Precision input and style | `CadNumericInput`, `CadUnitInput`, `CadAngleInput`, `CadCoordinateInput`, `CadColorSwatch`, `CadLinetypePreview`, `CadLineweightPreview`, `CadColorPicker`, `CadColorPickerButton`, `CadLinetypePicker`, `CadLineweightPicker` |
 | Drafting overlays | `CadDynamicInput`, `CadObjectSnapMenu`, `CadGripToolbar`, `CadConstraintBar`, `CadAnnotationScalePicker`, `CadViewPresetPicker`, `CadPolarTracker`, `CadObjectSnapMarker`, `CadSelectionGrip` |
@@ -403,6 +403,43 @@ represent `ByLayer`, `ByBlock` and explicit RGB values without UI-only state:
 
 Use a `CadPropertyField` type of `cad-color`, `linetype`, `lineweight`, or
 `scale` to embed the matching picker in `CadPropertyGrid`.
+
+### Open and rail workspace docks
+
+`CadWorkspaceDockModeControl` expresses a host-persisted **open / rail /
+closed** choice, while `CadWorkspaceDockRail` gives a compact rail a temporary
+hover/focus preview. The package does not install a second docking engine:
+when a rail is expanded, the host can promote its panel into Dockview, a split
+pane, or a native desktop dock.
+
+Static rail children remain mounted by default for backward compatibility.
+For heavyweight inspectors, explorers, or graph panels, use a render function
+or `previewMount="when-open"` so an idle rail does not mount a duplicate panel.
+The render function receives `active`, `peekOpen`, `edge`, `label`,
+`previewId`, `controls`, and `disabled`.
+
+```jsx
+<CadWorkspaceDockRail
+  edge="left"
+  label="Explorer"
+  onExpand={() => openDockviewPanel('explorer')}
+>
+  {({ active }) => active ? <DocumentExplorer /> : null}
+</CadWorkspaceDockRail>
+
+<CadWorkspaceDockRail
+  edge="right"
+  label="Inspector"
+  previewMount="when-open"
+>
+  <NodeInspector />
+</CadWorkspaceDockRail>
+```
+
+Use `CadWorkspaceDockZone` inside the preview for tabbed left, right, or
+bottom content. Use `CadWorkspaceDockResizeHandle` only where the host owns a
+pixel-sized split; a docking manager continues to own resizing for durable
+open panels.
 
 ## Model/layout strip
 

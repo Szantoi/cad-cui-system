@@ -35,6 +35,10 @@ const normalizeMode = (value, fallback = CAD_WORKSPACE_DOCK_MODES.OPEN) => {
   const candidate = String(value ?? '').trim().toLocaleLowerCase();
   return DOCK_MODE_VALUES.has(candidate) ? candidate : fallback;
 };
+const normalizePreviewMount = (value, fallback = 'always') => {
+  const candidate = String(value ?? '').trim().toLocaleLowerCase();
+  return candidate === 'when-open' || candidate === 'always' ? candidate : fallback;
+};
 const normalizeEdge = edge => DOCK_EDGES.has(edge) ? edge : 'left';
 const normalizeRailEdge = edge => DOCK_RAIL_EDGES.has(edge) ? edge : 'left';
 
@@ -303,6 +307,7 @@ const targetIsInside = (container, target) => {
  */
 export function CadWorkspaceDockRail({
   edge = 'left', label = 'Workspace dock', previewLabel, expandLabel, children,
+  renderPreview, previewMount,
   peekOpen, defaultPeekOpen = false, onPeekOpenChange, onExpand, disabled = false,
   id, controls, className, railClassName, previewClassName, onPointerEnter,
   onPointerLeave, onFocusCapture, onBlurCapture, onKeyDown, 'aria-label': ariaLabel,
@@ -320,6 +325,26 @@ export function CadWorkspaceDockRail({
   const resolvedLabel = String(label || 'Workspace dock');
   const resolvedPreviewLabel = previewLabel || `${resolvedLabel} preview`;
   const resolvedExpandLabel = expandLabel || `Expand ${resolvedLabel}`;
+  const previewRenderer = typeof renderPreview === 'function'
+    ? renderPreview
+    : typeof children === 'function' ? children : null;
+  const resolvedPreviewMount = normalizePreviewMount(
+    previewMount,
+    previewRenderer ? 'when-open' : 'always'
+  );
+  const previewContext = useMemo(() => ({
+    active: isPeekOpen,
+    peekOpen: isPeekOpen,
+    edge: resolvedEdge,
+    label: resolvedLabel,
+    previewId,
+    controls: controls || previewId,
+    disabled: Boolean(disabled)
+  }), [controls, disabled, isPeekOpen, previewId, resolvedEdge, resolvedLabel]);
+  const shouldRenderPreview = isPeekOpen || resolvedPreviewMount === 'always';
+  const previewContent = shouldRenderPreview
+    ? previewRenderer ? previewRenderer(previewContext) : children
+    : null;
   const requestOpen = (event, source) => {
     if (disabled) return;
     interactionsRef.current.dismissed = false;
@@ -369,9 +394,9 @@ export function CadWorkspaceDockRail({
     onExpand?.(event, details);
     if (!event.defaultPrevented) requestOpen(event, 'expand');
   };
-  return <section {...props} id={rootId} className={cx('cad-workspace-dock-rail', className)} data-edge={resolvedEdge} data-peek-open={isPeekOpen ? 'true' : 'false'} data-disabled={disabled ? 'true' : 'false'} onPointerEnter={handlePointerEnter} onPointerLeave={handlePointerLeave} onFocusCapture={handleFocusCapture} onBlurCapture={handleBlurCapture} onKeyDown={handleKeyDown}>
+  return <section {...props} id={rootId} className={cx('cad-workspace-dock-rail', className)} data-edge={resolvedEdge} data-peek-open={isPeekOpen ? 'true' : 'false'} data-preview-mount={resolvedPreviewMount} data-preview-rendered={shouldRenderPreview ? 'true' : 'false'} data-disabled={disabled ? 'true' : 'false'} onPointerEnter={handlePointerEnter} onPointerLeave={handlePointerLeave} onFocusCapture={handleFocusCapture} onBlurCapture={handleBlurCapture} onKeyDown={handleKeyDown}>
     <button ref={railButtonRef} id={labelId} type="button" className={cx('cad-workspace-dock-rail__label', railClassName)} aria-label={ariaLabel || `Preview ${resolvedLabel}`} aria-controls={previewId} aria-expanded={isPeekOpen} disabled={disabled} title={resolvedExpandLabel} onClick={expand}><span className="cad-workspace-dock-rail__signal" aria-hidden="true"><i /><i /><i /></span><span>{resolvedLabel}</span><small aria-hidden="true">PEEK</small></button>
-    <aside id={previewId} className={cx('cad-workspace-dock-rail__preview', previewClassName)} data-edge={resolvedEdge} role="region" aria-label={previewLabel ? resolvedPreviewLabel : undefined} aria-labelledby={previewLabel ? undefined : labelId} aria-hidden={!isPeekOpen} hidden={!isPeekOpen}>{children}</aside>
+    <aside id={previewId} className={cx('cad-workspace-dock-rail__preview', previewClassName)} data-edge={resolvedEdge} role="region" aria-label={previewLabel ? resolvedPreviewLabel : undefined} aria-labelledby={previewLabel ? undefined : labelId} aria-hidden={!isPeekOpen} hidden={!isPeekOpen}>{previewContent}</aside>
   </section>;
 }
 

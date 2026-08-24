@@ -39,6 +39,39 @@ describe('workspace dock primitives', () => {
     expect(onExpand).toHaveBeenLastCalledWith(expect.any(Object), expect.objectContaining({ edge: 'left', source: 'rail-expand' }));
   });
 
+  it('defers a render-function preview until the rail becomes active, then unmounts it when idle', () => {
+    const renderPreview = vi.fn(({ active, edge }) => <p>{active ? `${edge} preview` : 'inactive preview'}</p>);
+    render(<CadWorkspaceDockRail id="inspector-rail" edge="right" label="Inspector" renderPreview={renderPreview} />);
+
+    const trigger = screen.getByRole('button', { name: 'Preview Inspector' });
+    const preview = document.getElementById('inspector-rail-preview');
+    expect(renderPreview).not.toHaveBeenCalled();
+    expect(preview).toHaveAttribute('hidden');
+    expect(preview).toBeEmptyDOMElement();
+
+    fireEvent.pointerEnter(trigger);
+    expect(renderPreview).toHaveBeenLastCalledWith(expect.objectContaining({ active: true, peekOpen: true, edge: 'right', previewId: 'inspector-rail-preview' }));
+    expect(screen.getByText('right preview')).toBeInTheDocument();
+
+    fireEvent.pointerLeave(preview, { relatedTarget: document.body });
+    expect(preview).toHaveAttribute('hidden');
+    expect(preview).toBeEmptyDOMElement();
+  });
+
+  it('can lazily mount a static preview explicitly without changing the default child behavior', () => {
+    render(<CadWorkspaceDockRail id="activity-rail" edge="bottom" label="Activity" previewMount="when-open"><p>Activity stream</p></CadWorkspaceDockRail>);
+
+    const trigger = screen.getByRole('button', { name: 'Preview Activity' });
+    const preview = document.getElementById('activity-rail-preview');
+    expect(preview).toHaveAttribute('hidden');
+    expect(screen.queryByText('Activity stream')).not.toBeInTheDocument();
+
+    fireEvent.pointerEnter(trigger);
+    expect(screen.getByText('Activity stream')).toBeInTheDocument();
+    fireEvent.pointerLeave(preview, { relatedTarget: document.body });
+    expect(screen.queryByText('Activity stream')).not.toBeInTheDocument();
+  });
+
   it('keeps dock sizing host-controlled and maps bottom keyboard growth upward', () => {
     function Probe() {
       const [size, setSize] = useState(160);
