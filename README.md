@@ -188,9 +188,9 @@ The public interaction contract is intentionally small:
 `CadCompactWorkspaceRibbon` is the lightweight companion for a minimized
 workspace. It preserves the same command placement contract as the full
 ribbon, but intentionally reveals it in three deliberate steps: **tab →
-group → command**. Its popover opens below the selected tab, closes on a
-second tab click, `Escape`, or an outside interaction, and never needs a
-router or docking manager.
+group → command**. Its popover opens below the selected tab, closes after a
+command, on a second tab click, `Escape`, focus or pointer exit, or an outside
+interaction, and never needs a router or docking manager.
 
 ```jsx
 import { useMemo, useState } from 'react';
@@ -226,14 +226,14 @@ function CompactWorkspaceCommands({ isLayersPanelOpen, toggleLayersPanel, zoomTo
 }
 ```
 
-`closeOnCommand` is `false` by default. That lets a host expose an open/close
-panel command as a real toggle: keep the compact menu visible, click once to
-open the panel, then click the same command again to close it. Set
-`closeOnCommand` only for one-shot actions that should immediately return to
-Model Space. `openTabId` and `openGroupId` are each controlled or standalone;
-their change callbacks receive the id, resolved record and interaction event.
-Use `resolveCadCompactWorkspaceRibbonGroups` when a host needs the same
-resolved hierarchy outside the component.
+`closeOnCommand`, `closeOnFocusOutside`, and `closeOnPointerLeave` are `true` by
+default, so compact controls behave like a lightweight CAD flyout: select the
+operation and return to Model Space. Set any of them to `false` when a host
+intentionally needs a persistent toggle palette. `openTabId` and `openGroupId`
+are each controlled or standalone; their change callbacks receive the id,
+resolved record and interaction event. Use
+`resolveCadCompactWorkspaceRibbonGroups` when a host needs the same resolved
+hierarchy outside the component.
 
 ## Customizable workspace panels
 

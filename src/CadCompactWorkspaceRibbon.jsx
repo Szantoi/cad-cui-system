@@ -195,12 +195,13 @@ function CadCompactRibbonDisclosure({
 /**
  * A compact CAD ribbon that deliberately discloses commands in three steps:
  * tab → command group → command. It uses `CadPopover` so clicking the active
- * tab a second time, pressing Escape, or interacting outside the menu closes
- * the disclosure without any host-specific event plumbing.
+ * tab a second time, pressing Escape, moving focus or the pointer away, or
+ * interacting outside the menu closes the disclosure without host-specific
+ * event plumbing.
  *
  * `openTabId` and `openGroupId` are independently controllable. Commands
- * remain open by default after execution (`closeOnCommand={false}`), making
- * toggle/panel commands suitable for open-once, close-on-second-click flows.
+ * close by default after execution, returning the operator to Model Space.
+ * Set `closeOnCommand={false}` for a deliberately persistent toggle palette.
  */
 export function CadCompactWorkspaceRibbon({
   tabs = [],
@@ -224,7 +225,9 @@ export function CadCompactWorkspaceRibbon({
   placement = 'bottom-start',
   closeOnOutside = true,
   closeOnEscape = true,
-  closeOnCommand = false,
+  closeOnFocusOutside = true,
+  closeOnPointerLeave = true,
+  closeOnCommand = true,
   renderIcon,
   renderCommand,
   onCommand,
@@ -330,6 +333,8 @@ export function CadCompactWorkspaceRibbon({
             label={`${tab.label} compact command menu`}
             closeOnOutside={closeOnOutside}
             closeOnEscape={closeOnEscape}
+            closeOnFocusOutside={closeOnFocusOutside}
+            closeOnPointerLeave={closeOnPointerLeave}
             className="cad-compact-workspace-ribbon__popover"
             contentClassName="cad-compact-workspace-ribbon__disclosure"
             style={{ '--cad-compact-ribbon-accent': tabAccent(tab) }}

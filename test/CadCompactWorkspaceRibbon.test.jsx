@@ -48,7 +48,7 @@ describe('resolveCadCompactWorkspaceRibbonGroups', () => {
 });
 
 describe('CadCompactWorkspaceRibbon', () => {
-  it('reveals tab → group → command, keeps a panel toggle command available, and closes on the second tab click', () => {
+  it('reveals tab → group → command, closes after selection, and closes on the second tab click', () => {
     const onCommand = vi.fn();
     const onOpenTabChange = vi.fn();
     const onOpenGroupChange = vi.fn();
@@ -85,6 +85,9 @@ describe('CadCompactWorkspaceRibbon', () => {
       expect.objectContaining({ source: 'compact-workspace-ribbon', compact: true, group: expect.objectContaining({ id: 'DISPLAY' }) }),
       expect.any(Object)
     );
+    expect(screen.queryByRole('region', { name: 'VIEW compact command menu' })).not.toBeInTheDocument();
+
+    fireEvent.click(viewTab);
     expect(screen.getByRole('region', { name: 'VIEW compact command menu' })).toBeInTheDocument();
 
     fireEvent.click(viewTab);
@@ -100,6 +103,7 @@ describe('CadCompactWorkspaceRibbon', () => {
         tabs={tabs}
         defaultActiveTab="view"
         commands={[{ id: 'layers', label: 'LAYERS', toggle: true, active: panelOpen, placement: { tab: 'view', group: 'DISPLAY' } }]}
+        closeOnCommand={false}
         onCommand={() => setPanelOpen(current => !current)}
       />;
     }
@@ -116,6 +120,23 @@ describe('CadCompactWorkspaceRibbon', () => {
     fireEvent.click(layers);
     expect(layers).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getByRole('region', { name: 'VIEW compact command menu' })).toBeInTheDocument();
+  });
+
+  it('closes by default when the pointer or focus leaves its compact flyout', () => {
+    render(<><CadCompactWorkspaceRibbon tabs={tabs} defaultActiveTab="view" commands={commands} /><button type="button">OUTSIDE</button></>);
+    const viewTab = screen.getByRole('tab', { name: 'VIEW' });
+    const outside = screen.getByRole('button', { name: 'OUTSIDE' });
+
+    fireEvent.click(viewTab);
+    expect(screen.getByRole('region', { name: 'VIEW compact command menu' })).toBeInTheDocument();
+    fireEvent.pointerLeave(viewTab.closest('.cad-popover'));
+    expect(screen.queryByRole('region', { name: 'VIEW compact command menu' })).not.toBeInTheDocument();
+
+    fireEvent.click(viewTab);
+    const compactPopover = viewTab.closest('.cad-popover');
+    expect(screen.getByRole('region', { name: 'VIEW compact command menu' })).toBeInTheDocument();
+    fireEvent.blur(compactPopover, { relatedTarget: outside });
+    expect(screen.queryByRole('region', { name: 'VIEW compact command menu' })).not.toBeInTheDocument();
   });
 
   it('closes its disclosure on Escape and outside interaction', () => {
