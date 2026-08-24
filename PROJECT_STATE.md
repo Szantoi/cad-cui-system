@@ -1,36 +1,34 @@
 # Project State
 
-Updated: 2026-08-23  
-Package version: `0.4.0`  
-Lifecycle: active development — stable, engine-free UI layer
-Latest implementation commit: `042e828 feat: add configurable CAD workspace surfaces`
+Updated: 2026-08-24 · Package version: `0.5.0` · Lifecycle: active development — stable, engine-free UI layer
+Latest committed baseline: `98414a0 docs: add project tracking memory`
 
-## Latest completed increment
+## Current working-tree increment
 
-The modular CAD workspace expansion is integrated and documented.
+The Model Space-first workspace, fixed-height command area and reusable panel
+customization surface are implemented and verified in the working tree.
 
-- Added a grouped, renderer-independent `CadWorkspaceRibbon` with HOME / VIEW
-  / DRAFT support in the playground.
-- Extended the declarative CUI runtime with optional registry `groups`,
-  placement `groupId` / `control`, `commandStates`, and shared command-state
-  resolution across ribbon, quick access, context menu and palette.
-- Added `CadNavigationBar`, `CadVisualStylePicker`,
-  `CadViewportScalePicker`, and `CadSelectionSetPanel`.
-- Connected the new elements to the engine-free SVG playground with host-owned
-  React state, event logging and a Selection Sets inspector tab.
-- Stabilized Vite development reloads by reusing the playground React root.
-- Updated the public exports, CSS contract, README and tracked distribution
-  files.
+- Added controlled/uncontrolled pixel-height support to `CadCommandLine`, with
+  pointer and keyboard resizing, bounds, and an internal scrolling transcript.
+- Reworked the sandbox into a full-window, Model Space-first grid. Left, right
+  and lower docks each support `open`, narrow `rail`, and `closed` modes.
+- Removed automatic event toasts from the sandbox; actions remain available in
+  the Host Event Log, while purposeful confirmation dialogs remain.
+- Added `CadWorkspacePanelManager` with serializable visibility and
+  dock/floating preferences, controlled or standalone state, scope-aware key
+  generation, callback hooks, and pure helper functions for non-visual hosts.
+- Documented the command-area API and refreshed the tracked distribution files.
 
 ## Verified state
 
 | Check | Result |
 | --- | --- |
-| Unit/integration tests | `9` files, `50/50` tests passed |
+| Unit/integration tests | `10` files, `56/56` tests passed |
 | Library build | passed (`npm run build`) |
 | Playground build | passed (`npm run demo:build`) |
 | Package dry-run | passed (`npm pack --dry-run`) |
 | Diff whitespace check | passed (`git diff --check`) |
+| Browser layout QA | passed: fixed-height command transcript; full-width Model Space with all three docks closed; no narrow-view horizontal scroll |
 
 ## Current runnable entry point
 
@@ -42,6 +40,5 @@ Vite normally exposes the sandbox at `http://127.0.0.1:4173/`.
 
 ## Working-tree note
 
-The 0.4.0 implementation is recorded in the latest project commit. The project
-tracking files introduced alongside this state record may remain as separate
-working-tree changes until their content is reviewed and committed.
+This release is prepared for publishing after the listed checks are rerun on
+the final versioned files.

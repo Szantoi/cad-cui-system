@@ -130,7 +130,7 @@ Commands may use either plain UI fields (`tabId`, `groupId`, `groupLabel`,
 list; pass `groups` directly when it already owns the group layout.
 
 ```jsx
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CadWorkspaceRibbon,
   groupCadWorkspaceRibbonCommands
@@ -183,6 +183,104 @@ The public interaction contract is intentionally small:
 - `identity`, `renderIdentity`, `status`, `renderStatus`, `endSlot`, and
   `renderMinimizeControl` are slots rather than application-specific props.
 
+## Customizable workspace panels
+
+`CadWorkspacePanelManager` is the shared CAD-style flyout for choosing which
+workspace panels are visible and whether each is **docked** or **floating**.
+It is intentionally *not* a Dockview adapter or a docking manager. The host
+keeps the serializable preference map and decides how to render an open panel:
+as a Dockview panel, an absolute overlay, a native window, or any other
+surface.
+
+```jsx
+import { useState } from 'react';
+import {
+  CadWorkspacePanelManager,
+  createCadWorkspacePanelPreferencesKey
+} from '@szantoi/cad-cui-system';
+
+const workspacePanels = [
+  {
+    id: 'content-browser',
+    label: 'Content browser',
+    description: 'Folders, saved searches and sources',
+    defaultOpen: true,
+    defaultPlacement: 'dock'
+  },
+  {
+    id: 'element-inspector',
+    label: 'Element inspector',
+    defaultOpen: true,
+    defaultPlacement: 'dock'
+  },
+  {
+    id: 'display-controls',
+    label: 'Display controls',
+    defaultOpen: false,
+    defaultPlacement: 'float'
+  }
+];
+
+function WorkspaceSettings({ isAdmin }) {
+  const scope = isAdmin ? 'admin' : 'public';
+  const storageKey = useMemo(() => createCadWorkspacePanelPreferencesKey({
+    namespace: 'knowledge-graph',
+    scope
+  }), [scope]); // "knowledge-graph:admin:panels" or "knowledge-graph:public:panels"
+  const readPreferences = () => {
+    if (typeof window === 'undefined') return {};
+    try { return JSON.parse(window.localStorage.getItem(storageKey) || '{}'); }
+    catch { return {}; }
+  };
+  const [panelPreferences, setPanelPreferences] = useState(readPreferences);
+
+  useEffect(() => {
+    setPanelPreferences(readPreferences());
+  }, [storageKey]);
+
+  const persistPreferences = nextPreferences => {
+    setPanelPreferences(nextPreferences);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(storageKey, JSON.stringify(nextPreferences));
+    }
+  };
+
+  return <CadWorkspacePanelManager
+    panels={workspacePanels}
+    value={panelPreferences}
+    onChange={persistPreferences}
+    scope={scope}
+    triggerLabel="Configure workspace"
+  />;
+}
+```
+
+The persisted contract stays compact and portable:
+
+```js
+{
+  'content-browser': { open: true, placement: 'dock' },
+  'display-controls': { open: false, placement: 'float' }
+}
+```
+
+`placement` accepts `dock` / `float` and common `docked` / `floating` aliases
+when reading state. The manager exposes `onPanelOpen`, `onPanelClose`,
+`onPanelDock`, `onPanelFloat`, `onPanelChange`, and `onResetAll`; every action
+also flows through `onChange(nextValue, change, event)`. The `change` record
+contains the original panel declaration, previous/next preference and an
+intent such as `open`, `close`, `dock`, `float`, or `reset-all`.
+
+For headless integrations, use the same pure helpers without rendering the
+flyout: `normalizeCadWorkspacePanels`,
+`normalizeCadWorkspacePanelPreferences`,
+`updateCadWorkspacePanelPreference`,
+`resetCadWorkspacePanelPreferences`,
+`getCadWorkspacePanelPreference`, and
+`useCadWorkspacePanelPreferences`. `createCadWorkspacePanelPreferencesKey`
+only creates a scope-aware storage key; it never reads or writes browser
+storage itself.
+
 ## Engine-free viewport context
 
 `CadNavigationBar`, `CadVisualStylePicker`, `CadViewportScalePicker`, and
@@ -212,7 +310,7 @@ selection storage and named-set management stay in the host application.
 
 | Family | Components |
 | --- | --- |
-| Drawing workspace | `CadSplitPane`, `CadDrawingSpaceTabs` (`CadLayoutTabs` / `CadDocumentTabs` aliases), `CadWorkspaceProfileTabs`, workspace-profile helpers, `CadDockTabs`, `CadDockPanel`, `CadStatusBar`, `CadStatusToggle`, `CadCommandLine`, `CadCommandHistory`, `CadCommandOptions` |
+| Drawing workspace | `CadSplitPane`, `CadDrawingSpaceTabs` (`CadLayoutTabs` / `CadDocumentTabs` aliases), `CadWorkspaceProfileTabs`, workspace-profile helpers, `CadWorkspacePanelManager` (`CadWorkspacePanelPreferences` alias), workspace-panel preference helpers, `CadDockTabs`, `CadDockPanel`, `CadStatusBar`, `CadStatusToggle`, `CadCommandLine`, `CadCommandHistory`, `CadCommandOptions` |
 | Tools and menus | `CadWorkspaceRibbon`, `groupCadWorkspaceRibbonCommands`, `CadToolbar`, `CadToolbarGroup`, `CadToolPalette`, `CadToolButton`, `CadToggleButton`, `CadSplitButton`, `CadShortcutHint`, `CadMenu`, `CadMenuItem`, `CadMenuSeparator`, `CadOverflowMenu`, `CadMenuBar`, `CadSubmenu` |
 | Precision input and style | `CadNumericInput`, `CadUnitInput`, `CadAngleInput`, `CadCoordinateInput`, `CadColorSwatch`, `CadLinetypePreview`, `CadLineweightPreview`, `CadColorPicker`, `CadColorPickerButton`, `CadLinetypePicker`, `CadLineweightPicker` |
 | Drafting overlays | `CadDynamicInput`, `CadObjectSnapMenu`, `CadGripToolbar`, `CadConstraintBar`, `CadAnnotationScalePicker`, `CadViewPresetPicker`, `CadPolarTracker`, `CadObjectSnapMarker`, `CadSelectionGrip` |
@@ -302,6 +400,7 @@ import {
 ## A complete workspace composition
 
 ```jsx
+import { useState } from 'react';
 import {
   CadCommandLine,
   CadDrawingSpaceTabs,
@@ -313,24 +412,43 @@ import {
 } from '@szantoi/cad-cui-system';
 
 function DrawingWorkspace() {
+  const [commandHeight, setCommandHeight] = useState(144);
+
   return <main className="drawing-workspace">
     <CadToolPalette items={drawTools} onAction={(tool) => runTool(tool.id)} />
     <CadViewportControls onZoomExtents={zoomExtents} onViewChange={setView} />
     <CadLayerPanel layers={layers} activeLayerId={activeLayerId} onActiveLayerChange={setActiveLayerId} onLayerChange={updateLayer} />
     <CadPropertyGrid sections={propertySections} onValueChange={updateProperty} />
-    <CadCommandLine onSubmit={runCommand} suggestions={commandSuggestions} history={commandHistory} />
+    <CadCommandLine
+      height={commandHeight}
+      minHeight={72}
+      maxHeight={360}
+      onHeightChange={setCommandHeight}
+      onSubmit={runCommand}
+      suggestions={commandSuggestions}
+      history={commandHistory}
+    />
     <CadDrawingSpaceTabs items={spaces} activeId={activeSpaceId} onChange={setActiveSpaceId} onCreate={createLayout} />
     <CadStatusBar coordinates={cursor} units="mm" scale="1:50" modes={draftingModes} onModeChange={toggleDraftingMode} />
   </main>;
 }
 ```
 
+### Fixed-height command area
+
+`CadCommandLine` is resizable by pointer or keyboard and accepts a controlled
+pixel `height`, or `defaultHeight` for standalone use. `minHeight`,
+`maxHeight`, `resizeStep`, and `onHeightChange` let the host keep the selected
+command-area height. Command history and options scroll inside that area, so
+new command rows do not consume Model Space. Set `resizable={false}` when the
+host supplies its own dock resize control.
+
 ## Interactive playground
 
 The repository includes an engine-free, interactive CAD workspace sandbox. It
 uses controlled React state to demonstrate the component contracts: a drawing
 surface is deliberately only an SVG mockup, while tabs, split panes, drafting
-modes, inspectors, style pickers, block insertion, dialogs, notifications and
+modes, inspectors, style pickers, block insertion, dialogs, event logging and
 tables are all usable.
 
 ```bash

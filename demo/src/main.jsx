@@ -31,9 +31,7 @@ import {
   CadSelectionSetPanel,
   CadSelectionSummary,
   CadShortcutReference,
-  CadSplitPane,
   CadStatusBar,
-  CadToastStack,
   CadToolPalette,
   CadTooltip,
   CadViewportControls,
@@ -104,12 +102,46 @@ const SHORTCUTS = [
 
 const formatPoint = point => `${point.x ?? 0}, ${point.y ?? 0}, ${point.z ?? 0}`;
 
+const DOCK_MODES = [
+  { id: 'open', label: 'Open' },
+  { id: 'rail', label: 'Rail' },
+  { id: 'closed', label: 'Closed' }
+];
+
+const panelWidth = (mode, openWidth) => mode === 'open' ? openWidth : mode === 'rail' ? '2.65rem' : '0px';
+
+function DockVisibilityControl({ label, mode, onChange, controls }) {
+  return <div className="cad-demo-dock-visibility" role="group" aria-label={`${label} visibility`}>
+    <span>{label}</span>
+    {DOCK_MODES.map(option => <button
+      key={option.id}
+      type="button"
+      aria-label={`${option.label} ${label}`}
+      aria-pressed={mode === option.id}
+      aria-expanded={option.id === 'open' ? mode === 'open' : undefined}
+      aria-controls={option.id === 'open' && mode !== 'closed' ? controls : undefined}
+      data-mode={option.id}
+      onClick={() => onChange(option.id)}
+    >{option.id === 'open' ? '□' : option.id === 'rail' ? '▯' : '×'}<b>{option.label}</b></button>)}
+  </div>;
+}
+
+function DockRail({ label, onExpand }) {
+  return <div className="cad-demo-dock-rail">
+    <button type="button" className="cad-demo-dock-rail__button" aria-label={`Expand ${label}`} onClick={onExpand}>
+      <span>{label}</span><b aria-hidden="true">›</b>
+    </button>
+  </div>;
+}
+
 function Playground() {
   const idSequence = useRef(0);
   const [profiles, setProfiles] = useState(INITIAL_PROFILES);
   const [activeProfileId, setActiveProfileId] = useState('model');
-  const [leftPaneSize, setLeftPaneSize] = useState(19);
-  const [rightPaneSize, setRightPaneSize] = useState(68);
+  const [leftPanelMode, setLeftPanelMode] = useState('open');
+  const [rightPanelMode, setRightPanelMode] = useState('open');
+  const [bottomPanelMode, setBottomPanelMode] = useState('open');
+  const [commandLineHeight, setCommandLineHeight] = useState(144);
   const [activeInspectorTab, setActiveInspectorTab] = useState('properties');
   const [activeTool, setActiveTool] = useState('line');
   const [activeView, setActiveView] = useState('top');
@@ -147,7 +179,6 @@ function Playground() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [quickPropertiesOpen, setQuickPropertiesOpen] = useState(true);
   const [quickPropertiesPinned, setQuickPropertiesPinned] = useState(false);
-  const [toasts, setToasts] = useState([]);
   const [events, setEvents] = useState([
     { id: 'initial', message: 'Sandbox ready — no CAD engine attached.', tone: 'muted' }
   ]);
@@ -156,12 +187,18 @@ function Playground() {
   const record = (message, tone = 'normal') => {
     setEvents(current => [{ id: nextId('event'), message, tone }, ...current].slice(0, 6));
   };
-  const notify = (title, message, tone = 'neutral') => {
-    setToasts(current => [...current, { id: nextId('toast'), title, message, tone }]);
-  };
   const report = (title, message, tone = 'neutral') => {
     record(`${title}: ${message}`, tone);
-    notify(title, message, tone);
+  };
+
+  const setDockMode = (label, setMode) => nextMode => {
+    setMode(nextMode);
+    record(`Workspace: ${label} ${nextMode}.`);
+  };
+
+  const workspaceStyle = {
+    '--cad-demo-left-pane': panelWidth(leftPanelMode, 'clamp(4.5rem, 18vw, 20rem)'),
+    '--cad-demo-right-pane': panelWidth(rightPanelMode, 'clamp(5rem, 23vw, 25rem)')
   };
 
   const selectTool = tool => {
@@ -184,6 +221,7 @@ function Playground() {
           : normalized.includes('line') || normalized === 'l' ? 'line' : normalized;
     if (tool === 'insert') {
       setActiveInspectorTab('blocks');
+      setRightPanelMode('open');
       report('Command', 'INSERT opened the Blocks palette.');
       return;
     }
@@ -307,6 +345,7 @@ function Playground() {
     }
     if (commandId === 'insert') {
       setActiveInspectorTab('blocks');
+      setRightPanelMode('open');
       report('Command', 'INSERT opened the Blocks palette.');
       return;
     }
@@ -325,7 +364,11 @@ function Playground() {
     if (!item?.id) return;
     if (item.id === 'new-layout') return addLayout();
     if (item.id === 'clear-selection') return setClearDialogOpen(true);
-    if (['properties', 'blocks', 'data', 'sets'].includes(item.id)) return setActiveInspectorTab(item.id);
+    if (['properties', 'blocks', 'data', 'sets'].includes(item.id)) {
+      setActiveInspectorTab(item.id);
+      setRightPanelMode('open');
+      return;
+    }
     if (item.id === 'shortcuts' || item.id === 'about') return setHelpOpen(true);
     report('Menu action', `${item.label} is a host-owned command.`);
   };
@@ -477,106 +520,125 @@ function Playground() {
         />
       </section>
 
-      <section className="cad-demo-workspace">
-        <CadSplitPane
-          className="cad-demo__outer-split"
-          size={leftPaneSize}
-          minSize={14}
-          maxSize={34}
-          onSizeChange={setLeftPaneSize}
-          primary={<aside className="cad-demo-left-rail">
-            <CadDockPanel title="Tool palette" collapsible>
-              <CadToolPalette groups={toolbarGroups.slice(0, 2)} onAction={selectTool} />
-            </CadDockPanel>
-            <CadDockPanel title="Object snaps" collapsible>
-              <CadObjectSnapMenu activeIds={snapIds} onChange={setSnapIds} />
-            </CadDockPanel>
-            <CadDockPanel title="Constraints" collapsible defaultCollapsed>
-              <CadConstraintBar activeIds={constraintIds} onChange={setConstraintIds} />
-            </CadDockPanel>
-            <CadDockPanel title="Layers" collapsible>
-              <CadLayerPanel
-                layers={layers}
-                activeLayerId={activeLayerId}
-                onActiveLayerChange={id => { setActiveLayerId(id); setPropertyState(current => ({ ...current, layer: id })); }}
-                onLayerChange={updateLayer}
-                onAddLayer={() => report('Layers', 'Add layer requested.')}
-                onDeleteLayer={() => report('Layers', 'Delete layer requested.')}
-              />
-            </CadDockPanel>
-          </aside>}
-          secondary={<CadSplitPane
-            className="cad-demo__inner-split"
-            size={rightPaneSize}
-            minSize={48}
-            maxSize={80}
-            onSizeChange={setRightPaneSize}
-            primary={<section className="cad-demo-viewport" data-visual-style={visualStyle} data-viewport-scale={viewportScale} aria-label="SVG drawing viewport mockup">
-              <div className="cad-demo-viewport__meta"><span>MODEL SPACE / {activeView.toUpperCase()} / {visualStyle.toUpperCase()}</span><span>{Math.round(zoom * 100)}% · VP {viewportScale}</span></div>
-              <svg className="cad-demo-viewport__drawing" style={{ transform: `scale(${zoom * (VIEWPORT_SCALE_FACTORS[viewportScale] || 1)})` }} viewBox="0 0 1000 620" role="img" aria-label="Technical drawing mockup">
-                <defs><pattern id="cad-demo-grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M 25 0 L 0 0 0 25" fill="none" stroke="currentColor" strokeWidth="0.6" /></pattern></defs>
-                <rect width="1000" height="620" fill="url(#cad-demo-grid)" className="cad-demo-grid" />
-                <g className="cad-demo-plan" fill="none">
-                  <path d="M190 135H765V470H190Z M318 135V274H190 M520 135V253H765 M520 253H765 M318 350H630V470" />
-                  <path d="M190 274H318 A76 76 0 0 1 242 350 M630 470V350 A120 120 0 0 1 750 470" className="cad-demo-plan__door" />
-                  <path d="M318 168H468 M538 168H690 M214 404H294 M362 404H522" className="cad-demo-plan__window" />
-                  <rect x="388" y="294" width="154" height="72" rx="2" className="cad-demo-plan__furniture" />
-                  <path d="M405 382H526 M465 294V366" className="cad-demo-plan__furniture" />
-                  <path d="M160 111H794 M160 99V123 M794 99V123" className="cad-demo-plan__dimension" />
-                  <text x="430" y="93" className="cad-demo-plan__label">8400</text>
-                  <path d="M810 135V470 M798 135H822 M798 470H822" className="cad-demo-plan__dimension" />
-                  <text x="832" y="310" transform="rotate(90 832 310)" className="cad-demo-plan__label">5600</text>
-                </g>
-              </svg>
-              <div className="cad-demo-viewport__controls"><CadViewportControls activeView={activeView} onViewChange={view => { setActiveView(view); record(`Viewport: ${String(view).toUpperCase()} view active.`); }} onZoomIn={() => { setZoom(value => Math.min(1.35, value + 0.1)); record('Viewport: Zoomed in.'); }} onZoomOut={() => { setZoom(value => Math.max(0.7, value - 0.1)); record('Viewport: Zoomed out.'); }} onZoomExtents={() => { setZoom(1); record('Viewport: Zoom extents restored.'); }} /></div>
-              <div className="cad-demo-viewport__navigation">
-                <CadNavigationBar
-                  activeId={navigationMode}
-                  onActiveChange={id => setNavigationMode(id)}
-                  onPan={() => record('Navigation: Pan mode toggled.')}
-                  onZoomIn={() => { setZoom(value => Math.min(1.35, value + 0.1)); record('Navigation: Zoomed in.'); }}
-                  onZoomOut={() => { setZoom(value => Math.max(0.7, value - 0.1)); record('Navigation: Zoomed out.'); }}
-                  onZoomWindow={() => record('Navigation: Zoom window requested.')}
-                  onZoomExtents={() => { setZoom(1); record('Navigation: Zoom extents restored.'); }}
-                  onOrbit={() => record('Navigation: Orbit mode toggled.')}
-                  onHome={() => { setActiveView('top'); setZoom(1); report('Navigation', 'Home view restored.'); }}
+      <section className="cad-demo-main-stage">
+        <section className="cad-demo-workspace" style={workspaceStyle} data-left-panel={leftPanelMode} data-right-panel={rightPanelMode}>
+          {leftPanelMode !== 'closed' && <aside id="cad-demo-tools-panel" className="cad-demo-left-rail" data-mode={leftPanelMode} aria-label="Tools panel">
+            {leftPanelMode === 'rail' ? <DockRail label="Tools panel" onExpand={() => setDockMode('Tools panel', setLeftPanelMode)('open')} /> : <>
+              <CadDockPanel title="Tool palette" collapsible>
+                <CadToolPalette groups={toolbarGroups.slice(0, 2)} onAction={selectTool} />
+              </CadDockPanel>
+              <CadDockPanel title="Object snaps" collapsible>
+                <CadObjectSnapMenu activeIds={snapIds} onChange={setSnapIds} />
+              </CadDockPanel>
+              <CadDockPanel title="Constraints" collapsible defaultCollapsed>
+                <CadConstraintBar activeIds={constraintIds} onChange={setConstraintIds} />
+              </CadDockPanel>
+              <CadDockPanel title="Layers" collapsible>
+                <CadLayerPanel
+                  layers={layers}
+                  activeLayerId={activeLayerId}
+                  onActiveLayerChange={id => { setActiveLayerId(id); setPropertyState(current => ({ ...current, layer: id })); }}
+                  onLayerChange={updateLayer}
+                  onAddLayer={() => report('Layers', 'Add layer requested.')}
+                  onDeleteLayer={() => report('Layers', 'Delete layer requested.')}
                 />
-              </div>
-              <CadSelectionSummary className="cad-demo-viewport__selection" count={selectionCount} entityLabel="objects" fields={[{ label: 'Tool', value: activeTool.toUpperCase() }]} />
-              <CadMeasureReadout className="cad-demo-viewport__measure" distance="4200 mm" angle="90°" />
-              <CadDynamicInput className="cad-demo-viewport__dynamic" value={dynamicPoint} onChange={setDynamicPoint} onSubmit={point => report('Point accepted', formatPoint(point))} prompt={`Specify ${activeTool} point`} />
-              <CadPolarTracker className="cad-demo-viewport__polar" angle="45°" increment="15°" distance="1200 mm" active={drafting.polar} onActiveChange={polar => setDrafting(current => ({ ...current, polar }))} />
-              <CadGripToolbar className="cad-demo-viewport__grip-tools" selectionCount={selectionCount} tools={[{ id: 'move', label: 'Move' }, { id: 'rotate', label: 'Rotate' }, { id: 'delete', label: 'Delete', tone: 'danger' }]} onAction={selectTool} />
-              <CadObjectSnapMarker className="cad-demo-viewport__snap-marker" type="endpoint" label="Endpoint" />
-              <CadSelectionGrip className="cad-demo-viewport__grip cad-demo-viewport__grip--one" label="Move selected object" active onClick={() => report('Grip', 'Base grip activated.')} />
-              <CadSelectionGrip className="cad-demo-viewport__grip cad-demo-viewport__grip--two" label="Stretch selected object" onClick={() => report('Grip', 'Stretch grip activated.')} />
-            </section>}
-            secondary={<aside className="cad-demo-inspector">
+              </CadDockPanel>
+            </>}
+          </aside>}
+
+          <section className="cad-demo-viewport" data-visual-style={visualStyle} data-viewport-scale={viewportScale} aria-label="SVG drawing viewport mockup">
+            <div className="cad-demo-viewport__meta"><span>MODEL SPACE / {activeView.toUpperCase()} / {visualStyle.toUpperCase()}</span><span>{Math.round(zoom * 100)}% · VP {viewportScale}</span></div>
+            <svg className="cad-demo-viewport__drawing" style={{ transform: `scale(${zoom * (VIEWPORT_SCALE_FACTORS[viewportScale] || 1)})` }} viewBox="0 0 1000 620" role="img" aria-label="Technical drawing mockup">
+              <defs><pattern id="cad-demo-grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M 25 0 L 0 0 0 25" fill="none" stroke="currentColor" strokeWidth="0.6" /></pattern></defs>
+              <rect width="1000" height="620" fill="url(#cad-demo-grid)" className="cad-demo-grid" />
+              <g className="cad-demo-plan" fill="none">
+                <path d="M190 135H765V470H190Z M318 135V274H190 M520 135V253H765 M520 253H765 M318 350H630V470" />
+                <path d="M190 274H318 A76 76 0 0 1 242 350 M630 470V350 A120 120 0 0 1 750 470" className="cad-demo-plan__door" />
+                <path d="M318 168H468 M538 168H690 M214 404H294 M362 404H522" className="cad-demo-plan__window" />
+                <rect x="388" y="294" width="154" height="72" rx="2" className="cad-demo-plan__furniture" />
+                <path d="M405 382H526 M465 294V366" className="cad-demo-plan__furniture" />
+                <path d="M160 111H794 M160 99V123 M794 99V123" className="cad-demo-plan__dimension" />
+                <text x="430" y="93" className="cad-demo-plan__label">8400</text>
+                <path d="M810 135V470 M798 135H822 M798 470H822" className="cad-demo-plan__dimension" />
+                <text x="832" y="310" transform="rotate(90 832 310)" className="cad-demo-plan__label">5600</text>
+              </g>
+            </svg>
+            <div className="cad-demo-viewport__controls"><CadViewportControls activeView={activeView} onViewChange={view => { setActiveView(view); record(`Viewport: ${String(view).toUpperCase()} view active.`); }} onZoomIn={() => { setZoom(value => Math.min(1.35, value + 0.1)); record('Viewport: Zoomed in.'); }} onZoomOut={() => { setZoom(value => Math.max(0.7, value - 0.1)); record('Viewport: Zoomed out.'); }} onZoomExtents={() => { setZoom(1); record('Viewport: Zoom extents restored.'); }} /></div>
+            <div className="cad-demo-viewport__navigation">
+              <CadNavigationBar
+                activeId={navigationMode}
+                onActiveChange={id => setNavigationMode(id)}
+                onPan={() => record('Navigation: Pan mode toggled.')}
+                onZoomIn={() => { setZoom(value => Math.min(1.35, value + 0.1)); record('Navigation: Zoomed in.'); }}
+                onZoomOut={() => { setZoom(value => Math.max(0.7, value - 0.1)); record('Navigation: Zoomed out.'); }}
+                onZoomWindow={() => record('Navigation: Zoom window requested.')}
+                onZoomExtents={() => { setZoom(1); record('Navigation: Zoom extents restored.'); }}
+                onOrbit={() => record('Navigation: Orbit mode toggled.')}
+                onHome={() => { setActiveView('top'); setZoom(1); report('Navigation', 'Home view restored.'); }}
+              />
+            </div>
+            <CadSelectionSummary className="cad-demo-viewport__selection" count={selectionCount} entityLabel="objects" fields={[{ label: 'Tool', value: activeTool.toUpperCase() }]} />
+            <CadMeasureReadout className="cad-demo-viewport__measure" distance="4200 mm" angle="90°" />
+            <CadDynamicInput className="cad-demo-viewport__dynamic" value={dynamicPoint} onChange={setDynamicPoint} onSubmit={point => report('Point accepted', formatPoint(point))} prompt={`Specify ${activeTool} point`} />
+            <CadPolarTracker className="cad-demo-viewport__polar" angle="45°" increment="15°" distance="1200 mm" active={drafting.polar} onActiveChange={polar => setDrafting(current => ({ ...current, polar }))} />
+            <CadGripToolbar className="cad-demo-viewport__grip-tools" selectionCount={selectionCount} tools={[{ id: 'move', label: 'Move' }, { id: 'rotate', label: 'Rotate' }, { id: 'delete', label: 'Delete', tone: 'danger' }]} onAction={selectTool} />
+            <CadObjectSnapMarker className="cad-demo-viewport__snap-marker" type="endpoint" label="Endpoint" />
+            <CadSelectionGrip className="cad-demo-viewport__grip cad-demo-viewport__grip--one" label="Move selected object" active onClick={() => report('Grip', 'Base grip activated.')} />
+            <CadSelectionGrip className="cad-demo-viewport__grip cad-demo-viewport__grip--two" label="Stretch selected object" onClick={() => report('Grip', 'Stretch grip activated.')} />
+          </section>
+
+          {rightPanelMode !== 'closed' && <aside id="cad-demo-inspector-panel" className="cad-demo-inspector" data-mode={rightPanelMode} aria-label="Inspector panel">
+            {rightPanelMode === 'rail' ? <DockRail label="Inspector panel" onExpand={() => setDockMode('Inspector panel', setRightPanelMode)('open')} /> : <>
               <CadDockTabs
                 items={[{ id: 'properties', label: 'Properties' }, { id: 'blocks', label: 'Blocks' }, { id: 'data', label: 'Data', badge: selectedRowIds.length || undefined }, { id: 'sets', label: 'Sets', badge: selectionSets.length || undefined }]}
                 activeId={activeInspectorTab}
                 onChange={setActiveInspectorTab}
                 renderPanel={item => inspectorContent[item.id]}
               />
-              <section className="cad-demo-events" aria-label="Host event log"><header><span>HOST EVENT LOG</span><output>{leftPaneSize.toFixed(0)}% / {rightPaneSize.toFixed(0)}%</output></header><ol>{events.map(event => <li key={event.id} data-tone={event.tone}>{event.message}</li>)}</ol></section>
-            </aside>}
-          />}
-        />
+              <section className="cad-demo-events" aria-label="Host event log"><header><span>HOST EVENT LOG</span><output>{events.length} EVENTS</output></header><ol>{events.map(event => <li key={event.id} data-tone={event.tone}>{event.message}</li>)}</ol></section>
+            </>}
+          </aside>}
+
+          <div className="cad-demo-workspace__visibility" aria-label="Workspace panel visibility">
+            <DockVisibilityControl label="Tools panel" controls="cad-demo-tools-panel" mode={leftPanelMode} onChange={setDockMode('Tools panel', setLeftPanelMode)} />
+            <DockVisibilityControl label="Inspector panel" controls="cad-demo-inspector-panel" mode={rightPanelMode} onChange={setDockMode('Inspector panel', setRightPanelMode)} />
+            <DockVisibilityControl label="Command bar" controls="cad-demo-command-bar" mode={bottomPanelMode} onChange={setDockMode('Command bar', setBottomPanelMode)} />
+          </div>
+        </section>
+
+        <section id="cad-demo-command-bar" className="cad-demo-bottom-dock" aria-label="Command bar" data-mode={bottomPanelMode}>
+          {bottomPanelMode === 'open' && <>
+            <div className="cad-demo-command-dock__line" data-command-height={commandLineHeight} style={{ '--cad-demo-command-height': `${commandLineHeight}px` }}>
+              <CadCommandLine
+                height={commandLineHeight}
+                defaultHeight={144}
+                minHeight={72}
+                maxHeight={360}
+                onHeightChange={nextHeight => setCommandLineHeight(Math.max(72, Math.min(360, Math.round(Number(nextHeight) || 144))))}
+                prompt="Command:"
+                suggestions={[{ id: 'line', label: 'LINE', detail: 'Draw a straight segment' }, { id: 'circle', label: 'CIRCLE', detail: 'Draw a circle' }, { id: 'insert', label: 'INSERT', detail: 'Open Blocks palette' }, { id: 'move', label: 'MOVE', detail: 'Move selected objects' }]}
+                history={commandHistory}
+                options={[{ id: 'undo', label: 'Undo' }, { id: 'close', label: 'Close' }, { id: 'help', label: 'Help', shortcut: 'F1' }]}
+                onSubmit={runCommand}
+                onOptionSelect={option => {
+                  if (option.id === 'help') return setHelpOpen(true);
+                  if (option.id === 'close') return setDockMode('Command bar', setBottomPanelMode)('closed');
+                  report('Command option', option.label);
+                }}
+              />
+            </div>
+            <CadWorkspaceProfileTabs profiles={profiles} activeId={activeProfileId} onChange={setActiveProfileId} onCreate={addLayout} onClose={closeProfile} />
+            <CadStatusBar coordinates={dynamicPoint} units="mm" scale={propertyState.annotationScale} message={`${activeTool.toUpperCase()} · ${snapIds.length} snaps · ${constraintIds.length} constraints`} modes={[
+              { id: 'grid', label: 'GRID', active: drafting.grid }, { id: 'snap', label: 'SNAP', active: drafting.snap }, { id: 'ortho', label: 'ORTHO', active: drafting.ortho }, { id: 'polar', label: 'POLAR', active: drafting.polar, tone: 'amber' }, { id: 'osnap', label: 'OSNAP', active: drafting.osnap, tone: 'magenta' }
+            ]} onModeChange={(id, active) => { setDrafting(current => ({ ...current, [id]: active })); record(`${id.toUpperCase()} ${active ? 'enabled' : 'disabled'}.`); }} />
+          </>}
+          {bottomPanelMode === 'rail' && <div className="cad-demo-bottom-dock__rail">
+            <button type="button" aria-label="Expand command bar" onClick={() => setDockMode('Command bar', setBottomPanelMode)('open')}>COMMAND</button>
+            <output>{activeTool.toUpperCase()} · {profiles.find(profile => profile.id === activeProfileId)?.name || 'MODEL'}</output>
+            <span>{snapIds.length} SNAPS · {constraintIds.length} CONSTRAINTS</span>
+          </div>}
+        </section>
       </section>
-
-      <CadCommandLine
-        prompt="Command:"
-        suggestions={[{ id: 'line', label: 'LINE', detail: 'Draw a straight segment' }, { id: 'circle', label: 'CIRCLE', detail: 'Draw a circle' }, { id: 'insert', label: 'INSERT', detail: 'Open Blocks palette' }, { id: 'move', label: 'MOVE', detail: 'Move selected objects' }]}
-        history={commandHistory}
-        options={[{ id: 'undo', label: 'Undo' }, { id: 'close', label: 'Close' }, { id: 'help', label: 'Help', shortcut: 'F1' }]}
-        onSubmit={runCommand}
-        onOptionSelect={option => option.id === 'help' ? setHelpOpen(true) : report('Command option', option.label)}
-      />
-
-      <CadWorkspaceProfileTabs profiles={profiles} activeId={activeProfileId} onChange={setActiveProfileId} onCreate={addLayout} onClose={closeProfile} />
-      <CadStatusBar coordinates={dynamicPoint} units="mm" scale={propertyState.annotationScale} message={`${activeTool.toUpperCase()} · ${snapIds.length} snaps · ${constraintIds.length} constraints`} modes={[
-        { id: 'grid', label: 'GRID', active: drafting.grid }, { id: 'snap', label: 'SNAP', active: drafting.snap }, { id: 'ortho', label: 'ORTHO', active: drafting.ortho }, { id: 'polar', label: 'POLAR', active: drafting.polar, tone: 'amber' }, { id: 'osnap', label: 'OSNAP', active: drafting.osnap, tone: 'magenta' }
-      ]} onModeChange={(id, active) => { setDrafting(current => ({ ...current, [id]: active })); record(`${id.toUpperCase()} ${active ? 'enabled' : 'disabled'}.`); }} />
     </section>
 
     <CadConfirmDialog
@@ -593,7 +655,6 @@ function Playground() {
     <CadDialog open={helpOpen} title="Interactive playground" description="A component integration sandbox, not a CAD engine." onClose={() => setHelpOpen(false)}>
       <CadShortcutReference shortcuts={SHORTCUTS} onClose={() => setHelpOpen(false)} />
     </CadDialog>
-    <CadToastStack toasts={toasts} onDismiss={toast => setToasts(current => current.filter(item => item.id !== toast.id))} />
   </main>;
 }
 

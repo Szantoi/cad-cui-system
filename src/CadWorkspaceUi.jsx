@@ -1,4 +1,4 @@
-import React, { useId, useMemo, useState } from 'react';
+import React, { useId, useMemo, useRef, useState } from 'react';
 import { asArray, cx, itemLabel, useControllableState } from './cadUiUtils.js';
 import { CAD_WORKSPACE_MODEL_ID, normalizeCadWorkspaceProfiles } from './CadWorkspaceProfiles.js';
 
@@ -210,14 +210,61 @@ export function CadCommandOptions({ options = [], label = 'Command options', onS
   </div>;
 }
 
-/** Controlled or standalone command line with history, options and suggestions. */
-export function CadCommandLine({ value, defaultValue = '', onChange, onSubmit, prompt = 'Command:', history = [], suggestions = [], options = [], onSuggestionSelect, onOptionSelect, clearOnSubmit = true, submitSuggestionOnEnter = false, disabled = false, placeholder = 'Type a command or search', showHistory = true, className, inputProps = {}, ...props }) {
+const normaliseCommandLineHeight = (value, fallback, minimum, maximum) => {
+  const numericValue = Number(value);
+  const fallbackValue = Number(fallback);
+  const resolved = Number.isFinite(numericValue) ? numericValue : (Number.isFinite(fallbackValue) ? fallbackValue : 152);
+  return Math.min(maximum, Math.max(minimum, Math.round(resolved)));
+};
+
+/**
+ * Controlled or standalone command line with history, options and suggestions.
+ *
+ * `height` is a controlled pixel height. Use `defaultHeight` for a standalone
+ * resizable line; `minHeight`, `maxHeight`, `resizeStep`, and `onHeightChange`
+ * keep the host in control of the allowed drawing-space allocation.
+ */
+export function CadCommandLine({ value, defaultValue = '', onChange, onSubmit, prompt = 'Command:', history = [], suggestions = [], options = [], onSuggestionSelect, onOptionSelect, clearOnSubmit = true, submitSuggestionOnEnter = false, disabled = false, placeholder = 'Type a command or search', showHistory = true, height, defaultHeight = 152, minHeight = 72, maxHeight = 360, resizeStep = 8, resizable = true, onHeightChange, className, inputProps = {}, style, id, ...props }) {
   const generatedId = useId();
   const [draft, setDraft] = useControllableState(value, defaultValue, (nextValue, event) => onChange?.(nextValue, event));
+  const rawMinimum = Number(minHeight);
+  // Reserve room for the grip and the single-line prompt even at the smallest size.
+  const resolvedMinHeight = Math.max(48, Number.isFinite(rawMinimum) ? Math.round(rawMinimum) : 72);
+  const rawMaximum = Number(maxHeight);
+  const resolvedMaxHeight = Math.max(resolvedMinHeight, Number.isFinite(rawMaximum) ? Math.round(rawMaximum) : 360);
+  const initialHeight = normaliseCommandLineHeight(defaultHeight, 152, resolvedMinHeight, resolvedMaxHeight);
+  const [storedHeight, setStoredHeight] = useControllableState(height, initialHeight, (nextHeight, event) => onHeightChange?.(nextHeight, event));
+  const resolvedHeight = normaliseCommandLineHeight(storedHeight, initialHeight, resolvedMinHeight, resolvedMaxHeight);
+  const resolvedResizeStep = Math.max(1, Number.isFinite(Number(resizeStep)) ? Math.round(Number(resizeStep)) : 8);
+  const resizeState = useRef(null);
   const [focused, setFocused] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const normalizedSuggestions = useMemo(() => asArray(suggestions).map(normaliseHistoryItem), [suggestions]);
   const suggestionId = `cad-command-suggestions-${generatedId}`;
+  const commandLineId = id || `cad-command-line-${generatedId}`;
+  const setHeight = (nextHeight, event) => {
+    const candidate = typeof nextHeight === 'function' ? nextHeight(resolvedHeight) : nextHeight;
+    const clampedHeight = normaliseCommandLineHeight(candidate, resolvedHeight, resolvedMinHeight, resolvedMaxHeight);
+    if (clampedHeight !== resolvedHeight) setStoredHeight(clampedHeight, event);
+  };
+  const finishResize = event => {
+    if (!resizeState.current) return;
+    const pointerId = resizeState.current.pointerId;
+    resizeState.current = null;
+    if (event?.currentTarget?.hasPointerCapture?.(pointerId)) event.currentTarget.releasePointerCapture?.(pointerId);
+  };
+  const beginResize = event => {
+    if (!resizable || event.button !== 0) return;
+    event.preventDefault();
+    resizeState.current = { pointerId: event.pointerId, startY: event.clientY, startHeight: resolvedHeight };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+  const resizeFromPointer = event => {
+    const activeResize = resizeState.current;
+    if (!activeResize || activeResize.pointerId !== event.pointerId) return;
+    // The grip lives at the top edge: moving up makes the command area taller.
+    setHeight(activeResize.startHeight + activeResize.startY - event.clientY, event);
+  };
   const selectSuggestion = (suggestion, event, submit = false) => {
     if (!suggestion) return;
     setDraft(suggestion.label, event);
@@ -240,7 +287,33 @@ export function CadCommandLine({ value, defaultValue = '', onChange, onSubmit, p
     if (clearOnSubmit) setDraft('', event);
   };
   const showSuggestions = focused && normalizedSuggestions.length > 0;
-  return <section {...props} className={cx('cad-command-line', className)} aria-label="CAD command line">
+  const hasTranscript = options.length > 0 || (showHistory && history.length > 0);
+  return <section {...props} id={commandLineId} className={cx('cad-command-line', className)} style={{ ...style, '--cad-command-line-height': `${resolvedHeight}px` }} aria-label="CAD command line">
+    {resizable && <div
+      className="cad-command-line__resize-handle"
+      role="separator"
+      tabIndex={0}
+      aria-label="Resize command line"
+      aria-controls={commandLineId}
+      aria-orientation="horizontal"
+      aria-valuemin={resolvedMinHeight}
+      aria-valuemax={resolvedMaxHeight}
+      aria-valuenow={resolvedHeight}
+      aria-valuetext={`${resolvedHeight} pixels`}
+      onPointerDown={beginResize}
+      onPointerMove={resizeFromPointer}
+      onPointerUp={finishResize}
+      onPointerCancel={finishResize}
+      onKeyDown={event => {
+        const increment = event.shiftKey ? resolvedResizeStep * 3 : resolvedResizeStep;
+        if (event.key === 'ArrowUp') { event.preventDefault(); setHeight(resolvedHeight + increment, event); }
+        if (event.key === 'ArrowDown') { event.preventDefault(); setHeight(resolvedHeight - increment, event); }
+        if (event.key === 'PageUp') { event.preventDefault(); setHeight(resolvedHeight + increment * 3, event); }
+        if (event.key === 'PageDown') { event.preventDefault(); setHeight(resolvedHeight - increment * 3, event); }
+        if (event.key === 'Home') { event.preventDefault(); setHeight(resolvedMinHeight, event); }
+        if (event.key === 'End') { event.preventDefault(); setHeight(resolvedMaxHeight, event); }
+      }}
+    />}
     <form className="cad-command-line__form" onSubmit={submit}>
       <label htmlFor={`cad-command-input-${generatedId}`} className="cad-command-line__prompt">{prompt}</label>
       <input
@@ -271,8 +344,10 @@ export function CadCommandLine({ value, defaultValue = '', onChange, onSubmit, p
     {showSuggestions && <div id={suggestionId} className="cad-command-line__suggestions" role="listbox" aria-label="Command suggestions">
       {normalizedSuggestions.map((suggestion, index) => <button key={suggestion.id} id={`${suggestionId}-${index}`} type="button" role="option" aria-selected={highlightedIndex === index} data-active={highlightedIndex === index ? 'true' : 'false'} onMouseDown={event => event.preventDefault()} onClick={event => selectSuggestion(suggestion, event)}><strong>{suggestion.label}</strong>{suggestion.detail && <small>{suggestion.detail}</small>}</button>)}
     </div>}
-    {options.length > 0 && <CadCommandOptions options={options} onSelect={onOptionSelect} />}
-    {showHistory && history.length > 0 && <CadCommandHistory items={history} onSelect={(item, event) => setDraft(item.label, event)} />}
+    {hasTranscript && <div className="cad-command-line__transcript">
+      {options.length > 0 && <CadCommandOptions options={options} onSelect={onOptionSelect} />}
+      {showHistory && history.length > 0 && <CadCommandHistory items={history} onSelect={(item, event) => setDraft(item.label, event)} />}
+    </div>}
   </section>;
 }
 

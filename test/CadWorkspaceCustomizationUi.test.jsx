@@ -1,0 +1,154 @@
+import React, { useState } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  CAD_WORKSPACE_PANEL_ACTIONS,
+  CadWorkspacePanelManager,
+  createCadWorkspacePanelPreferencesKey,
+  getCadWorkspacePanelPreference,
+  normalizeCadWorkspacePanelPreferences,
+  resetCadWorkspacePanelPreferences,
+  updateCadWorkspacePanelPreference
+} from '../src/index.js';
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+const PANEL_DEFINITIONS = [
+  { id: 'source-catalogue', label: 'Source catalogue', description: 'Linked records', defaultOpen: true, defaultPlacement: 'docked' },
+  { id: 'detail-surface', label: 'Detail surface', defaultOpen: false, defaultPlacement: 'floating' },
+  { id: 'required-status', label: 'Required status', required: true, defaultOpen: true, floatable: false }
+];
+
+describe('CadWorkspacePanelManager data contract', () => {
+  it('normalizes aliases, retains panel metadata, and keeps unknown host records intact when updating', () => {
+    const initial = {
+      'source-catalogue': { visible: true, mode: 'floating', analytics: 'trace-a' },
+      'detail-surface': false,
+      inactiveFeature: { open: true, placement: 'float', retained: true }
+    };
+    const normalized = normalizeCadWorkspacePanelPreferences(PANEL_DEFINITIONS, initial);
+
+    expect(normalized).toEqual({
+      'source-catalogue': { analytics: 'trace-a', open: true, placement: 'float' },
+      'detail-surface': { open: false, placement: 'float' },
+      'required-status': { open: true, placement: 'dock' }
+    });
+    expect(getCadWorkspacePanelPreference(PANEL_DEFINITIONS, initial, 'source-catalogue')).toMatchObject({ open: true, placement: 'float' });
+
+    const closed = updateCadWorkspacePanelPreference(PANEL_DEFINITIONS, initial, 'source-catalogue', CAD_WORKSPACE_PANEL_ACTIONS.CLOSE);
+    expect(closed).toMatchObject({
+      'source-catalogue': { analytics: 'trace-a', open: false, placement: 'float' },
+      inactiveFeature: { retained: true }
+    });
+    expect(updateCadWorkspacePanelPreference(PANEL_DEFINITIONS, closed, 'required-status', 'close')).toBe(closed);
+
+    const reset = resetCadWorkspacePanelPreferences(PANEL_DEFINITIONS, closed);
+    expect(reset).toMatchObject({
+      'source-catalogue': { analytics: 'trace-a', open: true, placement: 'dock' },
+      'detail-surface': { open: false, placement: 'float' },
+      inactiveFeature: { retained: true }
+    });
+  });
+
+  it('creates stable scope-aware keys without reading or writing browser storage', () => {
+    expect(createCadWorkspacePanelPreferencesKey({ namespace: 'Graph CAD', scope: 'Public User' })).toBe('graph-cad:public-user:panels');
+    expect(createCadWorkspacePanelPreferencesKey('Graph CAD', 'Admin')).toBe('graph-cad:admin:panels');
+  });
+});
+
+describe('CadWorkspacePanelManager interactions', () => {
+  it('reports open, close, dock, float and reset intents while keeping host layout ownership external', () => {
+    const onChange = vi.fn();
+    const onPanelChange = vi.fn();
+    const onPanelOpen = vi.fn();
+    const onPanelClose = vi.fn();
+    const onPanelDock = vi.fn();
+    const onPanelFloat = vi.fn();
+    const onResetAll = vi.fn();
+    const onMenuOpenChange = vi.fn();
+
+    render(<CadWorkspacePanelManager
+      panels={PANEL_DEFINITIONS}
+      defaultValue={{
+        'source-catalogue': { open: true, placement: 'dock' },
+        'detail-surface': { open: false, placement: 'dock' }
+      }}
+      onChange={onChange}
+      onPanelChange={onPanelChange}
+      onPanelOpen={onPanelOpen}
+      onPanelClose={onPanelClose}
+      onPanelDock={onPanelDock}
+      onPanelFloat={onPanelFloat}
+      onResetAll={onResetAll}
+      onMenuOpenChange={onMenuOpenChange}
+      scope="ADMIN"
+    />);
+
+    const trigger = screen.getByRole('button', { name: /Workspace panels/ });
+    fireEvent.click(trigger);
+    expect(onMenuOpenChange).toHaveBeenLastCalledWith(true, expect.any(Object));
+    expect(screen.getByRole('dialog', { name: 'Workspace panels' })).toBeInTheDocument();
+    expect(screen.getByText('ADMIN')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hide Source catalogue' })).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hide Source catalogue' }));
+    expect(screen.getByRole('button', { name: 'Show Source catalogue' })).toHaveAttribute('aria-pressed', 'false');
+    expect(onPanelClose).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'source-catalogue' }),
+      expect.objectContaining({ open: false, placement: 'dock' }),
+      expect.objectContaining({ action: 'close', source: 'workspace-panel-preferences' }),
+      expect.any(Object)
+    );
+    expect(onPanelChange).toHaveBeenLastCalledWith('source-catalogue', expect.objectContaining({ open: false }), expect.any(Object), expect.any(Object));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show Source catalogue' }));
+    expect(onPanelOpen).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'source-catalogue' }),
+      expect.objectContaining({ open: true, placement: 'dock' }),
+      expect.objectContaining({ action: 'open' }),
+      expect.any(Object)
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Float Detail surface' }));
+    expect(onPanelFloat).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'detail-surface' }), expect.objectContaining({ placement: 'float' }), expect.any(Object), expect.any(Object));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dock Detail surface' }));
+    expect(onPanelDock).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'detail-surface' }), expect.objectContaining({ placement: 'dock' }), expect.any(Object), expect.any(Object));
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ 'detail-surface': expect.objectContaining({ placement: 'dock' }) }), expect.objectContaining({ action: 'dock' }), expect.any(Object));
+
+    expect(screen.getByRole('button', { name: 'Hide Required status' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Float Required status' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset workspace' }));
+    expect(onResetAll).toHaveBeenLastCalledWith(expect.objectContaining({ 'source-catalogue': expect.objectContaining({ open: true, placement: 'dock' }) }), expect.objectContaining({ action: 'reset-all' }), expect.any(Object));
+  });
+
+  it('works in controlled mode and closes accessibly with Escape, returning focus to its trigger', async () => {
+    function ControlledManager() {
+      const [preferences, setPreferences] = useState({ 'source-catalogue': { open: true, placement: 'dock' } });
+      return <CadWorkspacePanelManager
+        panels={PANEL_DEFINITIONS.slice(0, 2)}
+        value={preferences}
+        onChange={setPreferences}
+        triggerLabel="Configure view"
+      />;
+    }
+
+    render(<ControlledManager />);
+    const trigger = screen.getByRole('button', { name: /Configure view/ });
+    trigger.focus();
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole('button', { name: 'Float Source catalogue' }));
+    expect(screen.getByRole('button', { name: 'Float Source catalogue' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('Source catalogue placement: floating')).toHaveTextContent('FLOATING');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Workspace panels' })).not.toBeInTheDocument();
+      expect(trigger).toHaveFocus();
+    });
+  });
+});

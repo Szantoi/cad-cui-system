@@ -16,6 +16,8 @@ completed item to `PROJECT_STATE.md` rather than leaving it here.
 
 ## Next: workspace depth
 
+- [ ] Add a host-adapter example for mapping `CadWorkspacePanelManager`
+      visibility and placement intents to a concrete docking library.
 - [ ] Add optional contextual ribbon groups for zero / one / many selected
       entities, driven entirely by host state.
 - [ ] Add a reusable viewport coordinate-system control (UCS selector plus
@@ -25,8 +27,6 @@ completed item to `PROJECT_STATE.md` rather than leaving it here.
 
 ## Quality and delivery
 
-- [ ] Perform manual visual QA of the playground at wide, tablet and narrow
-      viewport widths before publishing a release.
 - [ ] Add a release checklist or changeset flow if the package is prepared for
       external publishing.
 - [ ] Commit the reviewed project-tracking documents (`PROJECT_MEMORY.md`,

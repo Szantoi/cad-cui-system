@@ -25,19 +25,57 @@ describe('interactive CAD CUI playground', () => {
     expect(screen.getByText('Workspace: Layout3 created.')).toBeInTheDocument();
   });
 
-  it('resizes the outer workspace split through its keyboard separator', () => {
+  it('lets the operator open, rail, and close the workspace panels while model space remains available', () => {
     render(<Playground />);
 
-    const outerSplitter = screen.getAllByRole('separator')[0];
-    expect(outerSplitter).toHaveAttribute('aria-valuenow', '19');
+    const toolsVisibility = screen.getByRole('group', { name: 'Tools panel visibility' });
+    expect(within(toolsVisibility).getByRole('button', { name: 'Open Tools panel' })).toHaveAttribute('aria-pressed', 'true');
 
-    fireEvent.keyDown(outerSplitter, { key: 'ArrowRight' });
+    fireEvent.click(within(toolsVisibility).getByRole('button', { name: 'Rail Tools panel' }));
+    expect(within(toolsVisibility).getByRole('button', { name: 'Rail Tools panel' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Expand Tools panel' })).toBeInTheDocument();
 
-    expect(outerSplitter).toHaveAttribute('aria-valuenow', '24');
-    expect(screen.getByText('24% / 68%')).toBeInTheDocument();
+    fireEvent.click(within(toolsVisibility).getByRole('button', { name: 'Closed Tools panel' }));
+    expect(screen.queryByRole('complementary', { name: 'Tools panel' })).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Technical drawing mockup' })).toBeInTheDocument();
+
+    fireEvent.click(within(toolsVisibility).getByRole('button', { name: 'Open Tools panel' }));
+    expect(screen.getByRole('complementary', { name: 'Tools panel' })).toBeInTheDocument();
+
+    const inspectorVisibility = screen.getByRole('group', { name: 'Inspector panel visibility' });
+    fireEvent.click(within(inspectorVisibility).getByRole('button', { name: 'Rail Inspector panel' }));
+    expect(screen.getByRole('button', { name: 'Expand Inspector panel' })).toBeInTheDocument();
+    fireEvent.click(within(inspectorVisibility).getByRole('button', { name: 'Closed Inspector panel' }));
+    expect(screen.queryByRole('complementary', { name: 'Inspector panel' })).not.toBeInTheDocument();
   });
 
-  it('takes a block from the palette through insert confirmation and host toast feedback', () => {
+  it('keeps the command dock at a controlled height and supports rail and closed states', () => {
+    render(<Playground />);
+
+    expect(document.querySelector('.cad-demo-command-dock__line')).toHaveAttribute('data-command-height', '144');
+    expect(screen.getByLabelText('CAD command line')).toBeInTheDocument();
+    const commandResize = screen.getByRole('separator', { name: 'Resize command line' });
+    expect(commandResize).toHaveAttribute('aria-valuenow', '144');
+    fireEvent.keyDown(commandResize, { key: 'ArrowUp' });
+    expect(commandResize).toHaveAttribute('aria-valuenow', '152');
+    expect(document.querySelector('.cad-demo-command-dock__line')).toHaveAttribute('data-command-height', '152');
+
+    const commandVisibility = screen.getByRole('group', { name: 'Command bar visibility' });
+    fireEvent.click(within(commandVisibility).getByRole('button', { name: 'Rail Command bar' }));
+    expect(document.getElementById('cad-demo-command-bar')).toHaveAttribute('data-mode', 'rail');
+    expect(screen.queryByLabelText('CAD command line')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Expand command bar' })).toBeInTheDocument();
+
+    fireEvent.click(within(commandVisibility).getByRole('button', { name: 'Closed Command bar' }));
+    expect(document.getElementById('cad-demo-command-bar')).toHaveAttribute('data-mode', 'closed');
+    expect(screen.queryByLabelText('CAD command line')).not.toBeInTheDocument();
+
+    fireEvent.click(within(commandVisibility).getByRole('button', { name: 'Open Command bar' }));
+    expect(document.getElementById('cad-demo-command-bar')).toHaveAttribute('data-mode', 'open');
+    expect(screen.getByLabelText('CAD command line')).toBeInTheDocument();
+  });
+
+  it('takes a block from the palette through insert confirmation and records host feedback without toast notifications', () => {
     render(<Playground />);
 
     fireEvent.click(screen.getByRole('tab', { name: 'Blocks' }));
@@ -52,9 +90,8 @@ describe('interactive CAD CUI playground', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Insert block' }));
 
     expect(screen.queryByRole('dialog', { name: 'Insert Door 900' })).not.toBeInTheDocument();
-    const toast = screen.getByText('Door 900 inserted at 1180, 640, 0.', { selector: '.cad-toast p' }).closest('[role="status"]');
-    expect(toast).not.toBeNull();
-    expect(toast).toHaveTextContent('Insert complete');
+    expect(screen.getByText('Insert complete: Door 900 inserted at 1180, 640, 0.')).toBeInTheDocument();
+    expect(document.querySelector('.cad-toast')).toBeNull();
     expect(screen.getByText('2 objects')).toBeInTheDocument();
   });
 

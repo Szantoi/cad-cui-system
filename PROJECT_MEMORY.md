@@ -31,6 +31,10 @@ Three.js, desktop shells or a custom renderer.
   component explicitly belongs to the CUI runtime.
 - Prefer controlled/uncontrolled pairs with callbacks over hidden internal
   application state.
+- Treat workspace layout as host-owned state. In particular, hosts can retain
+  a `CadCommandLine` height and dock visibility modes; command transcripts
+  scroll inside the fixed command area rather than changing drawing-space
+  allocation.
 
 ## Current modular surface
 
@@ -40,6 +44,12 @@ Three.js, desktop shells or a custom renderer.
   resolution for all standard CUI surfaces.
 - `CadNavigationBar`, `CadVisualStylePicker`, `CadViewportScalePicker` and
   `CadSelectionSetPanel` are engine-free viewport/context primitives.
+- `CadCommandLine` has a pixel-height, accessible resize contract and keeps
+  command history and options in an internal scroll region.
+- `CadWorkspacePanelManager` is a renderer- and docking-library-agnostic
+  workspace flyout. It emits compact `{ open, placement }` preferences, while
+  the host owns persistence, authorization, and the actual dock or float
+  operation.
 - The Vite sandbox demonstrates all of the above with host-owned React state;
   its SVG drawing is deliberately a neutral visual stand-in, not a CAD engine.
 

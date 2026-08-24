@@ -132,6 +132,48 @@ describe('CAD workspace primitives', () => {
     expect(input).toHaveValue('');
   });
 
+  it('keeps command history in a fixed, accessible, resizable command area', () => {
+    const onHeightChange = vi.fn();
+    const history = Array.from({ length: 16 }, (_, index) => ({ id: `command-${index}`, label: `COMMAND ${index}`, detail: `Result ${index}` }));
+    const { rerender } = render(
+      <CadCommandLine
+        defaultHeight={120}
+        minHeight={96}
+        maxHeight={144}
+        resizeStep={8}
+        history={history}
+        onHeightChange={onHeightChange}
+      />
+    );
+
+    const resizeHandle = screen.getByRole('separator', { name: 'Resize command line' });
+    const commandLine = resizeHandle.closest('.cad-command-line');
+    expect(commandLine.style.getPropertyValue('--cad-command-line-height')).toBe('120px');
+    expect(resizeHandle).toHaveAttribute('aria-valuenow', '120');
+    expect(screen.getByLabelText('Command history').parentElement).toHaveClass('cad-command-line__transcript');
+
+    fireEvent.keyDown(resizeHandle, { key: 'ArrowUp' });
+    expect(commandLine.style.getPropertyValue('--cad-command-line-height')).toBe('128px');
+    expect(onHeightChange).toHaveBeenLastCalledWith(128, expect.anything());
+
+    fireEvent.pointerDown(resizeHandle, { button: 0, pointerId: 12, clientY: 200 });
+    fireEvent.pointerMove(resizeHandle, { pointerId: 12, clientY: 184 });
+    fireEvent.pointerUp(resizeHandle, { pointerId: 12, clientY: 184 });
+    expect(commandLine.style.getPropertyValue('--cad-command-line-height')).toBe('144px');
+
+    fireEvent.keyDown(resizeHandle, { key: 'Home' });
+    expect(commandLine.style.getPropertyValue('--cad-command-line-height')).toBe('96px');
+    fireEvent.keyDown(resizeHandle, { key: 'End' });
+    expect(commandLine.style.getPropertyValue('--cad-command-line-height')).toBe('144px');
+
+    rerender(<CadCommandLine height={112} minHeight={96} maxHeight={144} onHeightChange={onHeightChange} />);
+    const controlledHandle = screen.getByRole('separator', { name: 'Resize command line' });
+    const controlledLine = controlledHandle.closest('.cad-command-line');
+    fireEvent.keyDown(controlledHandle, { key: 'ArrowUp' });
+    expect(onHeightChange).toHaveBeenLastCalledWith(120, expect.anything());
+    expect(controlledLine.style.getPropertyValue('--cad-command-line-height')).toBe('112px');
+  });
+
   it('reports status mode changes from the status bar', () => {
     const onModeChange = vi.fn();
     const snap = { id: 'snap', label: 'SNAP', active: false, shortcut: 'F9' };
