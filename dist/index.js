@@ -2525,7 +2525,7 @@ function qt({ panels: e = [], value: t, defaultValue: n, onChange: r } = {}) {
 var Jt = /* @__PURE__ */ h("span", {
 	"aria-hidden": "true",
 	children: "▣"
-}), Yt = (t, n) => typeof n == "function" ? n(t) : e.isValidElement(t.icon) ? t.icon : typeof t.icon == "function" ? e.createElement(t.icon, {
+}), Yt = (t, n) => typeof n == "function" ? n(t) : e.isValidElement(t.icon) ? t.icon : typeof t.icon == "function" || t.icon?.$$typeof ? e.createElement(t.icon, {
 	size: 13,
 	"aria-hidden": !0
 }) : t.icon !== void 0 && t.icon !== null ? t.icon : Jt, Xt = (e) => e === Q.FLOAT ? "FLOATING" : "DOCKED";

@@ -1,6 +1,6 @@
 # Project State
 
-Updated: 2026-08-24 · Package version: `0.5.0` · Lifecycle: active development — stable, engine-free UI layer
+Updated: 2026-08-24 · Package version: `0.5.1` · Lifecycle: active development — stable, engine-free UI layer
 Latest committed baseline: `98414a0 docs: add project tracking memory`
 
 ## Current working-tree increment

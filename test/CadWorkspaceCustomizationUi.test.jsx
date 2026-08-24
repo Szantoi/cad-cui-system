@@ -22,6 +22,10 @@ const PANEL_DEFINITIONS = [
   { id: 'required-status', label: 'Required status', required: true, defaultOpen: true, floatable: false }
 ];
 
+const ForwardedPanelIcon = React.forwardRef(function ForwardedPanelIcon(props, ref) {
+  return <svg {...props} ref={ref} data-testid="forwarded-panel-icon" />;
+});
+
 describe('CadWorkspacePanelManager data contract', () => {
   it('normalizes aliases, retains panel metadata, and keeps unknown host records intact when updating', () => {
     const initial = {
@@ -60,6 +64,13 @@ describe('CadWorkspacePanelManager data contract', () => {
 });
 
 describe('CadWorkspacePanelManager interactions', () => {
+  it('accepts a forwardRef icon component without an icon-library adapter', () => {
+    render(<CadWorkspacePanelManager panels={[{ ...PANEL_DEFINITIONS[0], icon: ForwardedPanelIcon }]} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Workspace panels/ }));
+    expect(screen.getByTestId('forwarded-panel-icon')).toBeInTheDocument();
+  });
+
   it('reports open, close, dock, float and reset intents while keeping host layout ownership external', () => {
     const onChange = vi.fn();
     const onPanelChange = vi.fn();

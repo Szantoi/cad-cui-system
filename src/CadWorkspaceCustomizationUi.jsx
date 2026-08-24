@@ -301,7 +301,13 @@ const defaultPanelIcon = <span aria-hidden="true">▣</span>;
 const panelIcon = (panel, renderPanelIcon) => {
   if (typeof renderPanelIcon === 'function') return renderPanelIcon(panel);
   if (React.isValidElement(panel.icon)) return panel.icon;
-  if (typeof panel.icon === 'function') return React.createElement(panel.icon, { size: 13, 'aria-hidden': true });
+  // React.forwardRef() and React.memo() return component-type objects rather
+  // than functions. Supporting their $$typeof marker lets hosts pass Lucide
+  // and similar icon exports directly, without coupling this primitive to an
+  // icon library or forcing a pre-created React element.
+  if (typeof panel.icon === 'function' || Boolean(panel.icon?.$$typeof)) {
+    return React.createElement(panel.icon, { size: 13, 'aria-hidden': true });
+  }
   if (panel.icon !== undefined && panel.icon !== null) return panel.icon;
   return defaultPanelIcon;
 };
