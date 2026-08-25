@@ -7,6 +7,7 @@ import {
   CadConfirmDialog,
   CadDialog,
   CadMenuBar,
+  CadMovableOverlay,
   CadPopover,
   CadSplitPane
 } from '../src/index.js';
@@ -17,6 +18,65 @@ afterEach(() => {
 });
 
 describe('CAD layout and overlay primitives', () => {
+  it('moves a ribbed viewport overlay without collapsing it after a drag, and keeps its content accessible on expand', () => {
+    const onPositionChange = vi.fn();
+    const onCollapsedChange = vi.fn();
+    render(<div data-testid="viewport-boundary"><CadMovableOverlay
+      label="Viewport navigation dock"
+      edge="top"
+      handleIcon="⌖"
+      onPositionChange={onPositionChange}
+      onCollapsedChange={onCollapsedChange}
+    ><button type="button">Pan</button></CadMovableOverlay></div>);
+
+    const boundary = screen.getByTestId('viewport-boundary');
+    const overlay = screen.getByRole('complementary', { name: 'Viewport navigation dock' });
+    boundary.getBoundingClientRect = () => ({ left: 0, top: 0, right: 500, bottom: 400, width: 500, height: 400, x: 0, y: 0, toJSON: () => ({}) });
+    overlay.getBoundingClientRect = () => {
+      const x = Number(overlay.getAttribute('data-position-x')) || 0;
+      const y = Number(overlay.getAttribute('data-position-y')) || 0;
+      return { left: 120 + x, top: 80 + y, right: 190 + x, bottom: 240 + y, width: 70, height: 160, x: 120 + x, y: 80 + y, toJSON: () => ({}) };
+    };
+
+    const handle = screen.getByRole('button', { name: 'Collapse Viewport navigation dock' });
+    expect(overlay).toHaveAttribute('data-edge', 'top');
+    expect(overlay).toHaveAttribute('data-has-handle-icon', 'true');
+    expect(overlay.querySelector('.cad-movable-overlay__icon')).toHaveTextContent('⌖');
+    expect(handle).toHaveAttribute('aria-expanded', 'true');
+    expect(handle.querySelector('.cad-movable-overlay__chevron')).toHaveTextContent('⌃');
+    fireEvent.keyDown(handle, { key: 'ArrowRight' });
+    expect(overlay).toHaveAttribute('data-position-x', '16');
+    expect(onPositionChange).toHaveBeenLastCalledWith({ x: 16, y: 0 }, expect.objectContaining({ source: 'keyboard', key: 'ArrowRight' }), expect.any(Object));
+
+    fireEvent.pointerDown(handle, { button: 0, pointerId: 7, clientX: 20, clientY: 20 });
+    fireEvent.pointerMove(window, { pointerId: 7, clientX: 60, clientY: 44 });
+    fireEvent.pointerUp(window, { pointerId: 7 });
+    expect(overlay).toHaveAttribute('data-position-x', '56');
+    expect(overlay).toHaveAttribute('data-position-y', '24');
+    expect(onPositionChange).toHaveBeenLastCalledWith({ x: 56, y: 24 }, expect.objectContaining({ source: 'pointer', dragging: true }), expect.any(Object));
+
+    fireEvent.pointerDown(handle, { button: 0, pointerId: 8, clientX: 0, clientY: 0 });
+    fireEvent.pointerMove(window, { pointerId: 8, clientX: 2000, clientY: 2000 });
+    fireEvent.pointerUp(window, { pointerId: 8 });
+    expect(overlay).toHaveAttribute('data-position-x', '310');
+    expect(overlay).toHaveAttribute('data-position-y', '160');
+
+    fireEvent.click(handle);
+    expect(overlay).toHaveAttribute('data-collapsed', 'false');
+    expect(screen.getByRole('button', { name: 'Pan' })).toBeInTheDocument();
+
+    fireEvent.click(handle);
+    expect(overlay).toHaveAttribute('data-collapsed', 'true');
+    expect(handle).toHaveAttribute('aria-expanded', 'false');
+    expect(handle.querySelector('.cad-movable-overlay__chevron')).toHaveTextContent('⌄');
+    expect(screen.queryByRole('button', { name: 'Pan' })).not.toBeInTheDocument();
+    expect(onCollapsedChange).toHaveBeenLastCalledWith(true, expect.objectContaining({ source: 'toggle' }), expect.any(Object));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expand Viewport navigation dock' }));
+    expect(overlay).toHaveAttribute('data-collapsed', 'false');
+    expect(screen.getByRole('button', { name: 'Pan' })).toBeInTheDocument();
+  });
+
   it('resizes a split pane through keyboard and pointer input, reporting the final drag value', () => {
     const onSizeChange = vi.fn();
     const onResizeEnd = vi.fn();
@@ -203,6 +263,36 @@ describe('CAD layout and overlay primitives', () => {
     expect(screen.getByRole('menu', { name: 'File' })).toBeInTheDocument();
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Outside control' }));
     await waitFor(() => expect(screen.queryByRole('menu', { name: 'File' })).not.toBeInTheDocument());
+  });
+
+  it('keeps end-slot controls outside the menubar while Arrow navigation remains scoped to menus', () => {
+    render(<CadMenuBar
+      endSlot={<button type="button">Layout controls</button>}
+      endSlotLabel="Workspace controls"
+      items={[
+        { id: 'file', label: 'File', items: [{ id: 'open', label: 'Open drawing' }] },
+        { id: 'edit', label: 'Edit', items: [{ id: 'undo', label: 'Undo' }] }
+      ]}
+    />);
+
+    const menubar = screen.getByRole('menubar', { name: 'CAD application menu' });
+    const endSlot = screen.getByRole('group', { name: 'Workspace controls' });
+    const layoutControls = screen.getByRole('button', { name: 'Layout controls' });
+    const file = screen.getByRole('menuitem', { name: 'File' });
+    const edit = screen.getByRole('menuitem', { name: 'Edit' });
+
+    expect(endSlot.parentElement).toHaveClass('cad-menu-bar__layout');
+    expect(menubar).not.toContainElement(endSlot);
+    expect(endSlot).not.toContainElement(menubar);
+
+    file.focus();
+    fireEvent.keyDown(file, { key: 'ArrowRight' });
+    expect(edit).toHaveFocus();
+
+    layoutControls.focus();
+    fireEvent.keyDown(layoutControls, { key: 'ArrowLeft' });
+    expect(layoutControls).toHaveFocus();
+    expect(screen.queryByRole('menu', { name: 'Edit' })).not.toBeInTheDocument();
   });
 
   it('uses valid list semantics in a block palette and omits inactive Insert actions', () => {

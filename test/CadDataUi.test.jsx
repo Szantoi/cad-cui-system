@@ -20,6 +20,7 @@ describe('CadDataUi data primitives', () => {
     render(
       <CadDataGrid
         caption="Layer data"
+        layout="auto"
         columns={[
           { id: 'name', label: 'Name', sortable: true },
           { id: 'objects', label: 'Objects' }
@@ -33,9 +34,13 @@ describe('CadDataUi data primitives', () => {
       />
     );
 
+    const dataGrid = screen.getByRole('table', { name: 'Layer data' }).closest('.cad-data-grid');
+    expect(dataGrid).toHaveAttribute('data-layout', 'auto');
+
     fireEvent.click(screen.getByRole('button', { name: /name/i }));
     const dataRows = screen.getAllByRole('row').slice(1);
-    expect(within(dataRows[0]).getByRole('cell', { name: 'Annotations' })).toBeInTheDocument();
+    expect(within(dataRows[0]).getByRole('cell', { name: 'Annotations' })).toHaveAttribute('data-column', 'Name');
+    expect(within(dataRows[0]).getByRole('cell', { name: '6' })).toHaveAttribute('data-column', 'Objects');
     expect(screen.getByRole('columnheader', { name: /name/i })).toHaveAttribute('aria-sort', 'ascending');
     expect(onSortChange).toHaveBeenLastCalledWith(
       { columnId: 'name', direction: 'asc' },
@@ -102,6 +107,7 @@ describe('CadDataUi data primitives', () => {
     const onAccept = vi.fn();
     render(
       <CadSelectionCycler
+        layout="auto"
         candidates={[
           { id: 'wall-a', label: 'Wall A', detail: 'Linework' },
           { id: 'hatch-a', label: 'Hatch A', detail: 'Pattern fill' }
@@ -111,6 +117,7 @@ describe('CadDataUi data primitives', () => {
       />
     );
 
+    expect(screen.getByRole('complementary', { name: 'Selection cycle' })).toHaveAttribute('data-layout', 'auto');
     expect(screen.getByText('Wall A')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Next candidate' }));
     expect(screen.getByText('Hatch A')).toBeInTheDocument();

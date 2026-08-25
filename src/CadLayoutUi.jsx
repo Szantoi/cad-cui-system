@@ -174,7 +174,7 @@ export function CadSubmenu({ item, onAction, onClose, className }) {
 }
 
 /** Top-level menu bar with composable nested menus; it complements `CadMenu`. */
-export function CadMenuBar({ items = [], openId, defaultOpenId = '', onOpenChange, onAction, label = 'CAD application menu', className, ...props }) {
+export function CadMenuBar({ items = [], openId, defaultOpenId = '', onOpenChange, onAction, label = 'CAD application menu', endSlot, endSlotLabel = 'Application controls', className, ...props }) {
   const normalizedItems = useMemo(() => normalizeItems(items), [items]);
   const [currentOpenId, setOpenId] = useControllableState(openId, defaultOpenId, (nextValue, item, event) => onOpenChange?.(nextValue, item, event));
   const rootRef = useRef(null);
@@ -239,7 +239,7 @@ export function CadMenuBar({ items = [], openId, defaultOpenId = '', onOpenChang
     const id = next?.dataset.menuId;
     if (id && activeOpenId) setOpenId(id, normalizedItems.find(item => item.id === id), event);
   };
-  return <nav {...props} ref={rootRef} className={cx('cad-menu-bar', className)} role="menubar" aria-label={label} onKeyDown={event => {
+  const menuBar = <nav {...props} ref={rootRef} className={cx('cad-menu-bar', className)} role="menubar" aria-label={label} onKeyDown={event => {
     props.onKeyDown?.(event);
     if (event.defaultPrevented) return;
     if (event.key === 'ArrowRight') { event.preventDefault(); focusRelative(event, 1); }
@@ -260,6 +260,11 @@ export function CadMenuBar({ items = [], openId, defaultOpenId = '', onOpenChang
   }}>
     {normalizedItems.map(item => <CadMenuBarMenu key={item.id} item={item} open={activeOpenId === item.id} onToggle={changeMenu} onAction={onAction} onClose={event => closeMenu(item, event, true)} />)}
   </nav>;
+  if (endSlot === undefined || endSlot === null) return menuBar;
+  return <div className="cad-menu-bar__layout">
+    {menuBar}
+    <div className="cad-menu-bar__end-slot" role="group" aria-label={endSlotLabel}>{endSlot}</div>
+  </div>;
 }
 
 /** CAD color palette with explicit ByLayer / ByBlock / RGB models. */

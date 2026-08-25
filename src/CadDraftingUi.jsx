@@ -114,29 +114,35 @@ export function CadGripToolbar({ tools = [], selectionCount, label = 'Selection 
   </aside>;
 }
 
-/** Parametric constraint strip. The active array lets a host represent modes or selected constraints. */
-export function CadConstraintBar({ constraints = DEFAULT_CONSTRAINTS, activeIds, defaultActiveIds = [], onChange, onAction, label = 'Geometric constraints', className, ...props }) {
+/**
+ * Parametric constraint actions. `strip` preserves a conventional compact
+ * toolbar; `auto` allows the actions to wrap into panel-local tiles as their
+ * host narrows, without changing the accessible controls or their state.
+ */
+export function CadConstraintBar({ constraints = DEFAULT_CONSTRAINTS, activeIds, defaultActiveIds = [], onChange, onAction, label = 'Geometric constraints', layout = 'strip', className, ...props }) {
   const normalizedConstraints = useMemo(() => normalizeOptions(constraints), [constraints]);
   const [currentActiveIds, setActiveIds] = useControllableState(activeIds, defaultActiveIds, (nextValue, item, event) => onChange?.(nextValue, item, event));
   const selected = new Set(asArray(currentActiveIds));
+  const resolvedLayout = layout === 'auto' || layout === 'tiles' ? layout : 'strip';
   const toggle = (item, event) => {
     if (item.disabled) return;
     const next = selected.has(item.id) ? [...selected].filter(id => id !== item.id) : [...selected, item.id];
     setActiveIds(next, item, event);
     onAction?.(item, event);
   };
-  return <div {...props} className={cx('cad-constraint-bar', className)} role="group" aria-label={label}>
+  return <div {...props} className={cx('cad-constraint-bar', className)} data-layout={resolvedLayout} role="group" aria-label={label}>
     {normalizedConstraints.map(item => <button key={item.id} type="button" data-active={selected.has(item.id) ? 'true' : 'false'} aria-label={item.label} aria-pressed={selected.has(item.id)} disabled={item.disabled} title={item.label} onClick={event => toggle(item, event)}><span aria-hidden="true">{item.glyph || '•'}</span><small>{item.shortLabel || item.label}</small></button>)}
   </div>;
 }
 
-export function CadAnnotationScalePicker({ scales = DEFAULT_SCALES, value, defaultValue, onChange, label = 'Annotation scale', onManage, id, selectProps = {}, disabled = false, className, ...props }) {
+export function CadAnnotationScalePicker({ scales = DEFAULT_SCALES, value, defaultValue, onChange, label = 'Annotation scale', onManage, id, selectProps = {}, disabled = false, layout = 'stacked', className, ...props }) {
   const generatedId = useId();
   const selectId = id || `cad-annotation-scale-${generatedId}`;
   const options = useMemo(() => normalizeOptions(scales), [scales]);
   const initialValue = defaultValue ?? options[0]?.id ?? '';
   const [selectedId, setSelectedId] = useControllableState(value, initialValue, (nextValue, scale, event) => onChange?.(nextValue, scale, event));
-  return <div {...props} className={cx('cad-annotation-scale-picker', className)}><label htmlFor={selectId}>{label}</label><select {...selectProps} id={selectId} value={selectedId} disabled={disabled || selectProps.disabled} onChange={event => { const scale = options.find(item => item.id === event.target.value); setSelectedId(event.target.value, scale, event); selectProps.onChange?.(event); }}>{options.map(option => <option key={option.id} value={option.id} disabled={option.disabled}>{option.label}</option>)}</select>{onManage && <button type="button" disabled={disabled} onClick={onManage}>Manage</button>}</div>;
+  const resolvedLayout = layout === 'inline' ? 'inline' : 'stacked';
+  return <div {...props} className={cx('cad-annotation-scale-picker', className)} data-layout={resolvedLayout}><label htmlFor={selectId}>{label}</label><select {...selectProps} id={selectId} value={selectedId} disabled={disabled || selectProps.disabled} onChange={event => { const scale = options.find(item => item.id === event.target.value); setSelectedId(event.target.value, scale, event); selectProps.onChange?.(event); }}>{options.map(option => <option key={option.id} value={option.id} disabled={option.disabled}>{option.label}</option>)}</select>{onManage && <button type="button" disabled={disabled} onClick={onManage}>Manage</button>}</div>;
 }
 
 export function CadViewPresetPicker({ presets = DEFAULT_VIEWS, value, defaultValue, onChange, label = 'View preset', id, selectProps = {}, disabled = false, className, ...props }) {

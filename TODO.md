@@ -16,8 +16,26 @@ completed item to `PROJECT_STATE.md` rather than leaving it here.
 
 ## Next: workspace depth
 
-- [ ] Add a host-adapter example for mapping `CadWorkspacePanelManager`
-      visibility and placement intents to a concrete docking library.
+- [ ] Add visual-regression fixtures for every panel in its narrowest allowed
+      left/right/bottom dock, including a relocated data grid, an expanded
+      record-card view, and movable/collapsed navigation, selection-summary,
+      and command-console viewport overlays.
+- [ ] Add an optional third-party docking-library adapter example for mapping
+      `CadWorkspacePanelManager` `{ open, placement, dockZone? }` intents;
+      the built-in sandbox already demonstrates the engine-free multi-zone
+      host integration.
+- [ ] Add a large-catalogue host example for optionally persisting or scoping a
+      panel-list `filter`; the built-in controlled/uncontrolled search remains
+      a transient view of labels, descriptions, visibility, placement, and
+      dock zones.
+- [ ] Add a storage-adapter reference for synchronizing versioned
+      `CadWorkspacePreset` records through a server or desktop profile, while
+      preserving the current pure codec and controlled manager contract.
+- [ ] Add a role- or project-default preset example for first-run hosts while
+      retaining the manager's localizable, presentation-only first-save guide
+      whenever no default preset is available.
+- [ ] Add an explicit v1-to-next-version preset migration example, including
+      a host policy for unsupported imported schemas and future fields.
 - [ ] Add optional contextual ribbon groups for zero / one / many selected
       entities, driven entirely by host state.
 - [ ] Add a reusable viewport coordinate-system control (UCS selector plus

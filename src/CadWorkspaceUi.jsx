@@ -1,4 +1,4 @@
-import React, { useId, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { asArray, cx, itemLabel, useControllableState } from './cadUiUtils.js';
 import { CAD_WORKSPACE_MODEL_ID, normalizeCadWorkspaceProfiles } from './CadWorkspaceProfiles.js';
 
@@ -6,6 +6,15 @@ const firstEnabledId = items => asArray(items).find(item => !item?.disabled)?.id
 const normaliseHistoryItem = (item, index) => typeof item === 'string'
   ? { id: `${item}-${index}`, label: item }
   : { id: item?.id || `${itemLabel(item)}-${index}`, label: itemLabel(item), detail: item?.detail, tone: item?.tone };
+
+const dockTabAttention = item => {
+  const value = item?.attention ?? item?.alert;
+  const source = value && typeof value === 'object' ? value : { tone: value };
+  const tone = String(source?.tone ?? '').trim().toLowerCase();
+  if (tone !== 'warning' && tone !== 'danger') return null;
+  const label = String(source?.label ?? (tone === 'danger' ? 'Danger' : 'Warning')).trim();
+  return { tone, label: label || (tone === 'danger' ? 'Danger' : 'Warning'), symbol: source?.symbol || '!' };
+};
 
 /**
  * AutoCAD-inspired Model/Layout tab strip. It is intentionally separate from
@@ -125,7 +134,15 @@ export function CadDockPanel({ title, icon: Icon, actions, collapsible = false, 
   </section>;
 }
 
-export function CadDockTabs({ items = [], activeId, defaultActiveId, onChange, onClose, label = 'Docked panels', className, children, renderPanel, ...props }) {
+/**
+ * Accessible dock tabs with an opt-in compact visual label. When `compact` is
+ * enabled, an item may provide `tabLabel` (preferred) or `shortLabel` for the
+ * rendered caption. The canonical `label` remains the tab's accessible name
+ * and tooltip, so condensed chrome never loses its full meaning. Dock tabs do
+ * not render routine count badges; `attention`/`alert` only renders for
+ * actionable `warning` or `danger` states.
+ */
+export function CadDockTabs({ items = [], activeId, defaultActiveId, onChange, onClose, label = 'Docked panels', compact = false, className, children, renderPanel, ...props }) {
   const generatedId = useId();
   const initialActiveId = defaultActiveId || firstEnabledId(items);
   const [selectedId, setSelectedId] = useControllableState(activeId, initialActiveId, (nextValue, item, event) => onChange?.(nextValue, item, event));
@@ -147,14 +164,24 @@ export function CadDockTabs({ items = [], activeId, defaultActiveId, onChange, o
     if (next) { event.preventDefault(); selectItem(next, event); document.getElementById(`cad-dock-tab-${generatedId}-${next.id}`)?.focus(); }
   };
   const panelId = activeItem?.panelId || `cad-dock-panel-${generatedId}-${activeItem?.id || 'empty'}`;
-  return <section {...props} className={cx('cad-dock-tabs', className)}>
+  return <section {...props} className={cx('cad-dock-tabs', compact && 'cad-dock-tabs--compact', className)} data-compact={compact ? 'true' : 'false'}>
     <div className="cad-dock-tabs__list" role="tablist" aria-label={label} onKeyDown={keyboardSelect}>
       {asArray(items).map((item, index) => {
         const selected = item?.id === activeItem?.id;
         const Icon = item?.icon;
+        const fullLabel = itemLabel(item);
+        const visualLabel = compact && item?.tabLabel !== undefined
+          ? item.tabLabel
+          : compact && item?.shortLabel !== undefined
+            ? item.shortLabel
+            : fullLabel;
+        const accessibleLabel = item?.ariaLabel || item?.accessibleLabel || fullLabel;
+        const title = item?.title || fullLabel;
+        const attention = dockTabAttention(item);
+        const tabLabel = attention ? `${accessibleLabel}, ${attention.label}` : accessibleLabel;
         return <div key={item?.id || index} className={cx('cad-dock-tabs__tab-wrap', selected && 'cad-dock-tabs__tab-wrap--active')}>
-          <button id={`cad-dock-tab-${generatedId}-${item?.id}`} type="button" role="tab" aria-selected={selected} aria-controls={selected ? panelId : item?.panelId} disabled={item?.disabled} tabIndex={selected ? 0 : -1} onClick={event => selectItem(item, event)}>{Icon && <Icon size={12} aria-hidden="true" />}<span>{itemLabel(item)}</span>{item?.badge && <em>{item.badge}</em>}</button>
-          {onClose && item?.closable && <button type="button" className="cad-dock-tabs__close" aria-label={`Close ${itemLabel(item)}`} onClick={event => onClose(item, event)}>×</button>}
+          <button id={`cad-dock-tab-${generatedId}-${item?.id}`} type="button" role="tab" aria-label={tabLabel} title={attention ? `${title} · ${attention.label}` : title} aria-selected={selected} aria-controls={selected ? panelId : item?.panelId} disabled={item?.disabled} tabIndex={selected ? 0 : -1} onClick={event => selectItem(item, event)}>{Icon && <span className="cad-dock-tabs__tab-icon" aria-hidden="true"><Icon size={compact ? 16 : 14} /></span>}<span className="cad-dock-tabs__tab-label">{visualLabel}</span>{attention && <span className="cad-dock-tabs__attention" data-tone={attention.tone} aria-hidden="true">{attention.symbol}</span>}</button>
+          {onClose && item?.closable && <button type="button" className="cad-dock-tabs__close" aria-label={`Close ${fullLabel}`} onClick={event => onClose(item, event)}>×</button>}
         </div>;
       })}
     </div>
@@ -178,10 +205,15 @@ const coordinateText = coordinates => {
   return ['x', 'y', 'z'].filter(key => coordinates[key] !== undefined).map(key => `${key.toUpperCase()}: ${coordinates[key]}`).join('  ');
 };
 
-/** Coordinate readout plus object snap/grid/ortho-style state controls. */
-export function CadStatusBar({ coordinates, coordinateLabel = 'Coordinates', modes = [], onModeChange, units, scale, message, className, children, ...props }) {
+/**
+ * Coordinate readout plus object snap/grid/ortho-style state controls.
+ * `tiles` turns a status-bar instance used as a panel into an adaptive grid,
+ * while the default `strip` stays appropriate for an application footer.
+ */
+export function CadStatusBar({ coordinates, coordinateLabel = 'Coordinates', modes = [], onModeChange, units, scale, message, layout = 'strip', className, children, ...props }) {
   const coordinateValue = coordinateText(coordinates);
-  return <footer {...props} className={cx('cad-status-bar', className)} aria-label="CAD status bar">
+  const resolvedLayout = layout === 'tiles' || layout === 'auto' ? layout : 'strip';
+  return <footer {...props} className={cx('cad-status-bar', className)} data-layout={resolvedLayout} aria-label="CAD status bar">
     {coordinateValue && <output className="cad-status-bar__coordinates" aria-label={coordinateLabel}>{coordinateValue}</output>}
     <div className="cad-status-bar__modes" role="group" aria-label="Drafting modes">
       {asArray(modes).map((mode, index) => <CadStatusToggle key={mode?.id || itemLabel(mode) || index} mode={mode} onChange={(nextValue, item, event) => { mode?.onChange?.(nextValue, item, event); onModeChange?.(mode?.id, nextValue, item, event); }} />)}
@@ -222,9 +254,10 @@ const normaliseCommandLineHeight = (value, fallback, minimum, maximum) => {
  *
  * `height` is a controlled pixel height. Use `defaultHeight` for a standalone
  * resizable line; `minHeight`, `maxHeight`, `resizeStep`, and `onHeightChange`
- * keep the host in control of the allowed drawing-space allocation.
+ * keep the host in control of the allowed drawing-space allocation. Use
+ * `label` when more than one command surface appears in the same workspace.
  */
-export function CadCommandLine({ value, defaultValue = '', onChange, onSubmit, prompt = 'Command:', history = [], suggestions = [], options = [], onSuggestionSelect, onOptionSelect, clearOnSubmit = true, submitSuggestionOnEnter = false, disabled = false, placeholder = 'Type a command or search', showHistory = true, height, defaultHeight = 152, minHeight = 72, maxHeight = 360, resizeStep = 8, resizable = true, onHeightChange, className, inputProps = {}, style, id, ...props }) {
+export function CadCommandLine({ value, defaultValue = '', onChange, onSubmit, prompt = 'Command:', history = [], suggestions = [], options = [], onSuggestionSelect, onOptionSelect, clearOnSubmit = true, submitSuggestionOnEnter = false, disabled = false, placeholder = 'Type a command or search', showHistory = true, height, defaultHeight = 152, minHeight = 72, maxHeight = 360, resizeStep = 8, resizable = true, onHeightChange, label = 'CAD command line', className, inputProps = {}, style, id, ...props }) {
   const generatedId = useId();
   const [draft, setDraft] = useControllableState(value, defaultValue, (nextValue, event) => onChange?.(nextValue, event));
   const rawMinimum = Number(minHeight);
@@ -288,7 +321,7 @@ export function CadCommandLine({ value, defaultValue = '', onChange, onSubmit, p
   };
   const showSuggestions = focused && normalizedSuggestions.length > 0;
   const hasTranscript = options.length > 0 || (showHistory && history.length > 0);
-  return <section {...props} id={commandLineId} className={cx('cad-command-line', className)} style={{ ...style, '--cad-command-line-height': `${resolvedHeight}px` }} aria-label="CAD command line">
+  return <section {...props} id={commandLineId} className={cx('cad-command-line', className)} style={{ ...style, '--cad-command-line-height': `${resolvedHeight}px` }} aria-label={label}>
     {resizable && <div
       className="cad-command-line__resize-handle"
       role="separator"
@@ -365,11 +398,204 @@ export function CadUcsIndicator({ xLabel = 'X', yLabel = 'Y', zLabel = 'Z', clas
   </svg>;
 }
 
-export function CadViewportControls({ activeView, onViewChange, onZoomIn, onZoomOut, onZoomExtents, showCube = true, showUcs = true, className }) {
-  return <aside className={cx('cad-viewport-controls', className)} aria-label="Viewport controls">
-    {showCube && <CadViewCube activeView={activeView} onViewChange={onViewChange} />}
-    <div className="cad-viewport-controls__zoom" role="group" aria-label="Zoom controls"><button type="button" aria-label="Zoom in" onClick={onZoomIn}>+</button><button type="button" aria-label="Zoom out" onClick={onZoomOut}>−</button><button type="button" aria-label="Zoom extents" onClick={onZoomExtents}>⌗</button></div>
-    {showUcs && <CadUcsIndicator />}
+const targetIsInside = (container, target) => {
+  if (!container || !target) return false;
+  try { return container === target || Boolean(container.contains?.(target)); } catch { return false; }
+};
+
+/**
+ * A fixed-host viewport control surface. Hosts decide its physical corner;
+ * `collapsible` adds a durable open/collapsed intent plus a transient
+ * hover/focus peek without turning the ViewCube into a draggable overlay.
+ */
+export function CadViewportControls({
+  activeView,
+  onViewChange,
+  onZoomIn,
+  onZoomOut,
+  onZoomExtents,
+  showCube = true,
+  showUcs = true,
+  collapsible = false,
+  collapsed,
+  defaultCollapsed = false,
+  onCollapsedChange,
+  peekOpen,
+  defaultPeekOpen = false,
+  onPeekOpenChange,
+  peekOnHover = true,
+  peekOnFocus = true,
+  className,
+  label = 'Viewport controls',
+  panelLabel,
+  onPointerEnter,
+  onPointerLeave,
+  onFocusCapture,
+  onBlurCapture,
+  onKeyDown,
+  ...props
+}) {
+  const generatedId = useId();
+  const contentId = `cad-viewport-controls-content-${generatedId}`;
+  const instructionId = `cad-viewport-controls-instructions-${generatedId}`;
+  const handleRef = useRef(null);
+  const interactionsRef = useRef({ pointer: false, focus: false, dismissed: false });
+  const [storedCollapsed, setStoredCollapsed] = useControllableState(
+    collapsed,
+    Boolean(defaultCollapsed),
+    (nextCollapsed, change, event) => onCollapsedChange?.(Boolean(nextCollapsed), change, event)
+  );
+  const [storedPeekOpen, setStoredPeekOpen] = useControllableState(
+    peekOpen,
+    Boolean(defaultPeekOpen),
+    (nextPeekOpen, change, event) => onPeekOpenChange?.(Boolean(nextPeekOpen), change, event)
+  );
+  const supportsCollapse = Boolean(collapsible);
+  const isCollapsed = supportsCollapse && Boolean(storedCollapsed);
+  const isPeekOpen = isCollapsed && Boolean(storedPeekOpen);
+  const isExpanded = !supportsCollapse || !isCollapsed || isPeekOpen;
+  const resolvedLabel = String(label || 'Viewport controls');
+  const resolvedPanelLabel = panelLabel || `${resolvedLabel} panel`;
+
+  const changeCollapsed = (requestedCollapsed, event, source = 'programmatic') => {
+    const previousCollapsed = Boolean(storedCollapsed);
+    const nextCollapsed = Boolean(typeof requestedCollapsed === 'function'
+      ? requestedCollapsed(previousCollapsed)
+      : requestedCollapsed);
+    const change = {
+      changed: previousCollapsed !== nextCollapsed,
+      previousCollapsed,
+      collapsed: nextCollapsed,
+      source
+    };
+    if (change.changed) setStoredCollapsed(nextCollapsed, change, event);
+    return change;
+  };
+
+  const changePeekOpen = (requestedOpen, event, source = 'programmatic') => {
+    const previousOpen = Boolean(storedPeekOpen);
+    const nextOpen = Boolean(typeof requestedOpen === 'function' ? requestedOpen(previousOpen) : requestedOpen);
+    const change = {
+      changed: previousOpen !== nextOpen,
+      previousOpen,
+      open: nextOpen,
+      collapsed: isCollapsed,
+      source
+    };
+    if (change.changed) setStoredPeekOpen(nextOpen, change, event);
+    return change;
+  };
+
+  const requestPeekOpen = (event, source) => {
+    if (!supportsCollapse || !isCollapsed || interactionsRef.current.dismissed) return;
+    changePeekOpen(true, event, source);
+  };
+
+  const requestPeekCloseWhenIdle = (event, source) => {
+    const interactions = interactionsRef.current;
+    if (!supportsCollapse || !isCollapsed || interactions.pointer || interactions.focus) return;
+    interactions.dismissed = false;
+    changePeekOpen(false, event, source);
+  };
+
+  const handlePointerEnter = event => {
+    onPointerEnter?.(event);
+    if (event.defaultPrevented || !supportsCollapse) return;
+    interactionsRef.current.pointer = true;
+    interactionsRef.current.dismissed = false;
+    if (peekOnHover) requestPeekOpen(event, 'pointer-enter');
+  };
+
+  const handlePointerLeave = event => {
+    onPointerLeave?.(event);
+    if (event.defaultPrevented || !supportsCollapse || targetIsInside(event.currentTarget, event.relatedTarget)) return;
+    interactionsRef.current.pointer = false;
+    requestPeekCloseWhenIdle(event, 'pointer-leave');
+  };
+
+  const handleFocusCapture = event => {
+    onFocusCapture?.(event);
+    if (event.defaultPrevented || !supportsCollapse) return;
+    interactionsRef.current.focus = true;
+    interactionsRef.current.dismissed = false;
+    if (peekOnFocus) requestPeekOpen(event, 'focus-enter');
+  };
+
+  const handleBlurCapture = event => {
+    onBlurCapture?.(event);
+    if (event.defaultPrevented || !supportsCollapse || targetIsInside(event.currentTarget, event.relatedTarget)) return;
+    interactionsRef.current.focus = false;
+    requestPeekCloseWhenIdle(event, 'focus-leave');
+  };
+
+  const toggleCollapsed = event => {
+    const nextCollapsed = !isCollapsed;
+    if (!nextCollapsed) changePeekOpen(false, event, 'pin-open');
+    else {
+      interactionsRef.current.dismissed = true;
+      changePeekOpen(false, event, 'collapse');
+    }
+    changeCollapsed(nextCollapsed, event, 'toggle');
+  };
+
+  const handleKeyDown = event => {
+    onKeyDown?.(event);
+    if (event.defaultPrevented || event.key !== 'Escape' || !isCollapsed || !isPeekOpen) return;
+    event.preventDefault();
+    interactionsRef.current.dismissed = true;
+    interactionsRef.current.focus = false;
+    changePeekOpen(false, event, 'escape');
+    handleRef.current?.focus();
+  };
+
+  useEffect(() => {
+    if (isExpanded || typeof document === 'undefined') return;
+    const content = document.getElementById(contentId);
+    if (!content?.contains(document.activeElement)) return;
+    try { handleRef.current?.focus?.({ preventScroll: true }); } catch { handleRef.current?.focus?.(); }
+  }, [contentId, isExpanded]);
+
+  const toggleLabel = isCollapsed ? `Open ${resolvedLabel}` : `Collapse ${resolvedLabel}`;
+  const toggleTitle = isCollapsed
+    ? (isExpanded ? `Keep ${resolvedLabel} open` : `Open ${resolvedLabel}`)
+    : `Collapse ${resolvedLabel}`;
+
+  return <aside
+    {...props}
+    className={cx('cad-viewport-controls', className)}
+    aria-label={resolvedLabel}
+    data-collapsible={supportsCollapse ? 'true' : 'false'}
+    data-collapsed={isCollapsed ? 'true' : 'false'}
+    data-peek-open={isPeekOpen ? 'true' : 'false'}
+    data-expanded={isExpanded ? 'true' : 'false'}
+    onPointerEnter={handlePointerEnter}
+    onPointerLeave={handlePointerLeave}
+    onFocusCapture={handleFocusCapture}
+    onBlurCapture={handleBlurCapture}
+    onKeyDown={handleKeyDown}
+  >
+    {supportsCollapse && <button
+      ref={handleRef}
+      type="button"
+      className="cad-viewport-controls__handle"
+      aria-label={toggleLabel}
+      aria-pressed={!isCollapsed}
+      aria-controls={contentId}
+      aria-expanded={isExpanded}
+      aria-describedby={instructionId}
+      title={toggleTitle}
+      onClick={toggleCollapsed}
+    >
+      <span className="cad-viewport-controls__handle-icon" aria-hidden="true">◇</span>
+      <span className="cad-viewport-controls__handle-label">VIEW CUBE</span>
+      <span className="cad-viewport-controls__handle-chevron" aria-hidden="true">{isCollapsed ? '‹' : '›'}</span>
+    </button>}
+    <div id={contentId} className="cad-viewport-controls__content" role={supportsCollapse ? 'region' : undefined} aria-label={supportsCollapse ? resolvedPanelLabel : undefined} hidden={!isExpanded}>
+      {showCube && <CadViewCube activeView={activeView} onViewChange={onViewChange} />}
+      <div className="cad-viewport-controls__zoom" role="group" aria-label="Zoom controls"><button type="button" aria-label="Zoom in" onClick={onZoomIn}>+</button><button type="button" aria-label="Zoom out" onClick={onZoomOut}>−</button><button type="button" aria-label="Zoom extents" onClick={onZoomExtents}>⌗</button></div>
+      {showUcs && <CadUcsIndicator />}
+    </div>
+    {supportsCollapse && <span id={instructionId} className="cad-cui-sr-only">When collapsed, hover or focus the ViewCube to temporarily reveal its navigation controls. Use this button to keep it open.</span>}
   </aside>;
 }
 

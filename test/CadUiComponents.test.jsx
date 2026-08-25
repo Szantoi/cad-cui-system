@@ -8,6 +8,7 @@ import {
   CadObjectTree,
   CadPropertyGrid,
   CadStatusBar,
+  CadToolPalette,
   CadWorkspaceProfileTabs,
   createCadWorkspaceProfile,
   removeCadWorkspaceProfile
@@ -181,11 +182,13 @@ describe('CAD workspace primitives', () => {
     render(
       <CadStatusBar
         coordinates={{ x: 12.5, y: 8 }}
+        layout="tiles"
         modes={[snap]}
         onModeChange={onModeChange}
       />
     );
 
+    expect(screen.getByLabelText('CAD status bar')).toHaveAttribute('data-layout', 'tiles');
     expect(screen.getByLabelText('Coordinates')).toHaveTextContent(/X: 12\.5\s+Y: 8/);
     const snapButton = screen.getByRole('button', { name: 'SNAP' });
     expect(snapButton).toHaveAttribute('aria-pressed', 'false');
@@ -196,6 +199,16 @@ describe('CAD workspace primitives', () => {
       true,
       expect.objectContaining({ id: 'snap', label: 'SNAP' })
     ]);
+  });
+
+  it('marks a dockable tool palette for panel-local tile layout without changing its toolbar semantics', () => {
+    const onAction = vi.fn();
+    render(<CadToolPalette layout="auto" items={[{ id: 'line', label: 'Line' }, { id: 'move', label: 'Move' }]} onAction={onAction} />);
+
+    const palette = screen.getByRole('toolbar', { name: 'CAD tool palette' });
+    expect(palette).toHaveAttribute('data-layout', 'auto');
+    fireEvent.click(screen.getByRole('button', { name: 'Line' }));
+    expect(onAction.mock.calls[0][0]).toMatchObject({ id: 'line', label: 'Line' });
   });
 });
 

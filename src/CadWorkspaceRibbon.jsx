@@ -1,4 +1,4 @@
-import React, { useId, useMemo, useRef } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CadShortcutHint } from './CadCommandUi.jsx';
 import { asArray, cx, itemLabel, useControllableState } from './cadUiUtils.js';
 
@@ -11,6 +11,24 @@ const commandOrder = (command, fallback) => numericOrder(command?.order ?? comma
 const groupTabId = group => text(group?.tabId || group?.tab || group?.placement?.tab);
 const groupItems = group => asArray(group?.commands).length ? asArray(group.commands) : asArray(group?.items);
 const safeId = value => text(value).replace(/[^a-zA-Z0-9_-]+/g, '-') || 'workspace';
+const targetIsInside = (container, target) => {
+  if (!container || !target) return false;
+  try { return container === target || Boolean(container.contains?.(target)); } catch { return false; }
+};
+const scheduleFrame = callback => {
+  if (typeof window === 'undefined') return;
+  const schedule = window.requestAnimationFrame || (next => window.setTimeout(next, 0));
+  schedule(callback);
+};
+const FIRST_COMMAND_FOCUSABLE = [
+  'button:not(:disabled)',
+  'a[href]',
+  'input:not(:disabled)',
+  'select:not(:disabled)',
+  'textarea:not(:disabled)',
+  '[role="button"]:not([aria-disabled="true"])',
+  '[tabindex]:not([tabindex="-1"])'
+].join(', ');
 
 /**
  * Turns flat command declarations into stable, ordered ribbon groups.
@@ -110,7 +128,13 @@ function CadWorkspaceRibbonTool({ command, group, activeTab, compact, renderIcon
     onClick: commandContext.execute
   };
 
-  if (typeof renderCommand === 'function') return renderCommand(command, { ...commandContext, icon, buttonProps });
+  const renderedCommand = typeof renderCommand === 'function'
+    ? renderCommand(command, { ...commandContext, icon, buttonProps })
+    : undefined;
+  // A selective renderer can opt into a specialised command component without
+  // having to reproduce every ordinary ribbon button. Other explicit return
+  // values (including false) retain the caller's existing rendering intent.
+  if (renderedCommand !== undefined && renderedCommand !== null) return renderedCommand;
 
   const badgeVisible = command?.badge !== undefined && command?.badge !== null && command.badge !== '';
   return <button {...buttonProps}>
@@ -162,6 +186,11 @@ export function CadWorkspaceRibbon({
   const generatedId = useId();
   const instanceId = `cad-workspace-ribbon-${safeId(generatedId)}`;
   const tabRefs = useRef(new Map());
+  const flyoutRef = useRef(null);
+  const suppressNextTabFlyoutRef = useRef(false);
+  const pendingTabSelectionRef = useRef('');
+  const interactionsRef = useRef({ pointer: false, focus: false });
+  const [isFlyoutOpen, setFlyoutOpen] = useState(false);
   const normalizedTabs = useMemo(() => asArray(tabs)
     .filter(tab => tab && text(tab.id))
     .map(tab => ({ ...tab, id: text(tab.id), label: itemLabel(tab) || text(tab.id) })), [tabs]);
@@ -178,6 +207,15 @@ export function CadWorkspaceRibbon({
     defaultMinimized,
     (nextValue, event) => onMinimizedChange?.(Boolean(nextValue), event)
   );
+  useEffect(() => {
+    if (!isMinimized) {
+      setFlyoutOpen(false);
+      interactionsRef.current = { pointer: false, focus: false };
+    }
+  }, [isMinimized]);
+  useEffect(() => {
+    if (pendingTabSelectionRef.current === resolvedActiveTabId) pendingTabSelectionRef.current = '';
+  }, [resolvedActiveTabId]);
   const normalizedGroups = useMemo(() => visibleGroups({
     groups,
     commands,
@@ -185,14 +223,40 @@ export function CadWorkspaceRibbon({
     defaultGroupId,
     defaultGroupLabel
   }), [commands, defaultGroupId, defaultGroupLabel, groups, resolvedActiveTabId]);
-  const context = { activeTab: resolvedActiveTab, groups: normalizedGroups, compact, minimized: Boolean(isMinimized) };
+  const context = { activeTab: resolvedActiveTab, groups: normalizedGroups, compact, minimized: Boolean(isMinimized), flyoutOpen: Boolean(isMinimized && isFlyoutOpen) };
   const identityContent = typeof renderIdentity === 'function' ? renderIdentity(context) : identity;
   const statusContent = typeof renderStatus === 'function' ? renderStatus(context) : status;
   const panelId = `${instanceId}-panel-${safeId(resolvedActiveTabId || 'commands')}`;
 
   const selectTab = (tab, event) => {
-    if (tab.disabled) return;
+    if (tab.disabled || tab.id === resolvedActiveTabId || pendingTabSelectionRef.current === tab.id) return;
+    pendingTabSelectionRef.current = tab.id;
     setRequestedActiveTab(tab.id, event);
+    scheduleFrame(() => {
+      if (pendingTabSelectionRef.current === tab.id) pendingTabSelectionRef.current = '';
+    });
+  };
+  const openMinimizedFlyout = (tab, event) => {
+    if (!isMinimized || tab.disabled) return;
+    if (event?.type === 'focus' && suppressNextTabFlyoutRef.current) {
+      suppressNextTabFlyoutRef.current = false;
+      return;
+    }
+    if (tab.id !== resolvedActiveTabId) selectTab(tab, event);
+    setFlyoutOpen(true);
+  };
+  const focusFirstFlyoutCommand = () => {
+    scheduleFrame(() => flyoutRef.current?.querySelector(FIRST_COMMAND_FOCUSABLE)?.focus());
+  };
+  const closeMinimizedFlyout = ({ restoreTabFocus = false } = {}) => {
+    setFlyoutOpen(false);
+    if (!restoreTabFocus || typeof window === 'undefined') return;
+    suppressNextTabFlyoutRef.current = true;
+    scheduleFrame(() => {
+      const tab = tabRefs.current.get(resolvedActiveTabId);
+      if (tab) tab.focus();
+      else suppressNextTabFlyoutRef.current = false;
+    });
   };
   const moveTabFocus = (currentId, direction, event) => {
     const availableTabs = normalizedTabs.filter(tab => !tab.disabled);
@@ -204,6 +268,17 @@ export function CadWorkspaceRibbon({
     tabRefs.current.get(target.id)?.focus();
   };
   const onTabKeyDown = (tab, event) => {
+    if (isMinimized && event.key === 'ArrowDown') {
+      event.preventDefault();
+      openMinimizedFlyout(tab, event);
+      focusFirstFlyoutCommand();
+      return;
+    }
+    if (isMinimized && event.key === 'Escape') {
+      event.preventDefault();
+      closeMinimizedFlyout();
+      return;
+    }
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') moveTabFocus(tab.id, 1, event);
     if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') moveTabFocus(tab.id, -1, event);
     if (event.key === 'Home') moveTabFocus(normalizedTabs.find(tabItem => !tabItem.disabled)?.id || tab.id, 0, event);
@@ -216,7 +291,10 @@ export function CadWorkspaceRibbon({
       tabRefs.current.get(lastTab.id)?.focus();
     }
   };
-  const toggleMinimized = event => setMinimized(current => !current, event);
+  const toggleMinimized = event => {
+    setFlyoutOpen(false);
+    setMinimized(current => !current, event);
+  };
   const minimizeControl = typeof renderMinimizeControl === 'function'
     ? renderMinimizeControl({ minimized: Boolean(isMinimized), toggle: toggleMinimized })
     : collapsible && <button
@@ -228,13 +306,71 @@ export function CadWorkspaceRibbon({
       onClick={toggleMinimized}
     ><span aria-hidden="true">{isMinimized ? '⌄' : '⌃'}</span><b>{isMinimized ? 'EXPAND' : 'COMPACT'}</b></button>;
 
+  const renderCommandPanel = flyout => <div
+    id={panelId}
+    ref={flyout ? flyoutRef : undefined}
+    role="tabpanel"
+    aria-labelledby={resolvedActiveTabId ? `${instanceId}-tab-${safeId(resolvedActiveTabId)}` : undefined}
+    tabIndex={flyout ? -1 : 0}
+    className={cx('cad-workspace-ribbon__commands', flyout && 'cad-workspace-ribbon__commands--flyout')}
+    onKeyDown={event => {
+      if (!flyout || event.defaultPrevented || event.key !== 'Escape') return;
+      event.preventDefault();
+      closeMinimizedFlyout({ restoreTabFocus: true });
+    }}
+  >
+    <div className="cad-workspace-ribbon__groups" role="group" aria-label={`${resolvedActiveTab?.label || 'CAD'} commands`}>
+      {normalizedGroups.map((group, groupIndex) => <section key={group.id} className="cad-workspace-ribbon__group" data-cad-group={group.label} data-primary={groupIndex === 0 ? 'true' : 'false'} aria-label={`${group.label} command group`}>
+        <div className="cad-workspace-ribbon__group-tools">
+          {group.commands.map((command, commandIndex) => <CadWorkspaceRibbonTool key={command?.id || `${group.id}-${commandIndex}`} command={command} group={group} activeTab={resolvedActiveTab} compact={compact} renderIcon={renderIcon} renderCommand={renderCommand} onCommand={onCommand} />)}
+        </div>
+        {group.label && <span className="cad-workspace-ribbon__group-label">{group.label}</span>}
+      </section>)}
+    </div>
+    {statusContent && <div className="cad-workspace-ribbon__status" aria-label={statusLabel}>{statusContent}</div>}
+    {children && <div className="cad-workspace-ribbon__content">{children}</div>}
+  </div>;
+  const flyoutVisible = Boolean(isMinimized && isFlyoutOpen);
+  const closeFlyoutWhenIdle = () => {
+    const interactions = interactionsRef.current;
+    if (!isMinimized || interactions.pointer || interactions.focus) return;
+    closeMinimizedFlyout();
+  };
+  const handleFlyoutPointerEnter = event => {
+    props.onPointerEnter?.(event);
+    if (event.defaultPrevented || !isMinimized) return;
+    interactionsRef.current.pointer = true;
+  };
+  const handleFlyoutFocus = event => {
+    props.onFocus?.(event);
+    if (event.defaultPrevented || !isMinimized) return;
+    interactionsRef.current.focus = true;
+  };
+  const handleFlyoutBlur = event => {
+    props.onBlur?.(event);
+    if (event.defaultPrevented || !isMinimized || targetIsInside(event.currentTarget, event.relatedTarget)) return;
+    interactionsRef.current.focus = false;
+    closeFlyoutWhenIdle();
+  };
+  const handleFlyoutPointerLeave = event => {
+    props.onPointerLeave?.(event);
+    if (event.defaultPrevented || !isMinimized || targetIsInside(event.currentTarget, event.relatedTarget)) return;
+    interactionsRef.current.pointer = false;
+    closeFlyoutWhenIdle();
+  };
+
   return <header
     {...props}
     className={cx('cad-workspace-ribbon', compact && 'cad-workspace-ribbon--compact', isMinimized && 'cad-workspace-ribbon--minimized', className)}
     data-active-tab={resolvedActiveTabId || undefined}
     data-minimized={isMinimized ? 'true' : 'false'}
+    data-flyout-open={flyoutVisible ? 'true' : 'false'}
     aria-label={label}
     style={{ '--cad-ribbon-accent': resolvedActiveTab?.color || undefined, ...style }}
+    onPointerEnter={handleFlyoutPointerEnter}
+    onFocus={handleFlyoutFocus}
+    onBlur={handleFlyoutBlur}
+    onPointerLeave={handleFlyoutPointerLeave}
   >
     <div className="cad-workspace-ribbon__tabbar">
       {identityContent && <div className="cad-workspace-ribbon__identity">{identityContent}</div>}
@@ -250,13 +386,15 @@ export function CadWorkspaceRibbon({
             role="tab"
             disabled={Boolean(tab.disabled)}
             aria-selected={selected}
-            aria-controls={`${instanceId}-panel-${safeId(tab.id)}`}
+            aria-controls={selected ? panelId : undefined}
             tabIndex={selected ? 0 : -1}
             data-tone={tab.tone || 'inherit'}
             data-active={selected ? 'true' : 'false'}
             className="cad-workspace-ribbon__tab"
             style={tab.color ? { '--cad-ribbon-tab-accent': tab.color } : undefined}
-            onClick={event => selectTab(tab, event)}
+            onClick={event => isMinimized ? openMinimizedFlyout(tab, event) : selectTab(tab, event)}
+            onFocus={event => openMinimizedFlyout(tab, event)}
+            onPointerEnter={event => openMinimizedFlyout(tab, event)}
             onKeyDown={event => onTabKeyDown(tab, event)}
           >{tab.icon && <span className="cad-workspace-ribbon__tab-icon" aria-hidden="true">{React.isValidElement(tab.icon) ? tab.icon : typeof tab.icon === 'function' ? React.createElement(tab.icon, { size: 12 }) : null}</span>}<span>{tab.label}</span></button>;
         })}
@@ -264,17 +402,8 @@ export function CadWorkspaceRibbon({
       {endSlot && <div className="cad-workspace-ribbon__end-slot">{endSlot}</div>}
       {minimizeControl}
     </div>
-    {!isMinimized && <div id={panelId} role="tabpanel" aria-labelledby={resolvedActiveTabId ? `${instanceId}-tab-${safeId(resolvedActiveTabId)}` : undefined} tabIndex={0} className="cad-workspace-ribbon__commands">
-      <div className="cad-workspace-ribbon__groups" role="toolbar" aria-label={`${resolvedActiveTab?.label || 'CAD'} commands`}>
-        {normalizedGroups.map((group, groupIndex) => <section key={group.id} className="cad-workspace-ribbon__group" data-cad-group={group.label} data-primary={groupIndex === 0 ? 'true' : 'false'} aria-label={`${group.label} command group`}>
-          <div className="cad-workspace-ribbon__group-tools">
-            {group.commands.map((command, commandIndex) => <CadWorkspaceRibbonTool key={command?.id || `${group.id}-${commandIndex}`} command={command} group={group} activeTab={resolvedActiveTab} compact={compact} renderIcon={renderIcon} renderCommand={renderCommand} onCommand={onCommand} />)}
-          </div>
-          {group.label && <span className="cad-workspace-ribbon__group-label">{group.label}</span>}
-        </section>)}
-      </div>
-      {statusContent && <div className="cad-workspace-ribbon__status" aria-label={statusLabel}>{statusContent}</div>}
-      {children && <div className="cad-workspace-ribbon__content">{children}</div>}
-    </div>}
+    <div className={cx('cad-workspace-ribbon__panel-host', isMinimized && 'cad-workspace-ribbon__panel-host--flyout')} hidden={Boolean(isMinimized && !flyoutVisible)}>
+      {renderCommandPanel(Boolean(isMinimized))}
+    </div>
   </header>;
 }

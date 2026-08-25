@@ -18,11 +18,12 @@ const resolveSortValue = (row, column) => {
  * results. It intentionally remains a table rather than claiming full ARIA
  * grid keyboard semantics.
  */
-export function CadDataGrid({ columns = [], rows = [], rowId = row => row?.id, selectedIds, defaultSelectedIds = [], onSelectionChange, selectionMode = 'multiple', onRowActivate, sort, defaultSort, onSortChange, caption = 'CAD data', emptyLabel = 'No rows to display', className, ...props }) {
+export function CadDataGrid({ columns = [], rows = [], rowId = row => row?.id, selectedIds, defaultSelectedIds = [], onSelectionChange, selectionMode = 'multiple', onRowActivate, sort, defaultSort, onSortChange, caption = 'CAD data', emptyLabel = 'No rows to display', layout = 'table', className, ...props }) {
   const normalizedColumns = useMemo(() => asArray(columns).filter(column => column?.id), [columns]);
   const [currentSelectedIds, setSelectedIds] = useControllableState(selectedIds, defaultSelectedIds, (nextValue, row, event) => onSelectionChange?.(nextValue, row, event));
   const [currentSort, setSort] = useControllableState(sort, defaultSort, (nextValue, column, event) => onSortChange?.(nextValue, column, event));
   const selected = new Set(asArray(currentSelectedIds));
+  const resolvedLayout = layout === 'auto' || layout === 'cards' ? layout : 'table';
   const displayRows = useMemo(() => {
     const nextRows = [...asArray(rows)];
     const column = normalizedColumns.find(item => item.id === currentSort?.columnId);
@@ -44,11 +45,11 @@ export function CadDataGrid({ columns = [], rows = [], rowId = row => row?.id, s
     setSort({ columnId: column.id, direction: nextDirection }, column, event);
   };
   const allSelected = displayRows.length > 0 && displayRows.every(row => selected.has(typeof rowId === 'function' ? rowId(row) : row?.[rowId]));
-  return <div {...props} className={cx('cad-data-grid', className)}>
+  return <div {...props} className={cx('cad-data-grid', className)} data-layout={resolvedLayout}>
     <table>
       <caption>{caption}</caption>
       <thead><tr>{selectionMode !== 'none' && <th scope="col" className="cad-data-grid__selection">{selectionMode === 'multiple' && <input type="checkbox" aria-label="Select all rows" checked={allSelected} onChange={event => { const next = event.target.checked ? displayRows.map(row => typeof rowId === 'function' ? rowId(row) : row?.[rowId]) : []; setSelectedIds(next, null, event); }} />}</th>}{normalizedColumns.map(column => <th key={column.id} scope="col" style={column.width ? { width: column.width } : undefined} aria-sort={currentSort?.columnId === column.id ? currentSort.direction === 'desc' ? 'descending' : 'ascending' : undefined}>{column.sortable ? <button type="button" onClick={event => toggleSort(column, event)}>{column.label || column.id}<span aria-hidden="true">{currentSort?.columnId === column.id ? currentSort.direction === 'desc' ? '↓' : '↑' : '↕'}</span></button> : column.label || column.id}</th>)}</tr></thead>
-      <tbody>{displayRows.map((row, index) => { const id = typeof rowId === 'function' ? rowId(row) : row?.[rowId]; const isSelected = selected.has(id); return <tr key={id || index} data-selected={isSelected ? 'true' : 'false'} onDoubleClick={event => onRowActivate?.(row, event)}>{selectionMode !== 'none' && <td className="cad-data-grid__selection"><input type={selectionMode === 'single' ? 'radio' : 'checkbox'} aria-label={`Select ${itemLabel(row) || id || index + 1}`} checked={isSelected} onChange={event => toggleSelection(row, event)} /></td>}{normalizedColumns.map(column => <td key={column.id} data-align={column.align || 'start'}>{resolveCell(row, column) ?? '—'}</td>)}</tr>; })}{!displayRows.length && <tr><td colSpan={normalizedColumns.length + (selectionMode !== 'none' ? 1 : 0)} className="cad-data-grid__empty">{emptyLabel}</td></tr>}</tbody>
+      <tbody>{displayRows.map((row, index) => { const id = typeof rowId === 'function' ? rowId(row) : row?.[rowId]; const isSelected = selected.has(id); return <tr key={id || index} data-selected={isSelected ? 'true' : 'false'} onDoubleClick={event => onRowActivate?.(row, event)}>{selectionMode !== 'none' && <td className="cad-data-grid__selection" data-column="Select"><input type={selectionMode === 'single' ? 'radio' : 'checkbox'} aria-label={`Select ${itemLabel(row) || id || index + 1}`} checked={isSelected} onChange={event => toggleSelection(row, event)} /></td>}{normalizedColumns.map(column => <td key={column.id} data-align={column.align || 'start'} data-column={column.label || column.id}>{resolveCell(row, column) ?? '—'}</td>)}</tr>; })}{!displayRows.length && <tr><td colSpan={normalizedColumns.length + (selectionMode !== 'none' ? 1 : 0)} className="cad-data-grid__empty">{emptyLabel}</td></tr>}</tbody>
     </table>
   </div>;
 }
@@ -64,7 +65,7 @@ export function CadSelectionFilter({ filters = [], activeIds, defaultActiveIds =
 }
 
 /** Cycle through coincident/selectable objects while keeping geometry ownership in the host. */
-export function CadSelectionCycler({ candidates = [], activeId, defaultActiveId, onChange, onAccept, onCancel, label = 'Selection cycle', className, ...props }) {
+export function CadSelectionCycler({ candidates = [], activeId, defaultActiveId, onChange, onAccept, onCancel, label = 'Selection cycle', layout = 'strip', className, ...props }) {
   const normalizedCandidates = useMemo(() => asArray(candidates).map((candidate, index) => ({ ...candidate, id: candidate?.id || `${itemLabel(candidate)}-${index}` })), [candidates]);
   const initialActiveId = defaultActiveId ?? normalizedCandidates[0]?.id ?? '';
   const [currentActiveId, setActiveId] = useControllableState(activeId, initialActiveId, (nextValue, candidate, event) => onChange?.(nextValue, candidate, event));
@@ -76,7 +77,7 @@ export function CadSelectionCycler({ candidates = [], activeId, defaultActiveId,
     setActiveId(next.id, next, event);
   };
   if (!normalizedCandidates.length) return null;
-  return <aside {...props} className={cx('cad-selection-cycler', className)} aria-label={label}>
+  return <aside {...props} className={cx('cad-selection-cycler', className)} data-layout={layout === 'auto' || layout === 'tiles' ? layout : 'strip'} aria-label={label}>
     <button type="button" aria-label="Previous candidate" onClick={event => cycle(-1, event)}>‹</button>
     <output><small>{currentIndex + 1} / {normalizedCandidates.length}</small><strong>{itemLabel(current)}</strong>{current?.detail && <span>{current.detail}</span>}</output>
     <button type="button" aria-label="Next candidate" onClick={event => cycle(1, event)}>›</button>

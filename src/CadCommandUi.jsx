@@ -122,8 +122,14 @@ export function CadToolbar({ groups, items, label = 'CAD tools', orientation = '
   </div>;
 }
 
-export function CadToolPalette({ groups, items, label = 'CAD tool palette', className, ...props }) {
-  return <CadToolbar {...props} groups={groups} items={items} label={label} orientation="vertical" className={cx('cad-tool-palette', className)} />;
+/**
+ * A vertical tool palette. Use `layout="auto"` (or `tiles`) when it lives in
+ * a movable dock: the host stylesheet can then turn the tool rows into a
+ * panel-local tile grid without changing the toolbar semantics.
+ */
+export function CadToolPalette({ groups, items, label = 'CAD tool palette', layout = 'strip', className, ...props }) {
+  const resolvedLayout = layout === 'auto' || layout === 'tiles' ? layout : 'strip';
+  return <CadToolbar {...props} groups={groups} items={items} label={label} orientation="vertical" data-layout={resolvedLayout} className={cx('cad-tool-palette', className)} />;
 }
 
 /** A controlled/uncontrolled numeric field with CAD-friendly unit and step controls. */

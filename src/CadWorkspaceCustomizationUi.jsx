@@ -6,7 +6,8 @@ const text = value => String(value ?? '').trim();
 const isRecord = value => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const samePreference = (first, second) => Boolean(first) && Boolean(second)
   && first.open === second.open
-  && first.placement === second.placement;
+  && first.placement === second.placement
+  && first.dockZone === second.dockZone;
 
 const recordFrom = value => {
   if (value instanceof Map) return Object.fromEntries(value.entries());
@@ -35,12 +36,20 @@ export const CAD_WORKSPACE_PANEL_PLACEMENTS = Object.freeze({
   FLOAT: 'float'
 });
 
+/** Physical workspace zones a docked panel may occupy. */
+export const CAD_WORKSPACE_PANEL_DOCK_ZONES = Object.freeze({
+  LEFT: 'left',
+  RIGHT: 'right',
+  BOTTOM: 'bottom'
+});
+
 export const CAD_WORKSPACE_PANEL_ACTIONS = Object.freeze({
   OPEN: 'open',
   CLOSE: 'close',
   TOGGLE: 'toggle',
   DOCK: 'dock',
   FLOAT: 'float',
+  SET_DOCK_ZONE: 'dock-zone',
   RESET: 'reset',
   RESET_ALL: 'reset-all',
   PATCH: 'patch'
@@ -51,6 +60,15 @@ export function normalizeCadWorkspacePanelPlacement(value, fallback = CAD_WORKSP
   const normalized = text(value).toLocaleLowerCase();
   if (['float', 'floating', 'overlay', 'window'].includes(normalized)) return CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT;
   if (['dock', 'docked', 'left', 'right', 'top', 'bottom', 'side'].includes(normalized)) return CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK;
+  return fallback;
+}
+
+/** Accepts common physical-zone aliases while keeping persisted state compact. */
+export function normalizeCadWorkspacePanelDockZone(value, fallback = '') {
+  const normalized = text(value).toLocaleLowerCase();
+  if (['left', 'start', 'west', 'leading'].includes(normalized)) return CAD_WORKSPACE_PANEL_DOCK_ZONES.LEFT;
+  if (['right', 'end', 'east', 'trailing'].includes(normalized)) return CAD_WORKSPACE_PANEL_DOCK_ZONES.RIGHT;
+  if (['bottom', 'lower', 'footer', 'command', 'command-line'].includes(normalized)) return CAD_WORKSPACE_PANEL_DOCK_ZONES.BOTTOM;
   return fallback;
 }
 
@@ -66,6 +84,18 @@ const allowedPlacementsFor = panel => {
     ...(supportsFloat ? [CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT] : [])
   ]).filter(placement => (placement === CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK ? supportsDock : supportsFloat));
   return [...new Set(permitted)];
+};
+
+const listFrom = value => Array.isArray(value) ? value : value === undefined || value === null ? [] : [value];
+
+const allowedDockZonesFor = panel => {
+  if (panel?.dockable === false) return [];
+  const rawZones = listFrom(panel?.dockZones ?? panel?.allowedDockZones ?? panel?.dockZoneOptions);
+  const declaredDefault = panel?.defaultDockZone ?? panel?.dockZone ?? panel?.zone;
+  const candidates = rawZones.length ? rawZones : declaredDefault === undefined ? [] : [declaredDefault];
+  return [...new Set(candidates
+    .map(zone => normalizeCadWorkspacePanelDockZone(zone, ''))
+    .filter(Boolean))];
 };
 
 /**
@@ -94,6 +124,16 @@ export function normalizeCadWorkspacePanels(panels = []) {
     const defaultPlacement = placements.includes(requestedPlacement)
       ? requestedPlacement
       : placements[0] || requestedPlacement;
+    const dockZones = placements.includes(CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK)
+      ? allowedDockZonesFor(panel)
+      : [];
+    const requestedDockZone = normalizeCadWorkspacePanelDockZone(
+      panel.defaultDockZone ?? panel.dockZone ?? panel.zone,
+      ''
+    );
+    const defaultDockZone = dockZones.includes(requestedDockZone)
+      ? requestedDockZone
+      : dockZones[0] || '';
     const defaultOpen = booleanValue(panel.defaultOpen, panel.defaultVisible, panel.open, panel.visible) ?? true;
 
     normalized.push({
@@ -107,6 +147,8 @@ export function normalizeCadWorkspacePanels(panels = []) {
       closable: !preferenceLocked && !panel.required && panel.closable !== false,
       placements,
       defaultPlacement,
+      dockZones,
+      defaultDockZone,
       defaultOpen
     });
     return normalized;
@@ -123,10 +165,24 @@ const resolvePanelPreference = (panel, rawValue) => {
   const placement = panel.placements.includes(requestedPlacement)
     ? requestedPlacement
     : panel.placements[0] || panel.defaultPlacement;
+  const dockZones = panel.dockZones || [];
+  const requestedDockZone = normalizeCadWorkspacePanelDockZone(
+    source.dockZone ?? source.zone,
+    panel.defaultDockZone
+  );
+  const dockZone = dockZones.includes(requestedDockZone)
+    ? requestedDockZone
+    : dockZones[0] || '';
+  const metadata = omitStateFields(source);
+  if (dockZones.length) {
+    delete metadata.dockZone;
+    delete metadata.zone;
+  }
   return {
-    ...omitStateFields(source),
+    ...metadata,
     open: panel.required ? true : Boolean(requestedOpen),
-    placement
+    placement,
+    ...(dockZones.length ? { dockZone } : {})
   };
 };
 
@@ -148,6 +204,31 @@ export function getCadWorkspacePanelPreference(panels = [], value = {}, panelId)
   return id ? normalizeCadWorkspacePanelPreferences(panels, value)[id] : undefined;
 }
 
+/**
+ * Groups declared, visible docked panels by their physical workspace edge.
+ * This is intentionally a pure adapter: the host still chooses whether each
+ * resulting item becomes a tab, a stacked panel, or a docking-library view.
+ * Panels without a declared `dockZone` are omitted rather than guessed.
+ */
+export function groupCadWorkspacePanelsByDockZone(panels = [], value = {}) {
+  const normalizedPanels = normalizeCadWorkspacePanels(panels);
+  const preferences = normalizeCadWorkspacePanelPreferences(normalizedPanels, value);
+  const groups = {
+    [CAD_WORKSPACE_PANEL_DOCK_ZONES.LEFT]: [],
+    [CAD_WORKSPACE_PANEL_DOCK_ZONES.RIGHT]: [],
+    [CAD_WORKSPACE_PANEL_DOCK_ZONES.BOTTOM]: []
+  };
+
+  normalizedPanels.forEach(panel => {
+    const preference = preferences[panel.id];
+    const dockZone = normalizeCadWorkspacePanelDockZone(preference?.dockZone, '');
+    if (!preference?.open || preference.placement !== CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK || !dockZone) return;
+    groups[dockZone].push({ ...panel, preference });
+  });
+
+  return groups;
+}
+
 const normalizedAction = action => {
   if (typeof action === 'string') return { type: action };
   return isRecord(action) ? action : { type: '' };
@@ -157,6 +238,7 @@ const updatePreferenceForAction = (panel, preference, action) => {
   const { type, value } = normalizedAction(action);
   const next = { ...preference };
   const canMove = placement => panel.placements.includes(placement);
+  const canDockTo = zone => panel.dockZones?.includes(zone);
   if (panel.disabled || panel.preferenceLocked) return preference;
 
   switch (type) {
@@ -179,6 +261,13 @@ const updatePreferenceForAction = (panel, preference, action) => {
       if (!canMove(CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT)) return preference;
       next.placement = CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT;
       break;
+    case CAD_WORKSPACE_PANEL_ACTIONS.SET_DOCK_ZONE: {
+      const dockZone = normalizeCadWorkspacePanelDockZone(value, '');
+      if (!canMove(CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK) || !canDockTo(dockZone)) return preference;
+      next.placement = CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK;
+      next.dockZone = dockZone;
+      break;
+    }
     case CAD_WORKSPACE_PANEL_ACTIONS.RESET:
       return resolvePanelPreference(panel, {});
     case CAD_WORKSPACE_PANEL_ACTIONS.PATCH: {
@@ -186,6 +275,11 @@ const updatePreferenceForAction = (panel, preference, action) => {
       if (typeof patch.open === 'boolean' && (patch.open || panel.closable)) next.open = patch.open;
       const placement = normalizeCadWorkspacePanelPlacement(patch.placement ?? patch.mode, '');
       if (placement && canMove(placement)) next.placement = placement;
+      const dockZone = normalizeCadWorkspacePanelDockZone(patch.dockZone ?? patch.zone, '');
+      if (dockZone && canDockTo(dockZone)) {
+        next.dockZone = dockZone;
+        next.placement = CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK;
+      }
       break;
     }
     default:
@@ -215,10 +309,14 @@ export function updateCadWorkspacePanelPreference(panels = [], value = {}, panel
 /** Resets all declared panels while retaining unknown records and metadata. */
 export function resetCadWorkspacePanelPreferences(panels = [], value = {}) {
   const source = recordFrom(value);
-  return normalizeCadWorkspacePanels(panels).reduce((next, panel) => ({
-    ...next,
-    [panel.id]: resolvePanelPreference(panel, omitStateFields(source[panel.id]))
-  }), { ...source });
+  return normalizeCadWorkspacePanels(panels).reduce((next, panel) => {
+    const metadata = omitStateFields(source[panel.id]);
+    if (panel.dockZones?.length) {
+      delete metadata.dockZone;
+      delete metadata.zone;
+    }
+    return { ...next, [panel.id]: resolvePanelPreference(panel, metadata) };
+  }, { ...source });
 }
 
 /**
@@ -312,12 +410,20 @@ const panelIcon = (panel, renderPanelIcon) => {
   return defaultPanelIcon;
 };
 
-const placementLabel = placement => placement === CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT ? 'FLOATING' : 'DOCKED';
+const dockZoneLabel = dockZone => ({
+  [CAD_WORKSPACE_PANEL_DOCK_ZONES.LEFT]: 'LEFT',
+  [CAD_WORKSPACE_PANEL_DOCK_ZONES.RIGHT]: 'RIGHT',
+  [CAD_WORKSPACE_PANEL_DOCK_ZONES.BOTTOM]: 'BOTTOM'
+}[dockZone] || '');
+
+const placementLabel = (placement, dockZone) => placement === CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT
+  ? 'FLOATING'
+  : [dockZoneLabel(dockZone), 'DOCKED'].filter(Boolean).join(' ');
 
 /**
  * A compact CAD workspace-customization flyout. It only edits serializable
- * intent ({ open, placement }); hosts decide whether that means a Dockview
- * tab, a floating HTML panel, a native window, or a renderer overlay.
+ * intent ({ open, placement, dockZone? }); hosts decide whether that means a
+ * Dockview tab, a floating HTML panel, a native window, or a renderer overlay.
  */
 export function CadWorkspacePanelManager({
   panels = [],
@@ -329,6 +435,7 @@ export function CadWorkspacePanelManager({
   onPanelOpen,
   onPanelClose,
   onPanelDock,
+  onPanelDockZone,
   onPanelFloat,
   onPanelReset,
   onResetAll,
@@ -344,6 +451,14 @@ export function CadWorkspacePanelManager({
   scope,
   placement = 'bottom-end',
   emptyLabel = 'No configurable panels are available.',
+  filter,
+  defaultFilter = '',
+  onFilterChange,
+  filterable = true,
+  filterLabel = 'Find panel',
+  filterPlaceholder = 'Search panels',
+  clearFilterLabel = 'Clear panel filter',
+  filteredEmptyLabel = 'No panels match the current filter.',
   resetAllLabel = 'Reset workspace',
   showResetAll = true,
   closeLabel,
@@ -363,6 +478,23 @@ export function CadWorkspacePanelManager({
   const configuredPanels = normalizedPanels.filter(panel => !panel.hidden);
   const visibleCount = configuredPanels.filter(panel => preferences[panel.id]?.open).length;
   const floatingCount = configuredPanels.filter(panel => preferences[panel.id]?.open && preferences[panel.id]?.placement === CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT).length;
+  const [panelFilter, setPanelFilter] = useControllableState(filter, defaultFilter, (nextFilter, event) => {
+    onFilterChange?.(nextFilter, event);
+  });
+  const normalizedFilter = text(panelFilter).toLocaleLowerCase();
+  const filteredPanels = useMemo(() => configuredPanels.filter(panel => {
+    if (!normalizedFilter) return true;
+    const preference = preferences[panel.id] || {};
+    const searchable = [
+      panel.label,
+      panel.description,
+      preference.open ? 'visible open' : 'hidden closed',
+      placementLabel(preference.placement, preference.dockZone),
+      dockZoneLabel(preference.dockZone)
+    ].filter(Boolean).join(' ').toLocaleLowerCase();
+    return searchable.includes(normalizedFilter);
+  }), [configuredPanels, normalizedFilter, preferences]);
+  const showFilter = filterable && configuredPanels.length > 6;
 
   const publishPanelAction = useCallback((panel, action, event) => {
     const change = dispatch(panel.id, action, event);
@@ -372,9 +504,10 @@ export function CadWorkspacePanelManager({
     if (change.action === CAD_WORKSPACE_PANEL_ACTIONS.OPEN) onPanelOpen?.(panel, change.preference, change, event);
     if (change.action === CAD_WORKSPACE_PANEL_ACTIONS.CLOSE) onPanelClose?.(panel, change.preference, change, event);
     if (change.action === CAD_WORKSPACE_PANEL_ACTIONS.DOCK) onPanelDock?.(panel, change.preference, change, event);
+    if (change.action === CAD_WORKSPACE_PANEL_ACTIONS.SET_DOCK_ZONE) onPanelDockZone?.(panel, change.preference, change, event);
     if (change.action === CAD_WORKSPACE_PANEL_ACTIONS.FLOAT) onPanelFloat?.(panel, change.preference, change, event);
     if (change.action === CAD_WORKSPACE_PANEL_ACTIONS.RESET) onPanelReset?.(panel, change.preference, change, event);
-  }, [dispatch, onPanelAction, onPanelChange, onPanelClose, onPanelDock, onPanelFloat, onPanelOpen, onPanelReset]);
+  }, [dispatch, onPanelAction, onPanelChange, onPanelClose, onPanelDock, onPanelDockZone, onPanelFloat, onPanelOpen, onPanelReset]);
 
   const publishReset = useCallback(event => {
     const change = reset(event);
@@ -399,17 +532,19 @@ export function CadWorkspacePanelManager({
     const visibilityAction = isVisible ? CAD_WORKSPACE_PANEL_ACTIONS.CLOSE : CAD_WORKSPACE_PANEL_ACTIONS.OPEN;
     const canToggleVisibility = !panel.disabled && (!isVisible || panel.closable);
     const supportsPlacement = panel.placements.length > 1;
+    const supportsDockZones = panel.placements.includes(CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK) && panel.dockZones.length > 1;
     const controls = {
       open: event => publishPanelAction(panel, CAD_WORKSPACE_PANEL_ACTIONS.OPEN, event),
       close: event => publishPanelAction(panel, CAD_WORKSPACE_PANEL_ACTIONS.CLOSE, event),
       toggle: event => publishPanelAction(panel, CAD_WORKSPACE_PANEL_ACTIONS.TOGGLE, event),
       dock: event => publishPanelAction(panel, CAD_WORKSPACE_PANEL_ACTIONS.DOCK, event),
+      dockTo: (dockZone, event) => publishPanelAction(panel, { type: CAD_WORKSPACE_PANEL_ACTIONS.SET_DOCK_ZONE, value: dockZone }, event),
       float: event => publishPanelAction(panel, CAD_WORKSPACE_PANEL_ACTIONS.FLOAT, event),
       reset: event => publishPanelAction(panel, CAD_WORKSPACE_PANEL_ACTIONS.RESET, event)
     };
     if (typeof renderPanel === 'function') return renderPanel(panel, preference, controls);
 
-    return <article className="cad-workspace-panel-manager__panel" data-panel-id={panel.id} data-open={isVisible ? 'true' : 'false'} data-placement={preference.placement} data-locked={panel.preferenceLocked ? 'true' : 'false'} role="listitem">
+    return <article className="cad-workspace-panel-manager__panel" data-panel-id={panel.id} data-open={isVisible ? 'true' : 'false'} data-placement={preference.placement} data-dock-zone={preference.dockZone || undefined} data-locked={panel.preferenceLocked ? 'true' : 'false'} role="listitem">
       <div className="cad-workspace-panel-manager__panel-summary">
         <button
           type="button"
@@ -426,24 +561,34 @@ export function CadWorkspacePanelManager({
         </button>
         <output className="cad-workspace-panel-manager__state" aria-label={`${panel.label} is ${isVisible ? 'visible' : 'hidden'}`}>{isVisible ? 'VISIBLE' : 'HIDDEN'}</output>
       </div>
-      <div className="cad-workspace-panel-manager__placement" role="group" aria-label={`${panel.label} placement`}>
-        {panel.placements.includes(CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK) && <button
+      {(supportsPlacement || !panel.preferenceLocked) && <div className="cad-workspace-panel-manager__placement" role="group" aria-label={`${panel.label} placement`}>
+        {supportsPlacement && panel.placements.includes(CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK) && <button
           type="button"
           aria-label={`Dock ${panel.label}`}
           aria-pressed={preference.placement === CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK}
-          disabled={panel.disabled || panel.preferenceLocked || !supportsPlacement}
+          disabled={panel.disabled || panel.preferenceLocked}
           onClick={controls.dock}
         ><span aria-hidden="true">▣</span>DOCK</button>}
-        {panel.placements.includes(CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT) && <button
+        {supportsPlacement && panel.placements.includes(CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT) && <button
           type="button"
           aria-label={`Float ${panel.label}`}
           aria-pressed={preference.placement === CAD_WORKSPACE_PANEL_PLACEMENTS.FLOAT}
-          disabled={panel.disabled || panel.preferenceLocked || !supportsPlacement}
+          disabled={panel.disabled || panel.preferenceLocked}
           onClick={controls.float}
         ><span aria-hidden="true">◇</span>FLOAT</button>}
-        <output aria-label={`${panel.label} placement: ${placementLabel(preference.placement).toLocaleLowerCase()}`}>{placementLabel(preference.placement)}</output>
+        {supportsPlacement && <output aria-label={`${panel.label} placement: ${placementLabel(preference.placement, preference.dockZone).toLocaleLowerCase()}`}>{placementLabel(preference.placement, preference.dockZone)}</output>}
         {!panel.preferenceLocked && <button type="button" className="cad-workspace-panel-manager__reset" aria-label={`Reset ${panel.label}`} title={`Reset ${panel.label}`} onClick={controls.reset}>↺</button>}
-      </div>
+      </div>}
+      {supportsDockZones && <div className="cad-workspace-panel-manager__dock-zones" role="group" aria-label={`${panel.label} dock zone`}>
+        {panel.dockZones.map(dockZone => <button
+          key={dockZone}
+          type="button"
+          aria-label={`Dock ${panel.label} to ${dockZoneLabel(dockZone).toLocaleLowerCase()}`}
+          aria-pressed={preference.placement === CAD_WORKSPACE_PANEL_PLACEMENTS.DOCK && preference.dockZone === dockZone}
+          disabled={panel.disabled || panel.preferenceLocked}
+          onClick={event => controls.dockTo(dockZone, event)}
+        >{dockZoneLabel(dockZone)}</button>)}
+      </div>}
     </article>;
   };
 
@@ -464,12 +609,25 @@ export function CadWorkspacePanelManager({
         <div><span className="cad-workspace-panel-manager__eyebrow">WORKSPACE</span><h2>{title}</h2>{description && <p id={`${contentId}-description`}>{description}</p>}</div>
         <div className="cad-workspace-panel-manager__header-actions">
           {scope && <output className="cad-workspace-panel-manager__scope">{scope}</output>}
-          <button type="button" className="cad-workspace-panel-manager__close" aria-label={resolvedCloseLabel} title={resolvedCloseLabel} onClick={close}>×</button>
+          <button type="button" className="cad-workspace-panel-manager__close" data-autofocus aria-label={resolvedCloseLabel} title={resolvedCloseLabel} onClick={close}>×</button>
         </div>
       </header>
       {configuredPanels.length > 0 ? <>
-        <div className="cad-workspace-panel-manager__summary" aria-label="Workspace panel summary"><span><b>{visibleCount}</b> VISIBLE</span><span><b>{floatingCount}</b> FLOATING</span></div>
-        <div className="cad-workspace-panel-manager__list" role="list">{configuredPanels.map(panel => <React.Fragment key={panel.id}>{renderDefaultPanel(panel, preferences[panel.id])}</React.Fragment>)}</div>
+        {showFilter && <div className="cad-workspace-panel-manager__filter">
+          <label htmlFor={`${contentId}-filter`}>{filterLabel}</label>
+          <input
+            id={`${contentId}-filter`}
+            type="search"
+            value={panelFilter ?? ''}
+            placeholder={filterPlaceholder}
+            onChange={event => setPanelFilter(event.target.value, event)}
+          />
+          {normalizedFilter && <button type="button" aria-label={clearFilterLabel} title={clearFilterLabel} onClick={event => setPanelFilter('', event)}>×</button>}
+        </div>}
+        <div className="cad-workspace-panel-manager__summary" aria-label="Workspace panel summary"><span><b>{visibleCount}</b> VISIBLE</span><span><b>{floatingCount}</b> FLOATING</span>{showFilter && <span className="cad-workspace-panel-manager__filter-count" role="status"><b>{filteredPanels.length}</b> SHOWN</span>}</div>
+        {filteredPanels.length > 0
+          ? <div className="cad-workspace-panel-manager__list" role="list">{filteredPanels.map(panel => <React.Fragment key={panel.id}>{renderDefaultPanel(panel, preferences[panel.id])}</React.Fragment>)}</div>
+          : <p className="cad-workspace-panel-manager__empty cad-workspace-panel-manager__empty--filtered" role="status">{filteredEmptyLabel}</p>}
       </> : <p className="cad-workspace-panel-manager__empty" role="status">{emptyLabel}</p>}
       {showResetAll && configuredPanels.length > 0 && <footer className="cad-workspace-panel-manager__footer"><button type="button" aria-label={resetAllLabel} onClick={publishReset}><span aria-hidden="true">↺</span> {resetAllLabel}</button><span>Host-owned layout state</span></footer>}
     </section>}

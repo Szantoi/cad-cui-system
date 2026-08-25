@@ -1,6 +1,6 @@
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { CadWorkspaceRibbon, groupCadWorkspaceRibbonCommands } from '../src/index.js';
 
 afterEach(() => {
@@ -124,5 +124,109 @@ describe('CadWorkspaceRibbon', () => {
     rerender(<CadWorkspaceRibbon tabs={ribbonTabs} activeTab="file" minimized={true} groups={[]} />);
     expect(screen.getByRole('tab', { name: 'FILE' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.queryByRole('tabpanel')).not.toBeInTheDocument();
+  });
+
+  it('opens a minimized command flyout from tab focus or hover without changing the durable compact state', async () => {
+    const onActiveTabChange = vi.fn();
+    const onMinimizedChange = vi.fn();
+    render(<CadWorkspaceRibbon
+      tabs={ribbonTabs}
+      defaultActiveTab="file"
+      defaultMinimized
+      commands={ribbonCommands}
+      onActiveTabChange={onActiveTabChange}
+      onMinimizedChange={onMinimizedChange}
+    />);
+
+    const ribbon = document.querySelector('.cad-workspace-ribbon');
+    const tablist = screen.getByRole('tablist', { name: 'Workspace commands' });
+    const fileTab = within(tablist).getByRole('tab', { name: 'FILE' });
+    const viewTab = within(tablist).getByRole('tab', { name: 'VIEW' });
+
+    expect(screen.queryByRole('tabpanel')).not.toBeInTheDocument();
+    fireEvent.pointerEnter(ribbon);
+    fireEvent.focus(fileTab);
+    expect(ribbon).toHaveAttribute('data-minimized', 'true');
+    expect(ribbon).toHaveAttribute('data-flyout-open', 'true');
+    expect(onMinimizedChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('tabpanel')).toContainElement(screen.getByRole('button', { name: 'OPEN' }));
+
+    const outside = document.createElement('button');
+    fireEvent.blur(fileTab, { relatedTarget: outside });
+    expect(screen.getByRole('tabpanel')).toBeInTheDocument();
+    fireEvent.pointerLeave(ribbon, { relatedTarget: outside });
+    expect(screen.queryByRole('tabpanel')).not.toBeInTheDocument();
+
+    fireEvent.click(viewTab);
+    expect(viewTab).toHaveAttribute('aria-selected', 'true');
+    expect(onActiveTabChange).toHaveBeenLastCalledWith('view', expect.objectContaining({ id: 'view' }), expect.any(Object));
+    expect(onActiveTabChange).toHaveBeenCalledTimes(1);
+    const panelId = viewTab.getAttribute('aria-controls');
+    expect(document.getElementById(panelId)).toBeInTheDocument();
+    const panel = screen.getByRole('tabpanel');
+    const firstCommand = panel.querySelector('button:not(:disabled)');
+    fireEvent.focus(viewTab);
+    fireEvent.keyDown(viewTab, { key: 'ArrowDown' });
+    await waitFor(() => expect(firstCommand).toHaveFocus());
+
+    fireEvent.pointerLeave(ribbon);
+    expect(screen.getByRole('tabpanel')).toBeInTheDocument();
+    fireEvent.keyDown(firstCommand, { key: 'Escape' });
+    expect(screen.queryByRole('tabpanel')).not.toBeInTheDocument();
+    await waitFor(() => expect(viewTab).toHaveFocus());
+    await waitFor(() => expect(screen.queryByRole('tabpanel')).not.toBeInTheDocument());
+    expect(document.getElementById(panelId)).toBeInTheDocument();
+  });
+
+  it('moves into a custom focusable minimized command with ArrowDown', async () => {
+    render(<CadWorkspaceRibbon
+      tabs={[{ id: 'view', label: 'VIEW' }]}
+      defaultMinimized
+      groups={[{ id: 'navigation', label: 'NAVIGATION', commands: [{ id: 'orbit', label: 'ORBIT' }] }]}
+      renderCommand={(command, context) => <a href="#orbit" onClick={context.execute}>{command.label}</a>}
+    />);
+
+    const tab = screen.getByRole('tab', { name: 'VIEW' });
+    fireEvent.focus(tab);
+    fireEvent.keyDown(tab, { key: 'ArrowDown' });
+
+    await waitFor(() => expect(screen.getByRole('link', { name: 'ORBIT' })).toHaveFocus());
+  });
+
+  it('falls back to normal ribbon tools when a selective command renderer returns undefined or null', () => {
+    const onCommand = vi.fn();
+    const renderCommand = vi.fn((command, context) => {
+      if (command.id === 'workspace-panels') {
+        return <button type="button" data-testid="workspace-panel-manager" onClick={context.execute}>PANEL MANAGER</button>;
+      }
+      if (command.id === 'normal-tool') return undefined;
+      return null;
+    });
+
+    render(<CadWorkspaceRibbon
+      onCommand={onCommand}
+      renderCommand={renderCommand}
+      groups={[
+        {
+          id: 'workspace',
+          label: 'WORKSPACE',
+          commands: [
+            { id: 'workspace-panels', label: 'PANELS' },
+            { id: 'normal-tool', label: 'NORMAL TOOL' },
+            { id: 'null-tool', label: 'NULL TOOL' }
+          ]
+        }
+      ]}
+    />);
+
+    expect(screen.getByTestId('workspace-panel-manager')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'NORMAL TOOL' })).toHaveClass('cad-workspace-ribbon__tool');
+    expect(screen.getByRole('button', { name: 'NULL TOOL' })).toHaveClass('cad-workspace-ribbon__tool');
+    expect(renderCommand).toHaveBeenCalledTimes(3);
+
+    fireEvent.click(screen.getByRole('button', { name: 'NORMAL TOOL' }));
+    expect(onCommand).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'normal-tool' }), expect.any(Object), expect.any(Object));
+    fireEvent.click(screen.getByTestId('workspace-panel-manager'));
+    expect(onCommand).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'workspace-panels' }), expect.any(Object), expect.any(Object));
   });
 });
