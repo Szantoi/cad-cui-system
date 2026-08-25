@@ -1,7 +1,7 @@
 import e, { cloneElement as t, createContext as n, createElement as r, forwardRef as i, isValidElement as a, useCallback as o, useContext as s, useDeferredValue as c, useEffect as l, useId as u, useMemo as d, useReducer as f, useRef as p, useState as m } from "react";
 import { Fragment as h, jsx as g, jsxs as _ } from "react/jsx-runtime";
 import { useLocation as v, useNavigate as y } from "react-router-dom";
-//#region src/GraphCadUi.jsx
+//#region src/GraphCadUi.tsx
 var b = Object.freeze({
 	cyan: "#00fbfb",
 	blue: "#4bc8ff",
@@ -206,7 +206,7 @@ function M({ icon: e, title: t = "NO DATA TO DISPLAY", children: n, className: r
 	});
 }
 //#endregion
-//#region src/cadValueUtils.js
+//#region src/cadValueUtils.ts
 var N = (e) => String(e ?? "").trim(), P = (e) => !!e && typeof e == "object" && !Array.isArray(e), F = Object.freeze([]), I = Object.freeze({}), L = n(null), R = 1, z = (e) => [...new Set((Array.isArray(e) ? e : F).map(N).filter(Boolean))], B = (e) => ({
 	id: N(e?.id),
 	label: N(e?.label) || N(e?.id),
@@ -928,8 +928,11 @@ function we({ className: e, ...t }) {
 	});
 }
 //#endregion
-//#region src/cadUiUtils.js
-var X = (...e) => e.filter(Boolean).join(" "), Z = (e) => Array.isArray(e) ? e : [], Q = (e) => String(typeof e == "string" || typeof e == "number" ? e : e?.label ?? e?.name ?? e?.id ?? "");
+//#region src/cadUiUtils.ts
+var X = (...e) => e.filter(Boolean).join(" "), Z = (e) => Array.isArray(e) ? [...e] : [], Q = (e) => {
+	let t = e;
+	return String(typeof e == "string" || typeof e == "number" ? e : t?.label ?? t?.name ?? t?.id ?? "");
+};
 function $(e, t, n) {
 	let [r, i] = m(t), a = e !== void 0, s = a ? e : r;
 	return [s, o((e, ...t) => {
@@ -1385,7 +1388,7 @@ function We({ items: e = [], label: t = "More options", open: n, defaultOpen: r 
 	});
 }
 //#endregion
-//#region src/CadWorkspaceRibbon.jsx
+//#region src/CadWorkspaceRibbon.tsx
 var Ge = (e, t) => Number.isFinite(Number(e)) ? Number(e) : t, Ke = (e) => N(e?.tabId || e?.tab || e?.placement?.tab), qe = (e, t) => N(e?.groupId || e?.group || e?.placement?.groupId || e?.placement?.group) || t, Je = (e, t) => N(e?.groupLabel || e?.placement?.groupLabel || e?.placement?.group) || t, Ye = (e, t) => Ge(e?.order ?? e?.placement?.order, t), Xe = (e) => N(e?.tabId || e?.tab || e?.placement?.tab), Ze = (e) => Z(e?.commands).length ? Z(e.commands) : Z(e?.items), Qe = (e) => N(e).replace(/[^a-zA-Z0-9_-]+/g, "-") || "workspace", $e = (e, t) => {
 	if (!e || !t) return !1;
 	try {
@@ -1726,7 +1729,7 @@ function ot({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 	});
 }
 //#endregion
-//#region src/CadOverlayUi.jsx
+//#region src/CadOverlayUi.tsx
 var st = (e, t) => (n) => {
 	e?.(n), n.defaultPrevented || t?.(n);
 }, ct = "button:not(:disabled):not([tabindex=\"-1\"]), input:not(:disabled):not([tabindex=\"-1\"]), select:not(:disabled):not([tabindex=\"-1\"]), textarea:not(:disabled):not([tabindex=\"-1\"]), [contenteditable=\"true\"]:not([tabindex=\"-1\"]), [href]:not([tabindex=\"-1\"]), [tabindex]:not([tabindex=\"-1\"])", lt = (e) => !!(e && !e.hidden && !e.closest?.("[hidden], [aria-hidden=\"true\"], [inert]") && e.getAttribute("aria-hidden") !== "true" && e.getAttribute("aria-disabled") !== "true" && !e.hasAttribute("disabled")), ut = (e) => [...e?.querySelectorAll(ct) || []].filter(lt), dt = (e) => {
@@ -2329,7 +2332,7 @@ function Ot({ open: e = !0, label: t = "Command input", prompt: n, value: r, def
 	}) : null;
 }
 //#endregion
-//#region src/CadCompactWorkspaceRibbon.jsx
+//#region src/CadCompactWorkspaceRibbon.tsx
 var kt = (e, t) => Number.isFinite(Number(e)) ? Number(e) : t, At = (e) => N(e).replace(/[^a-zA-Z0-9_-]+/g, "-") || "workspace", jt = (e) => N(e?.tabId || e?.tab || e?.placement?.tab), Mt = (e) => N(e?.tabId || e?.tab || e?.placement?.tab), Nt = (e) => Z(e?.commands).length ? Z(e.commands) : Z(e?.items), Pt = {
 	cyan: "#53c9ff",
 	green: "#9add4b",
@@ -2611,7 +2614,7 @@ function Vt({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 	});
 }
 //#endregion
-//#region src/CadContextUi.jsx
+//#region src/CadContextUi.tsx
 var Ht = Object.freeze([
 	Object.freeze({
 		id: "pan",
@@ -2986,7 +2989,7 @@ function Zt({ sets: e = [], activeId: t, defaultActiveId: n, onChange: r, onAppl
 	});
 }
 //#endregion
-//#region src/CadWorkspaceCustomizationUi.jsx
+//#region src/CadWorkspaceCustomizationUi.tsx
 var Qt = (e, t) => !!e && !!t && e.open === t.open && e.placement === t.placement && e.dockZone === t.dockZone, $t = (e) => e instanceof Map ? Object.fromEntries(e.entries()) : P(e) ? e : {}, en = /* @__PURE__ */ new Set([
 	"open",
 	"visible",
@@ -3615,7 +3618,7 @@ var Mn = i(function({ active: e, defaultActive: t = !1, onActiveChange: n, label
 });
 Mn.displayName = "CadWorkspaceFocusToggle";
 //#endregion
-//#region src/CadWorkspaceProfiles.js
+//#region src/CadWorkspaceProfiles.ts
 var Nn = "model", Pn = (e) => {
 	let t = N(e).toLowerCase();
 	return /^[a-z0-9][a-z0-9-]{0,63}$/.test(t) ? t : "";
@@ -3686,7 +3689,7 @@ function Bn(e, t, n, { modelId: r = Nn, modelName: i = "Model" } = {}) {
 	};
 }
 //#endregion
-//#region src/CadWorkspaceUi.jsx
+//#region src/CadWorkspaceUi.tsx
 var Vn = (e) => Z(e).find((e) => !e?.disabled)?.id || "", Hn = (e, t) => typeof e == "string" ? {
 	id: `${e}-${t}`,
 	label: e
@@ -3727,7 +3730,7 @@ function Wn({ items: e = [], activeId: t, defaultActiveId: n, onChange: r, onClo
 					role: "tablist",
 					"aria-label": h,
 					onKeyDown: (e) => {
-						if (e.target.closest("[role=\"tab\"]")) {
+						if (!(!(e.target instanceof Element) || !e.target.closest("[role=\"tab\"]"))) {
 							if (e.key === "ArrowRight" && D(e, 1), e.key === "ArrowLeft" && D(e, -1), e.key === "Home") {
 								let t = x.find((e) => !e.disabled);
 								t && (e.preventDefault(), T(t, e), E(t));
@@ -4429,7 +4432,7 @@ function cr({ distance: e, angle: t, area: n, volume: r, className: i, label: a 
 	}) : null;
 }
 //#endregion
-//#region src/CadWorkspaceDockUi.jsx
+//#region src/CadWorkspaceDockUi.tsx
 var lr = Object.freeze({
 	OPEN: "open",
 	RAIL: "rail",
@@ -4902,7 +4905,7 @@ function kr({ edge: e = "left", panels: t = [], activeId: n, defaultActiveId: r,
 	});
 }
 //#endregion
-//#region src/CadDraftingUi.jsx
+//#region src/CadDraftingUi.tsx
 var Ar = Object.freeze({
 	point: Object.freeze([
 		{
@@ -5381,7 +5384,7 @@ function Wr({ label: e = "Selection grip", variant: t = "square", active: n = !1
 	});
 }
 //#endregion
-//#region src/CadLayoutUi.jsx
+//#region src/CadLayoutUi.tsx
 var Gr = Object.freeze([
 	"#ff0000",
 	"#ffff00",
@@ -5724,10 +5727,10 @@ function ei({ items: e = [], openId: t, defaultOpenId: n = "", onOpenChange: r, 
 	let D = (e, t) => {
 		let n = [...e.currentTarget.querySelectorAll(":scope > .cad-menu-bar__menu > button:not(:disabled)")];
 		if (!n.length) return;
-		let r = n.indexOf(document.activeElement), i = n[((r >= 0 ? r : Math.max(0, n.findIndex((e) => e.dataset.menuId === S))) + t + n.length) % n.length];
-		i?.focus();
-		let a = i?.dataset.menuId;
-		a && S && v(a, m.find((e) => e.id === a), e);
+		let r = document.activeElement instanceof HTMLButtonElement ? document.activeElement : null, i = r ? n.indexOf(r) : -1, a = n[((i >= 0 ? i : Math.max(0, n.findIndex((e) => e.dataset.menuId === S))) + t + n.length) % n.length];
+		a?.focus();
+		let o = a?.dataset.menuId;
+		o && S && v(o, m.find((e) => e.id === o), e);
 	}, O = /* @__PURE__ */ g("nav", {
 		...f,
 		ref: y,
@@ -5735,9 +5738,12 @@ function ei({ items: e = [], openId: t, defaultOpenId: n = "", onOpenChange: r, 
 		role: "menubar",
 		"aria-label": a,
 		onKeyDown: (e) => {
-			if (f.onKeyDown?.(e), !e.defaultPrevented && (e.key === "ArrowRight" && (e.preventDefault(), D(e, 1)), e.key === "ArrowLeft" && (e.preventDefault(), D(e, -1)), e.key === "Escape" && S && (e.preventDefault(), T(x, e, !0)), e.key === "ArrowDown" && document.activeElement?.dataset.menuId)) {
-				let t = m.find((e) => e.id === document.activeElement.dataset.menuId);
-				t && !t.disabled && Jr(t.items).length > 0 && (e.preventDefault(), t.id === S ? window.requestAnimationFrame(() => w(t.id)) : (b.current = t.id, v(t.id, t, e)));
+			if (f.onKeyDown?.(e), e.defaultPrevented) return;
+			e.key === "ArrowRight" && (e.preventDefault(), D(e, 1)), e.key === "ArrowLeft" && (e.preventDefault(), D(e, -1)), e.key === "Escape" && S && (e.preventDefault(), T(x, e, !0));
+			let t = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+			if (e.key === "ArrowDown" && t?.dataset.menuId) {
+				let n = m.find((e) => e.id === t.dataset.menuId);
+				n && !n.disabled && Jr(n.items).length > 0 && (e.preventDefault(), n.id === S ? window.requestAnimationFrame(() => w(n.id)) : (b.current = n.id, v(n.id, n, e)));
 			}
 		},
 		children: m.map((e) => /* @__PURE__ */ g(Qr, {
@@ -6060,7 +6066,7 @@ function si({ value: e, defaultValue: t = {
 	});
 }
 //#endregion
-//#region src/CadInspectorUi.jsx
+//#region src/CadInspectorUi.tsx
 function ci({ value: e, defaultValue: t = "", onChange: n, placeholder: r = "Filter", label: i = "Filter list", className: a, ...o }) {
 	let s = u(), [c, l] = $(e, t, (e, t) => n?.(e, t));
 	return /* @__PURE__ */ _("div", {
@@ -6536,7 +6542,7 @@ function yi({ references: e = [], onReload: t, onUnload: n, className: r, title:
 	});
 }
 //#endregion
-//#region src/CadDataUi.jsx
+//#region src/CadDataUi.tsx
 var bi = (e, t) => typeof t?.render == "function" ? t.render(e, t) : typeof t?.accessor == "function" ? t.accessor(e, t) : e?.[t?.accessor || t?.id], xi = (e, t) => {
 	let n = typeof t?.sortValue == "function" ? t.sortValue(e, t) : bi(e, t);
 	return typeof n == "string" ? n.toLocaleLowerCase() : n;
@@ -6739,7 +6745,7 @@ function Ti({ title: e = "Quick properties", properties: t, sections: n, onValue
 	});
 }
 //#endregion
-//#region src/CadWorkspacePreset.js
+//#region src/CadWorkspacePreset.ts
 var Ei = "cad-cui-workspace-preset", Di = 1, Oi = Object.freeze({
 	INVALID_INPUT: "invalid-input",
 	INVALID_JSON: "invalid-json",
@@ -6899,7 +6905,7 @@ function ea(e, t = {}) {
 	};
 }
 //#endregion
-//#region src/CadWorkspacePresetUi.jsx
+//#region src/CadWorkspacePresetUi.tsx
 var ta = (e) => String(e ?? ""), na = Object.freeze({
 	SELECT: "select",
 	DRAFT_NAME_CHANGE: "draft-name-change",

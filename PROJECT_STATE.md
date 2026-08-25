@@ -1,13 +1,23 @@
 # Project State
 
 Updated: 2026-08-25 · Package version: `0.7.1` · Lifecycle: active development — stable, engine-free UI layer
-Latest published baseline: `14ccc65 fix: close compact ribbon popovers on leave`
+Latest published baseline: `88828ad chore: add automated quality gates`
 
 ## Current working-tree increment
 
 This increment extends the Model Space-first workspace with resizable docks,
 hover-held rail previews, multi-panel zones, portable workspace presets,
 compact titlebar layout controls, and panel-local responsive composition.
+
+- Migrated the complete source, interactive playground, and Vitest suite to
+  TypeScript (`.ts` / `.tsx`), with extensionless internal imports for Vite and
+  declaration-safe package output. `src/entry.ts` owns stylesheet side effects;
+  `src/index.ts` remains the pure public type barrel.
+- Added `tsconfig.json`, a declaration-only build config, TypeScript-aware
+  ESLint parsing, a `typecheck` quality gate, and conditional package exports
+  that expose `dist/index.d.ts`. The public `CadAnyProps` compatibility type
+  preserves the intentionally open host-integration surface while individual
+  components are narrowed incrementally.
 
 - Added public focus, dock sizing, rail-preview, and dock-zone primitives:
   `CadWorkspaceFocusToggle`, `useCadWorkspaceFocus`,
@@ -184,6 +194,8 @@ compact titlebar layout controls, and panel-local responsive composition.
 | Preset codec / manager tests | `8/8` focused tests passed |
 | Unit/integration tests | `18` files, `128/128` tests passed |
 | Lint | passed (`npm run lint`, zero warnings) |
+| TypeScript | passed (`npm run typecheck`) |
+| Published declaration compatibility | passed: a NodeNext consumer imports `dist/index.js` and resolves the emitted types |
 | Coverage baseline | `78.41%` statements, `71.99%` branches, `76.00%` functions, `85.60%` lines (`npm run test:coverage`) |
 | Focused overlay / playground tests | `2` files, `29/29` tests passed |
 | Library build | passed (`npm run build`) |

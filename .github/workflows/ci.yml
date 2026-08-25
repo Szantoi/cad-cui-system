@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   verify:
-    name: Lint, test, and build
+    name: Lint, typecheck, test, and build
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
@@ -28,6 +28,9 @@ jobs:
 
       - name: Lint source and tests
         run: npm run lint
+
+      - name: Check TypeScript types
+        run: npm run typecheck
 
       - name: Run tests with coverage
         run: npm run test:coverage

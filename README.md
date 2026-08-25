@@ -858,11 +858,19 @@ For a production-style sandbox bundle, run `npm run demo:build`.
 
 ```bash
 npm run check
+npm run typecheck
 npm run test:coverage
 npm run check:package
 ```
 
-`npm run check` combines linting, the full test suite, library and demo builds,
-and a whitespace diff check. `test:coverage` writes V8 coverage reports to the
-ignored `coverage/` directory. GitHub Actions runs the same quality gates on
-pushes and pull requests, including a check that committed `dist/` is current.
+The source, playground, and tests are TypeScript (`.ts` / `.tsx`). `npm run
+typecheck` validates all three, while `npm run build` also emits the published
+`.d.ts` declarations to `dist/`. The deliberately host-extensible component
+props are represented by the exported `CadAnyProps` compatibility type and can
+be narrowed incrementally without breaking integrations.
+
+`npm run check` combines linting, TypeScript validation, the full test suite,
+library and demo builds, and a whitespace diff check. `test:coverage` writes V8
+coverage reports to the ignored `coverage/` directory. GitHub Actions runs the
+same quality gates on pushes and pull requests, including a check that committed
+`dist/` is current.

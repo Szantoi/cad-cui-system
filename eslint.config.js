@@ -1,13 +1,15 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
+import tseslint from 'typescript-eslint';
 
 const sourceFiles = [
-  'src/**/*.{js,jsx}',
-  'test/**/*.{js,jsx}',
-  'demo/src/**/*.{js,jsx}',
-  'vite.config.js',
-  'demo/vite.config.js',
+  'src/**/*.{ts,tsx}',
+  'test/**/*.{ts,tsx}',
+  'demo/src/**/*.{ts,tsx}',
+  'scripts/**/*.{js,mjs}',
+  'vite.config.ts',
+  'demo/vite.config.ts',
   'eslint.config.js'
 ];
 
@@ -19,6 +21,7 @@ export default [
   {
     files: sourceFiles,
     languageOptions: {
+      parser: tseslint.parser,
       ecmaVersion: 'latest',
       sourceType: 'module',
       parserOptions: {
@@ -30,10 +33,12 @@ export default [
       }
     },
     plugins: {
+      '@typescript-eslint': tseslint.plugin,
       'react-hooks': reactHooks
     },
     rules: {
-      'no-unused-vars': ['error', {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
         varsIgnorePattern: '^React$'

@@ -219,14 +219,21 @@ After source changes, run:
 
 ```bash
 npm run check
+npm run typecheck
 npm run test:coverage
 npm run check:package
 ```
 
+The codebase, playground, and tests use TypeScript. `npm run typecheck` covers
+all of them; the library build also emits public `.d.ts` declarations to
+`dist/`. `CadAnyProps` is the intentional compatibility type for the current
+host-extensible component surface, to be narrowed incrementally without a
+breaking API change.
+
 `npm run check` is the fast local gate: ESLint (with stable Rules of Hooks and
-dependency checks), the full Vitest suite, both production builds, and the
-whitespace diff check. Coverage is reported with Vitest V8 but deliberately has
-no threshold until the recorded baseline has had time to stabilize. GitHub
-Actions repeats lint, coverage, both builds, and verifies that committed
-`dist/` matches the source build. Rebuild `dist/` whenever public source or
-shared CSS changes.
+dependency checks), TypeScript validation, the full Vitest suite, both
+production builds, and the whitespace diff check. Coverage is reported with
+Vitest V8 but deliberately has no threshold until the recorded baseline has had
+time to stabilize. GitHub Actions repeats lint, types, coverage, both builds,
+and verifies that committed `dist/` matches the source build. Rebuild `dist/`
+whenever public source or shared CSS changes.
