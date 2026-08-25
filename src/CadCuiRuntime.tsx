@@ -56,16 +56,66 @@ const capabilityEnabled = (capabilities, capability) => Array.isArray(capabiliti
   ? capabilities.includes(capability)
   : Boolean(capabilities?.[capability]);
 
-const isEditableTarget = target => target instanceof HTMLElement && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+const isElement = value => typeof Element !== 'undefined' && value instanceof Element;
+const EDITABLE_SHORTCUT_TARGETS = [
+  'input',
+  'textarea',
+  'select',
+  '[contenteditable]:not([contenteditable="false"])',
+  '[role~="textbox"]',
+  '[role~="searchbox"]',
+  '[role~="combobox"]',
+  '[role~="listbox"]',
+  '[role~="spinbutton"]'
+].join(', ');
+
+const isEditableTarget = target => isElement(target) && Boolean(target.closest(EDITABLE_SHORTCUT_TARGETS));
+const shortcutScopeRoot = scopeRoot => {
+  const candidate = scopeRoot && typeof scopeRoot === 'object' && 'current' in scopeRoot
+    ? scopeRoot.current
+    : scopeRoot;
+  return isElement(candidate) ? candidate : null;
+};
+
+const documentForShortcutEvent = event => {
+  if (isElement(event?.target)) return event.target.ownerDocument;
+  if (event?.view?.document) return event.view.document;
+  return typeof document === 'undefined' ? null : document;
+};
+
+const hasOpenShortcutDialog = documentRef => Array.from(documentRef?.querySelectorAll?.('dialog[open], [role~="dialog"], [role~="alertdialog"]') || EMPTY_LIST)
+  .some((dialog: any) => !dialog.closest('[hidden], [aria-hidden="true"]'));
+
+/**
+ * Returns whether a global CAD shortcut may act on this key event.
+ *
+ * It keeps model-space shortcuts out of text controls and modal dialogs. Pass
+ * an HTMLElement or React ref through `scopeRoot` to confine shortcuts to a
+ * viewport or another explicit interaction region.
+ */
+export function shouldHandleCadShortcut(event: any, { scopeRoot }: CadAnyProps = EMPTY_OBJECT): boolean {
+  if (!event || event.defaultPrevented || event.repeat || event.isComposing || event.keyCode === 229) return false;
+  const scopeWasProvided = scopeRoot !== undefined && scopeRoot !== null;
+  const scope = shortcutScopeRoot(scopeRoot);
+  const target = event.target;
+  if (scopeWasProvided && (!scope || !isElement(target) || !scope.contains(target))) return false;
+  if (isEditableTarget(target) || hasOpenShortcutDialog(documentForShortcutEvent(event))) return false;
+  return true;
+}
 
 const eventShortcut = event => {
-  const key = text(event.key).toUpperCase();
+  const eventKey = text(event.key).toUpperCase();
+  const key = eventKey === 'DEL' ? 'DELETE' : eventKey;
   if (!key || ['CONTROL', 'ALT', 'SHIFT', 'META'].includes(key)) return '';
   const modifiers = [event.ctrlKey || event.metaKey ? 'CTRL' : '', event.altKey ? 'ALT' : '', event.shiftKey ? 'SHIFT' : ''].filter(Boolean);
   return [...modifiers, key].join('+');
 };
 
-const normaliseShortcut = shortcut => text(shortcut).toUpperCase().replace(/CMD|COMMAND/g, 'CTRL').replace(/\s+/g, '');
+const normaliseShortcut = shortcut => text(shortcut)
+  .toUpperCase()
+  .replace(/COMMAND|CMD/g, 'CTRL')
+  .replace(/\bDEL\b/g, 'DELETE')
+  .replace(/\s+/g, '');
 
 /**
  * Declarative, serializable CUI registry. Keep executable callbacks out of
@@ -391,7 +441,7 @@ const createCadCuiReducer = (system: any) => (state: any, action: any): any => {
  * The provider owns only serializable UI preferences. Domain data, window
  * manager handles and authorization remain in the application adapter.
  */
-export function CadCuiProvider({ registry = DEFAULT_CAD_CUI_SYSTEM, capabilities = EMPTY_OBJECT, selection = EMPTY_SELECTION, commandStates = EMPTY_OBJECT, handlers = EMPTY_OBJECT, onCommand, children }: CadAnyProps) {
+export function CadCuiProvider({ registry = DEFAULT_CAD_CUI_SYSTEM, capabilities = EMPTY_OBJECT, selection = EMPTY_SELECTION, commandStates = EMPTY_OBJECT, handlers = EMPTY_OBJECT, onCommand, shortcutScope, children }: CadAnyProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [state, dispatch] = useReducer(createCadCuiReducer(registry), registry, system => loadCadCuiState(system));
@@ -457,16 +507,17 @@ export function CadCuiProvider({ registry = DEFAULT_CAD_CUI_SYSTEM, capabilities
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     const onKeyDown = event => {
-      if (event.defaultPrevented || isEditableTarget(event.target)) return;
+      if (!shouldHandleCadShortcut(event, { scopeRoot: shortcutScope })) return;
       const shortcut = eventShortcut(event);
-      const command = registry.commands.find(candidate => normaliseShortcut(candidate.shortcut) === shortcut && canExecute(candidate));
-      if (!command) return;
+      if (!shortcut) return;
+      const commands = registry.commands.filter(candidate => normaliseShortcut(candidate.shortcut) === shortcut && canExecute(candidate));
+      if (commands.length !== 1) return;
       event.preventDefault();
-      void executeCommand(command.id, { source: 'shortcut' });
+      void executeCommand(commands[0].id, { source: 'shortcut' });
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [canExecute, executeCommand, registry.commands]);
+  }, [canExecute, executeCommand, registry.commands, shortcutScope]);
 
   const value = useMemo(() => ({
     registry,

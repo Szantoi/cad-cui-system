@@ -9,6 +9,7 @@ import {
   CadCommandLine,
   CadConfirmDialog,
   CadConstraintBar,
+  CadContextMenuPopup,
   CadDataGrid,
   CadDialog,
   CadDockPanel,
@@ -57,7 +58,8 @@ import {
   normalizeCadWorkspacePanelPreferences,
   normalizeCadWorkspaceProfiles,
   removeCadWorkspaceProfile,
-  selectCadCuiCommands
+  selectCadCuiCommands,
+  shouldHandleCadShortcut
 } from '../../src/entry';
 import './playground.css';
 
@@ -112,21 +114,50 @@ const SELECTION_ACTION_GLYPHS = Object.freeze({
   'selection.delete': '⌫'
 });
 
-// One serializable registry powers the contextual ribbon group and the
-// viewport toolbar. A real host can reuse it with CadCuiProvider too.
+// CAD aliases remain useful in the command line even when the same action has
+// a one-key desktop shortcut. They deliberately stay host-side: the registry
+// only describes commands, while the host decides how textual input is parsed.
+const SELECTION_ACTION_ALIASES = Object.freeze({
+  'selection.move': ['m', 'move'],
+  'selection.copy': ['co', 'copy'],
+  'selection.trim': ['tr', 'trim'],
+  'selection.offset': ['o', 'offset'],
+  'selection.rotate': ['r', 'rotate'],
+  'selection.explode': ['x', 'explode'],
+  'selection.edit-block': ['be', 'editblock', 'edit block'],
+  'selection.edit-dimension': ['dde', 'editdim', 'edit dimension'],
+  'selection.properties': ['pr', 'prop', 'properties'],
+  'selection.delete': ['del', 'delete', 'erase']
+});
+
+const normaliseCadAlias = value => String(value || '').trim().toLocaleLowerCase('en').replace(/\s+/g, ' ');
+const selectionActionForAlias = (commands, input) => {
+  const alias = normaliseCadAlias(String(input || '').split(':', 1)[0]);
+  if (!alias) return null;
+  return commands.find(command => [
+    ...(SELECTION_ACTION_ALIASES[command?.id] || []),
+    command?.intent?.action,
+    command?.label,
+    command?.shortcut
+  ].some(candidate => normaliseCadAlias(candidate) === alias)) || null;
+};
+
+// One serializable registry powers the contextual ribbon group, viewport
+// toolbar, right-click menu and keyboard resolver. A real host can reuse it
+// with CadCuiProvider too.
 const DEMO_SELECTION_ACTIONS = defineCadCuiSystem({
   id: 'playground-selection-actions',
   commands: [
-    { id: 'selection.move', label: 'MOVE', detail: 'Move the current selection', shortcut: 'M', tone: 'cyan', intent: { type: 'selection.action', action: 'move' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 10 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 10 }] },
-    { id: 'selection.copy', label: 'COPY', detail: 'Copy the current selection', shortcut: 'Ctrl+C', tone: 'cyan', intent: { type: 'selection.action', action: 'copy' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 20 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 20 }] },
-    { id: 'selection.trim', label: 'TRIM', detail: 'Trim selected curves', shortcut: 'TR', tone: 'cyan', intent: { type: 'selection.action', action: 'trim' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }] },
-    { id: 'selection.offset', label: 'OFFSET', detail: 'Offset selected curves', shortcut: 'O', tone: 'cyan', intent: { type: 'selection.action', action: 'offset' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }] },
-    { id: 'selection.rotate', label: 'ROTATE', detail: 'Rotate selected blocks', shortcut: 'R', tone: 'cyan', intent: { type: 'selection.action', action: 'rotate' }, selection: { count: 'any', entityTypes: ['block'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }] },
-    { id: 'selection.explode', label: 'EXPLODE', detail: 'Explode one block reference', shortcut: 'X', tone: 'cyan', intent: { type: 'selection.action', action: 'explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }] },
-    { id: 'selection.edit-block', label: 'EDIT BLOCK', detail: 'Edit the selected block definition', shortcut: 'BE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-block' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 50 }] },
-    { id: 'selection.edit-dimension', label: 'EDIT DIM', detail: 'Edit the selected dimension', shortcut: 'DDE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-dimension' }, selection: { count: 'one', entityTypes: ['dimension'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }] },
-    { id: 'selection.properties', label: 'PROPERTIES', detail: 'Inspect the selection properties', shortcut: 'Ctrl+1', tone: 'cyan', intent: { type: 'selection.action', action: 'properties' }, selection: { count: 'any' }, placements: [{ surface: 'selection-toolbar', order: 60 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 60 }] },
-    { id: 'selection.delete', label: 'DELETE', detail: 'Delete the current selection', shortcut: 'Del', tone: 'danger', intent: { type: 'selection.action', action: 'delete' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 70 }] }
+    { id: 'selection.move', label: 'MOVE', detail: 'Move the current selection', shortcut: 'M', tone: 'cyan', intent: { type: 'selection.action', action: 'move' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 10 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 10 }, { surface: 'context', menu: 'selection', order: 10 }] },
+    { id: 'selection.copy', label: 'COPY', detail: 'Copy the current selection', shortcut: 'Ctrl+C', tone: 'cyan', intent: { type: 'selection.action', action: 'copy' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 20 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 20 }, { surface: 'context', menu: 'selection', order: 20 }] },
+    { id: 'selection.trim', label: 'TRIM', detail: 'Trim selected curves', shortcut: 'TR', tone: 'cyan', intent: { type: 'selection.action', action: 'trim' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }] },
+    { id: 'selection.offset', label: 'OFFSET', detail: 'Offset selected curves', shortcut: 'O', tone: 'cyan', intent: { type: 'selection.action', action: 'offset' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }, { surface: 'context', menu: 'selection', order: 40 }] },
+    { id: 'selection.rotate', label: 'ROTATE', detail: 'Rotate selected blocks', shortcut: 'R', tone: 'cyan', intent: { type: 'selection.action', action: 'rotate' }, selection: { count: 'any', entityTypes: ['block'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }] },
+    { id: 'selection.explode', label: 'EXPLODE', detail: 'Explode one block reference', shortcut: 'X', tone: 'cyan', intent: { type: 'selection.action', action: 'explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }, { surface: 'context', menu: 'selection', order: 40 }] },
+    { id: 'selection.edit-block', label: 'EDIT BLOCK', detail: 'Edit the selected block definition', shortcut: 'BE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-block' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 50 }, { surface: 'context', menu: 'selection', order: 50 }] },
+    { id: 'selection.edit-dimension', label: 'EDIT DIM', detail: 'Edit the selected dimension', shortcut: 'DDE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-dimension' }, selection: { count: 'one', entityTypes: ['dimension'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }] },
+    { id: 'selection.properties', label: 'PROPERTIES', detail: 'Inspect the selection properties', shortcut: 'Ctrl+1', tone: 'cyan', intent: { type: 'selection.action', action: 'properties' }, selection: { count: 'any' }, placements: [{ surface: 'selection-toolbar', order: 60 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 60 }, { surface: 'context', menu: 'selection', order: 60 }] },
+    { id: 'selection.delete', label: 'DELETE', detail: 'Delete the current selection', shortcut: 'Delete', tone: 'danger', intent: { type: 'selection.action', action: 'delete' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 70 }, { surface: 'context', menu: 'selection', order: 70 }] }
   ]
 });
 
@@ -153,6 +184,7 @@ const SHORTCUTS = [
   { id: 'line', group: 'Draw', label: 'Line', shortcut: 'L' },
   { id: 'circle', group: 'Draw', label: 'Circle', shortcut: 'C' },
   { id: 'move', group: 'Modify', label: 'Move', shortcut: 'M' },
+  { id: 'selection-menu', group: 'Selection', label: 'Selection menu', shortcut: 'Shift+F10' },
   { id: 'properties', group: 'Workspace', label: 'Properties', shortcut: 'Ctrl+1' },
   { id: 'palette', group: 'Workspace', label: 'Command palette', shortcut: 'Ctrl+P' }
 ];
@@ -603,6 +635,24 @@ const isEditingShortcutTarget = target => {
 
 const hasOpenModal = () => typeof document !== 'undefined' && Boolean(document.querySelector('[role="dialog"], [role="alertdialog"]'));
 
+const normaliseKeyboardShortcut = shortcut => String(shortcut || '')
+  .toUpperCase()
+  .replace(/CMD|COMMAND/g, 'CTRL')
+  .replace(/\s+/g, '')
+  .replace(/(^|\+)DEL(?=$|\+)/g, '$1DELETE');
+
+const keyboardShortcutForEvent = event => {
+  const key = String(event?.key || '').toUpperCase();
+  if (!key || ['CONTROL', 'ALT', 'SHIFT', 'META'].includes(key)) return '';
+  const modifiers = [event.ctrlKey || event.metaKey ? 'CTRL' : '', event.altKey ? 'ALT' : '', event.shiftKey ? 'SHIFT' : ''].filter(Boolean);
+  return normaliseKeyboardShortcut([...modifiers, key].join('+'));
+};
+
+const isViewportInteractiveTarget = target => {
+  if (typeof Element === 'undefined' || !(target instanceof Element)) return false;
+  return Boolean(target.closest('button, input, textarea, select, a[href], [contenteditable="true"], [role="button"], [role="menu"], [role="menuitem"], [role="toolbar"], [role="tab"]'));
+};
+
 const normalizeWorkspacePresetForPlayground = (preset: CadAnyProps, availableLayers: readonly CadAnyProps[] = INITIAL_LAYERS): CadAnyProps => {
   const settings = isRecord(preset?.settings) ? preset.settings : {};
   const layout = isRecord(settings.layout) ? settings.layout : {};
@@ -702,6 +752,8 @@ function Playground() {
   const idSequence = useRef(0);
   const focusExitRef = useRef<HTMLButtonElement | null>(null);
   const focusRestoreRef = useRef<HTMLElement | null>(null);
+  const viewportRef = useRef<HTMLElement | null>(null);
+  const selectionContextMenuRef = useRef<HTMLElement | null>(null);
   const presetImportRef = useRef<HTMLInputElement | null>(null);
   const persistenceReadyRef = useRef(false);
   const hasRestoredWorkspaceRef = useRef(false);
@@ -749,6 +801,7 @@ function Playground() {
   const [selectionSets, setSelectionSets] = useState(INITIAL_SELECTION_SETS);
   const [activeSelectionSetId, setActiveSelectionSetId] = useState('primary-shell');
   const [selectionSetFilter, setSelectionSetFilter] = useState('');
+  const [selectionContextMenuPosition, setSelectionContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [dynamicPoint, setDynamicPoint] = useState({ x: 1180, y: 640, z: 0 });
   const [drafting, setDrafting] = useState<CadAnyProps>(DEFAULT_DRAFTING);
   const [propertyState, setPropertyState] = useState<CadAnyProps>(DEFAULT_PROPERTY_STATE);
@@ -833,13 +886,13 @@ function Playground() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [focusMode]);
 
-  const nextId = prefix => `${prefix}-${++idSequence.current}`;
-  const record = (message, tone = 'normal') => {
+  const nextId = useCallback(prefix => `${prefix}-${++idSequence.current}`, []);
+  const record = useCallback((message, tone = 'normal') => {
     setEvents(current => [{ id: nextId('event'), message, tone }, ...current].slice(0, 6));
-  };
-  const report = (title, message, tone = 'neutral') => {
+  }, [nextId]);
+  const report = useCallback((title, message, tone = 'neutral') => {
     record(`${title}: ${message}`, tone);
-  };
+  }, [record]);
   const submitHeaderSearch = event => {
     event.preventDefault();
     const query = headerSearch.trim();
@@ -1190,7 +1243,7 @@ function Playground() {
     setSelectionSource(source);
   };
 
-  const applySelectionAction = command => {
+  const applySelectionAction = useCallback(command => {
     const action = command?.intent?.action || String(command?.id || '').replace(/^selection\./, '');
     if (!action || !selectionCount) return;
     if (action === 'properties') {
@@ -1209,11 +1262,46 @@ function Playground() {
       setActiveTool(action);
     }
     report('Selection action', `${String(command?.label || action).toUpperCase()} offered for ${selectionCount} selected object${selectionCount === 1 ? '' : 's'}.`);
+  }, [report, selectionCount]);
+
+  const handleSelectionContextAction = useCallback(command => {
+    const action = command?.intent?.action || String(command?.id || '').replace(/^selection\./, '');
+    applySelectionAction(command);
+    if (['properties', 'edit-block', 'edit-dimension', 'delete'].includes(action) || typeof window === 'undefined') return;
+    window.setTimeout(() => viewportRef.current?.focus({ preventScroll: true }), 0);
+  }, [applySelectionAction]);
+
+  const openSelectionContextMenu = useCallback((clientX?: number, clientY?: number) => {
+    const viewport = viewportRef.current;
+    if (!viewport || !selectionCount) return;
+
+    const bounds = viewport.getBoundingClientRect();
+    const menuWidth = 232;
+    const menuHeight = 286;
+    const preferredX = Number.isFinite(clientX) ? Number(clientX) - bounds.left : bounds.width / 2;
+    const preferredY = Number.isFinite(clientY) ? Number(clientY) - bounds.top : bounds.height / 2;
+    const x = Math.max(8, Math.min(preferredX, Math.max(8, bounds.width - menuWidth - 8)));
+    const y = Math.max(8, Math.min(preferredY, Math.max(8, bounds.height - menuHeight - 8)));
+    setSelectionContextMenuPosition({ x: Math.round(x), y: Math.round(y) });
+  }, [selectionCount]);
+
+  const handleViewportContextMenu = event => {
+    if (isViewportInteractiveTarget(event.target)) return;
+    event.preventDefault();
+    viewportRef.current?.focus({ preventScroll: true });
+    openSelectionContextMenu(event.clientX, event.clientY);
   };
 
   const runCommand = command => {
     const normalized = String(command || '').trim().toLowerCase();
     if (!normalized) return;
+    const requestedSelectionCommand = selectionCount ? selectionActionForAlias(DEMO_SELECTION_ACTIONS.commands, command) : null;
+    if (requestedSelectionCommand) {
+      const selectionCommand = selectionContextActions.find(candidate => candidate.id === requestedSelectionCommand.id);
+      if (selectionCommand) applySelectionAction(selectionCommand);
+      else report('Selection action', `${requestedSelectionCommand.label} is not available for the current selection.`, 'muted');
+      return;
+    }
     const tool = normalized.includes('circle') || normalized === 'c' ? 'circle'
       : normalized.includes('move') || normalized === 'm' ? 'move'
         : normalized.includes('block') || normalized.includes('insert') ? 'insert'
@@ -1300,7 +1388,47 @@ function Playground() {
   ).map(command => ({
     ...command,
     icon: <span>{SELECTION_ACTION_GLYPHS[command.id] || '•'}</span>
+    })), [selectionSnapshot]);
+
+  const selectionContextActions = useMemo(() => selectCadCuiCommands(
+    DEMO_SELECTION_ACTIONS,
+    DEMO_SELECTION_ACTIONS.defaultState,
+    { surface: 'context', menuId: 'selection', selection: selectionSnapshot, unavailablePresentation: 'hide' }
+  ).map(command => ({
+    ...command,
+    icon: <span>{SELECTION_ACTION_GLYPHS[command.id] || '•'}</span>
   })), [selectionSnapshot]);
+
+  useEffect(() => {
+    if (!selectionCount) setSelectionContextMenuPosition(null);
+  }, [selectionCount]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleSelectionShortcut = event => {
+      if (!shouldHandleCadShortcut(event, { scopeRoot: viewportRef }) || isViewportInteractiveTarget(event.target)) return;
+
+      const isContextMenuShortcut = event.key === 'ContextMenu'
+        || (event.key === 'F10' && event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey);
+      if (isContextMenuShortcut) {
+        if (!selectionContextActions.length) return;
+        event.preventDefault();
+        openSelectionContextMenu();
+        return;
+      }
+
+      const shortcut = keyboardShortcutForEvent(event);
+      if (!shortcut) return;
+      const matches = selectionContextActions.filter(command => normaliseKeyboardShortcut(command.shortcut) === shortcut);
+      if (matches.length !== 1) return;
+      event.preventDefault();
+      applySelectionAction(matches[0]);
+    };
+
+    window.addEventListener('keydown', handleSelectionShortcut);
+    return () => window.removeEventListener('keydown', handleSelectionShortcut);
+  }, [applySelectionAction, openSelectionContextMenu, selectionContextActions]);
 
   const selectionRibbonCommands = useMemo(() => selectCadCuiCommands(
     DEMO_SELECTION_ACTIONS,
@@ -1917,7 +2045,21 @@ function Playground() {
             onSizeChange={nextSize => setLeftDockWidth(clampDockSize(nextSize, DOCK_SIZE_LIMITS.left, DEFAULT_DOCK_LAYOUT.leftWidth))}
           />}
 
-          <section className="cad-demo-viewport" data-space={isModelSpace ? 'model' : 'layout'} data-visual-style={visualStyle} data-viewport-scale={viewportScale} aria-label="SVG drawing viewport mockup">
+          <section
+            ref={viewportRef}
+            className="cad-demo-viewport"
+            data-cad-shortcut-scope="true"
+            data-space={isModelSpace ? 'model' : 'layout'}
+            data-visual-style={visualStyle}
+            data-viewport-scale={viewportScale}
+            aria-label="SVG drawing viewport mockup"
+            aria-keyshortcuts="M O R X Delete Control+1 Shift+F10"
+            tabIndex={0}
+            onPointerDown={event => {
+              if (!isViewportInteractiveTarget(event.target)) viewportRef.current?.focus({ preventScroll: true });
+            }}
+            onContextMenu={handleViewportContextMenu}
+          >
             <div className="cad-demo-viewport__meta"><span>{activeSpaceLabel} / {activeView.toUpperCase()} / {visualStyle.toUpperCase()}</span><span>{Math.round(zoom * 100)}%{!isModelSpace && ` · VP ${viewportScale}`}</span></div>
             {focusMode && <aside className="cad-demo-focus-hud" aria-label="Focus mode controls">
               <span className="cad-demo-focus-hud__state"><i aria-hidden="true">◉</i> FOCUS / {activeSpaceLabel}</span>
@@ -2014,6 +2156,17 @@ function Playground() {
               selectionCount={selectionCount}
               tools={selectionToolbarTools}
               onAction={applySelectionAction}
+            />
+            <CadContextMenuPopup
+              className="cad-demo-viewport__selection-context"
+              open={Boolean(selectionContextMenuPosition)}
+              position={selectionContextMenuPosition || { x: 0, y: 0 }}
+              items={selectionContextActions}
+              label="Selection context menu"
+              menuRef={selectionContextMenuRef}
+              restoreFocusRef={viewportRef}
+              onAction={handleSelectionContextAction}
+              onClose={() => setSelectionContextMenuPosition(null)}
             />
             <CadObjectSnapMarker className="cad-demo-viewport__snap-marker" type="endpoint" label="Endpoint" />
             <CadSelectionGrip className="cad-demo-viewport__grip cad-demo-viewport__grip--one" label="Move selected object" active onClick={() => report('Grip', 'Base grip activated.')} />

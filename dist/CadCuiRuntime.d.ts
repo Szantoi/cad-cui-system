@@ -2,6 +2,14 @@ import type { CadAnyProps } from './cad-types.js';
 import React from 'react';
 export declare const CAD_CUI_RUNTIME_VERSION = 1;
 /**
+ * Returns whether a global CAD shortcut may act on this key event.
+ *
+ * It keeps model-space shortcuts out of text controls and modal dialogs. Pass
+ * an HTMLElement or React ref through `scopeRoot` to confine shortcuts to a
+ * viewport or another explicit interaction region.
+ */
+export declare function shouldHandleCadShortcut(event: any, { scopeRoot }?: CadAnyProps): boolean;
+/**
  * Declarative, serializable CUI registry. Keep executable callbacks out of
  * this object: runtime adapters receive an `intent` when a command is run.
  * The same schema can therefore drive a ribbon, quick access bar, context
@@ -47,7 +55,7 @@ export declare function selectCadCuiCommandGroups(system: any, state: any, { sur
  * The provider owns only serializable UI preferences. Domain data, window
  * manager handles and authorization remain in the application adapter.
  */
-export declare function CadCuiProvider({ registry, capabilities, selection, commandStates, handlers, onCommand, children }: CadAnyProps): React.JSX.Element;
+export declare function CadCuiProvider({ registry, capabilities, selection, commandStates, handlers, onCommand, shortcutScope, children }: CadAnyProps): React.JSX.Element;
 export declare function useCadCui(): CadAnyProps;
 export declare function useCadCuiCommand(commandId: any, source?: string): (payload?: any) => any;
 /**

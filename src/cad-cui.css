@@ -2050,6 +2050,7 @@ button.cad-color-swatch:hover .cad-color-swatch__chip, button.cad-color-swatch:f
 .cad-menu__item:hover:not(:disabled), .cad-menu__item:focus-visible, .cad-menu__item--checked { border-color: color-mix(in srgb, var(--cad-menu-accent) 55%, var(--cad-workspace-border)); background: color-mix(in srgb, var(--cad-menu-accent) 13%, transparent); outline: 0; }
 .cad-menu__item:disabled { opacity: 0.42; cursor: not-allowed; }
 .cad-menu__check { color: var(--cad-menu-accent); font-weight: 900; }
+.cad-menu__icon { display: grid; min-inline-size: 0.8rem; place-items: center; color: var(--cad-menu-accent); font-size: 0.78rem; line-height: 1; }
 .cad-menu__copy { min-width: 0; }
 .cad-menu__copy strong, .cad-menu__copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cad-menu__copy small { margin-top: 0.13rem; color: var(--cad-workspace-muted); font-size: 0.52rem; font-weight: 600; }

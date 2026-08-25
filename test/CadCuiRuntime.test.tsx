@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import type { CadAnyProps } from '../src/cad-types';
-import { CadCuiCommandPalette, CadCuiContextMenu, CadCuiCustomizer, CadCuiProvider, CadCuiQuickAccess, CadCuiRibbon, defineCadCuiSystem, loadCadCuiState, sanitizeCadCuiState, selectCadCuiCommandGroups, selectCadCuiCommands, useCadCui } from '../src/index';
+import { CadCuiCommandPalette, CadCuiContextMenu, CadCuiCustomizer, CadCuiProvider, CadCuiQuickAccess, CadCuiRibbon, defineCadCuiSystem, loadCadCuiState, sanitizeCadCuiState, selectCadCuiCommandGroups, selectCadCuiCommands, shouldHandleCadShortcut, useCadCui } from '../src/index';
 
 const TEST_STORAGE_KEY = 'cad-cui-package-test:v1';
 const TEST_CUI = defineCadCuiSystem({
@@ -46,9 +46,19 @@ const SELECTION_CUI = defineCadCuiSystem({
   tabs: [{ id: 'home', label: 'HOME', tone: 'cyan' }],
   groups: [{ id: 'selection', label: 'KIJELÖLÉS', tab: 'home', order: 10 }],
   commands: [
-    { id: 'move', label: 'MOZGATÁS', intent: { type: 'modify.move' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 10 }] },
-    { id: 'explode', label: 'SZÉTBONTÁS', intent: { type: 'modify.explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 20 }] },
-    { id: 'properties', label: 'TULAJDONSÁGOK', intent: { type: 'inspect.properties' }, selection: { count: 'any' }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 30 }] }
+    { id: 'move', label: 'MOZGATÁS', shortcut: 'M', intent: { type: 'modify.move' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 10 }, { surface: 'context', menu: 'selection', order: 10 }] },
+    { id: 'explode', label: 'SZÉTBONTÁS', shortcut: 'X', intent: { type: 'modify.explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 20 }, { surface: 'context', menu: 'selection', order: 20 }] },
+    { id: 'properties', label: 'TULAJDONSÁGOK', shortcut: 'CTRL+1', intent: { type: 'inspect.properties' }, selection: { count: 'any' }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }] },
+    { id: 'erase', label: 'TÖRLÉS', shortcut: 'DELETE', intent: { type: 'modify.erase' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 40 }, { surface: 'context', menu: 'selection', order: 40 }] }
+  ]
+});
+
+const AMBIGUOUS_SHORTCUT_CUI = defineCadCuiSystem({
+  id: 'ambiguous-shortcut-package-test',
+  storageKey: 'cad-cui-ambiguous-shortcut-package-test:v1',
+  commands: [
+    { id: 'first', label: 'ELSŐ', shortcut: 'M', intent: { type: 'test.first' } },
+    { id: 'second', label: 'MÁSODIK', shortcut: 'M', intent: { type: 'test.second' } }
   ]
 });
 
@@ -104,6 +114,27 @@ function SelectionFixture({ selection = {}, commandStates = {}, handlers = {} }:
 function renderSelectionFixture(options: CadAnyProps = {}) {
   return render(<MemoryRouter initialEntries={['/graph']}>
     <Routes><Route path="*" element={<SelectionFixture {...options} />} /></Routes>
+  </MemoryRouter>);
+}
+
+function ScopedShortcutFixture({ handlers = {} }: CadAnyProps) {
+  const shortcutScope = React.useRef<HTMLDivElement>(null);
+  return <div ref={shortcutScope} data-testid="shortcut-scope">
+    <CadCuiProvider registry={SELECTION_CUI} selection={{ ids: ['line-01'], entityTypes: ['line'], traits: ['editable'] }} handlers={handlers} shortcutScope={shortcutScope}>
+      <button type="button" data-testid="shortcut-scope-target">MODEL TÉR</button>
+    </CadCuiProvider>
+  </div>;
+}
+
+function renderScopedShortcutFixture(options: CadAnyProps = {}) {
+  return render(<MemoryRouter initialEntries={['/graph']}>
+    <Routes><Route path="*" element={<ScopedShortcutFixture {...options} />} /></Routes>
+  </MemoryRouter>);
+}
+
+function renderAmbiguousShortcutFixture(options: CadAnyProps = {}) {
+  return render(<MemoryRouter initialEntries={['/graph']}>
+    <Routes><Route path="*" element={<CadCuiProvider registry={AMBIGUOUS_SHORTCUT_CUI} {...options}><button type="button" data-testid="ambiguous-shortcut-target">MODEL TÉR</button></CadCuiProvider>} /></Routes>
   </MemoryRouter>);
 }
 
@@ -213,7 +244,12 @@ describe('CAD CUI runtime', () => {
       surface: 'ribbon',
       tabId: 'home',
       selection: { ids: ['line-01'], entityTypes: ['line'], traits: ['editable'] }
-    }).map(command => command.id)).toEqual(['move', 'properties']);
+    }).map(command => command.id)).toEqual(['move', 'properties', 'erase']);
+    expect(selectCadCuiCommands(SELECTION_CUI, SELECTION_CUI.defaultState, {
+      surface: 'context',
+      menuId: 'selection',
+      selection: { ids: ['block-03'], entityTypes: ['block'], traits: ['editable'] }
+    }).map(command => command.id)).toEqual(['move', 'explode', 'properties', 'erase']);
 
     const modifyExplode = vi.fn();
     const commandStates = vi.fn(() => ({}));
@@ -236,6 +272,72 @@ describe('CAD CUI runtime', () => {
       commandId: 'explode',
       selection: expect.objectContaining({ ids: ['block-03'], source: 'canvas' })
     })));
+  });
+
+  it('executes only the selection shortcuts available for the current snapshot', async () => {
+    const modifyMove = vi.fn();
+    const modifyExplode = vi.fn();
+    const modifyErase = vi.fn();
+    renderSelectionFixture({
+      selection: { ids: ['block-03'], entityTypes: ['block'], traits: ['editable'] },
+      handlers: { 'modify.move': modifyMove, 'modify.explode': modifyExplode, 'modify.erase': modifyErase }
+    });
+
+    fireEvent.keyDown(window, { key: 'm' });
+    await waitFor(() => expect(modifyMove).toHaveBeenCalledWith(expect.objectContaining({ commandId: 'move', source: 'shortcut' })));
+    fireEvent.keyDown(window, { key: 'x' });
+    await waitFor(() => expect(modifyExplode).toHaveBeenCalledWith(expect.objectContaining({ commandId: 'explode', source: 'shortcut' })));
+    fireEvent.keyDown(window, { key: 'Del' });
+    await waitFor(() => expect(modifyErase).toHaveBeenCalledWith(expect.objectContaining({ commandId: 'erase', source: 'shortcut' })));
+  });
+
+  it('keeps global shortcuts out of text, modal, repeated and out-of-scope interactions', async () => {
+    const scope = document.createElement('section');
+    const modelTarget = document.createElement('button');
+    const outsideTarget = document.createElement('button');
+    const textbox = document.createElement('div');
+    textbox.setAttribute('role', 'textbox');
+    scope.append(modelTarget, textbox);
+    document.body.append(scope, outsideTarget);
+
+    try {
+      expect(shouldHandleCadShortcut({ target: modelTarget })).toBe(true);
+      expect(shouldHandleCadShortcut({ target: modelTarget }, { scopeRoot: scope })).toBe(true);
+      expect(shouldHandleCadShortcut({ target: outsideTarget }, { scopeRoot: scope })).toBe(false);
+      expect(shouldHandleCadShortcut({ target: textbox })).toBe(false);
+      expect(shouldHandleCadShortcut({ target: modelTarget, defaultPrevented: true })).toBe(false);
+      expect(shouldHandleCadShortcut({ target: modelTarget, repeat: true })).toBe(false);
+      expect(shouldHandleCadShortcut({ target: modelTarget, isComposing: true })).toBe(false);
+      expect(shouldHandleCadShortcut({ target: modelTarget, keyCode: 229 })).toBe(false);
+
+      const dialog = document.createElement('section');
+      dialog.setAttribute('role', 'dialog');
+      document.body.append(dialog);
+      expect(shouldHandleCadShortcut({ target: modelTarget })).toBe(false);
+      dialog.hidden = true;
+      expect(shouldHandleCadShortcut({ target: modelTarget })).toBe(true);
+      dialog.remove();
+    } finally {
+      scope.remove();
+      outsideTarget.remove();
+    }
+
+    const modifyMove = vi.fn();
+    renderScopedShortcutFixture({ handlers: { 'modify.move': modifyMove } });
+    fireEvent.keyDown(screen.getByTestId('shortcut-scope-target'), { key: 'm' });
+    await waitFor(() => expect(modifyMove).toHaveBeenCalledWith(expect.objectContaining({ source: 'shortcut' })));
+    modifyMove.mockClear();
+    fireEvent.keyDown(document.body, { key: 'm' });
+    expect(modifyMove).not.toHaveBeenCalled();
+  });
+
+  it('does not guess when more than one available command uses a shortcut', () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    renderAmbiguousShortcutFixture({ handlers: { 'test.first': first, 'test.second': second } });
+    fireEvent.keyDown(window, { key: 'm' });
+    expect(first).not.toHaveBeenCalled();
+    expect(second).not.toHaveBeenCalled();
   });
 
   it('keeps the original flat ribbon markup when no registry groups are declared', () => {

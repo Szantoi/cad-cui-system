@@ -32,4 +32,10 @@ export declare function CadMenuSeparator({ className }: CadAnyProps): React.JSX.
 export declare function CadMenuItem({ item, label, detail, shortcut, icon: Icon, checked, disabled, type, tone, onClick, className }: CadAnyProps): React.JSX.Element;
 /** Keyboard-friendly menu primitive. Escape calls `onClose`; arrows wrap through items. */
 export declare function CadMenu({ items, label, onAction, onClose, className, children, menuRef: externalMenuRef, ...props }: CadAnyProps): React.JSX.Element;
+/**
+ * A controlled, pointer-positioned menu for viewport and canvas actions.
+ * Dismissal restores the supplied focus target, while command activation does
+ * not, so a command is free to move focus into a dialog or prompt.
+ */
+export declare function CadContextMenuPopup({ open, position, items, label, onAction, onClose, restoreFocusRef, returnFocusRef, className, style, children, menuRef: externalMenuRef, onContextMenu, ...props }: CadAnyProps): React.JSX.Element;
 export declare function CadOverflowMenu({ items, label, open, defaultOpen, onOpenChange, onAction, className, triggerLabel, ...props }: CadAnyProps): React.JSX.Element;

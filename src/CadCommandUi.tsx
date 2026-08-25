@@ -243,6 +243,11 @@ export function CadMenuItem({ item, label, detail, shortcut, icon: Icon, checked
   const resolvedChecked = checked ?? item?.checked;
   const resolvedDisabled = disabled || item?.disabled;
   const menuRole = type === 'checkbox' ? 'menuitemcheckbox' : type === 'radio' ? 'menuitemradio' : 'menuitem';
+  const icon = React.isValidElement(Icon)
+    ? Icon
+    : typeof Icon === 'function'
+      ? <Icon size={13} />
+      : null;
   return <button
     type="button"
     role={menuRole}
@@ -253,7 +258,7 @@ export function CadMenuItem({ item, label, detail, shortcut, icon: Icon, checked
     onClick={event => onClick?.(item, event)}
   >
     <span className="cad-menu__check" aria-hidden="true">{resolvedChecked ? '✓' : ''}</span>
-    {Icon && <Icon size={13} aria-hidden="true" />}
+    {icon && <span className="cad-menu__icon" aria-hidden="true">{icon}</span>}
     <span className="cad-menu__copy"><strong>{resolvedLabel}</strong>{detail && <small>{detail}</small>}</span>
     {shortcut && <CadShortcutHint shortcut={shortcut} />}
   </button>;
@@ -288,6 +293,91 @@ export function CadMenu({ items = [], label = 'CAD menu', onAction, onClose, cla
       : <CadMenuItem key={item.id || `${itemLabel(item)}-${index}`} item={item} label={itemLabel(item)} detail={item.detail} shortcut={item.shortcut} icon={item.icon} checked={item.checked} disabled={item.disabled} type={item.type} tone={item.tone} onClick={(selectedItem, event) => callItemAction(selectedItem, event, onAction)} />)}
     {children}
   </div>;
+}
+
+/**
+ * A controlled, pointer-positioned menu for viewport and canvas actions.
+ * Dismissal restores the supplied focus target, while command activation does
+ * not, so a command is free to move focus into a dialog or prompt.
+ */
+export function CadContextMenuPopup({
+  open = false,
+  position = { x: 0, y: 0 },
+  items = [],
+  label = 'Context menu',
+  onAction,
+  onClose,
+  restoreFocusRef,
+  returnFocusRef,
+  className,
+  style,
+  children,
+  menuRef: externalMenuRef,
+  onContextMenu,
+  ...props
+}: CadAnyProps) {
+  const localMenuRef = useRef(null);
+  const menuRef = externalMenuRef || localMenuRef;
+  const shouldRestoreFocusRef = useRef(false);
+  const focusTargetRef = restoreFocusRef || returnFocusRef;
+  const requestClose = React.useCallback((event, reason, item = undefined) => {
+    shouldRestoreFocusRef.current = reason === 'escape' || reason === 'outside';
+    onClose?.(event, { reason, item });
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const focusTarget = focusTargetRef?.current;
+    const timer = window.setTimeout(() => menuRef.current?.querySelector('[role^="menuitem"]:not(:disabled)')?.focus(), 0);
+    return () => {
+      window.clearTimeout(timer);
+      if (!shouldRestoreFocusRef.current) return;
+      shouldRestoreFocusRef.current = false;
+      window.setTimeout(() => focusTarget?.focus?.(), 0);
+    };
+  }, [focusTargetRef, menuRef, open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handlePointerDown = event => {
+      const target = event.target;
+      if (!(target instanceof Node) || menuRef.current?.contains(target)) return;
+      requestClose(event, 'outside');
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [menuRef, open, requestClose]);
+
+  if (!open) return null;
+  const resolvedPosition = position || { x: 0, y: 0 };
+  const popupStyle = {
+    ...style,
+    position: 'absolute',
+    left: resolvedPosition.x ?? 0,
+    top: resolvedPosition.y ?? 0,
+    zIndex: style?.zIndex ?? 40
+  };
+  return <CadMenu
+    {...props}
+    menuRef={menuRef}
+    items={items}
+    label={label}
+    className={cx('cad-context-menu-popup', className)}
+    style={popupStyle}
+    onContextMenu={event => {
+      event.preventDefault();
+      onContextMenu?.(event);
+    }}
+    onClose={event => {
+      event.stopPropagation?.();
+      requestClose(event, 'escape');
+    }}
+    onAction={(item, event) => {
+      shouldRestoreFocusRef.current = false;
+      onAction?.(item, event);
+      requestClose(event, 'action', item);
+    }}
+  >{children}</CadMenu>;
 }
 
 export function CadOverflowMenu({ items = [], label = 'More options', open, defaultOpen = false, onOpenChange, onAction, className, triggerLabel = 'More', ...props }: CadAnyProps) {

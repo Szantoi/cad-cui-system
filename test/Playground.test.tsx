@@ -196,6 +196,60 @@ describe('interactive CAD CUI playground', () => {
     expect(within(lockedToolbar).queryByRole('button', { name: 'MOVE' })).not.toBeInTheDocument();
   });
 
+  it('uses the same filtered selection actions for viewport shortcuts and the right-click menu', async () => {
+    render(<Playground />);
+
+    const viewport = screen.getByLabelText('SVG drawing viewport mockup');
+    viewport.focus();
+    fireEvent.keyDown(viewport, { key: 'm' });
+    showCommandActivity();
+    expect(screen.getByText('Selection action: MOVE offered for 1 selected object.')).toBeInTheDocument();
+
+    fireEvent.keyDown(viewport, { key: 'F10', shiftKey: true });
+    const contextMenu = await screen.findByRole('menu', { name: 'Selection context menu' });
+    expect(within(contextMenu).getByRole('menuitem', { name: /MOVE/ })).toBeInTheDocument();
+    expect(within(contextMenu).getByRole('menuitem', { name: /TRIM/ })).toBeInTheDocument();
+    expect(within(contextMenu).getByRole('menuitem', { name: /OFFSET/ })).toBeInTheDocument();
+    expect(within(contextMenu).queryByRole('menuitem', { name: /ROTATE/ })).not.toBeInTheDocument();
+
+    const move = within(contextMenu).getByRole('menuitem', { name: /MOVE/ });
+    await waitFor(() => expect(move).toHaveFocus());
+    fireEvent.keyDown(contextMenu, { key: 'ArrowDown' });
+    expect(within(contextMenu).getByRole('menuitem', { name: /COPY/ })).toHaveFocus();
+    fireEvent.keyDown(contextMenu, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('menu', { name: 'Selection context menu' })).not.toBeInTheDocument());
+    expect(viewport).toHaveFocus();
+
+    fireEvent.contextMenu(viewport, { clientX: 160, clientY: 120 });
+    const pointerMenu = await screen.findByRole('menu', { name: 'Selection context menu' });
+    fireEvent.click(within(pointerMenu).getByRole('menuitem', { name: /OFFSET/ }));
+    await waitFor(() => expect(screen.queryByRole('menu', { name: 'Selection context menu' })).not.toBeInTheDocument());
+    expect(screen.getByText('Selection action: OFFSET offered for 1 selected object.')).toBeInTheDocument();
+    await waitFor(() => expect(viewport).toHaveFocus());
+
+    const commandInput = screen.getByRole('combobox', { name: 'Dynamic CAD command' });
+    fireEvent.keyDown(commandInput, { key: 'm' });
+    expect(screen.getAllByText('Selection action: MOVE offered for 1 selected object.')).toHaveLength(1);
+  });
+
+  it('routes CAD command aliases through the current selection before the generic command parser', () => {
+    render(<Playground />);
+
+    const commandInput = screen.getByRole('combobox', { name: 'Dynamic CAD command' });
+    fireEvent.change(commandInput, { target: { value: 'TR' } });
+    fireEvent.submit(commandInput.closest('form'));
+    showCommandActivity();
+    expect(screen.getByText('Selection action: TRIM offered for 1 selected object.')).toBeInTheDocument();
+
+    const inspectorTabs = screen.getByRole('tablist', { name: 'Inspector dock panels' });
+    fireEvent.click(within(inspectorTabs).getByRole('tab', { name: 'Object Data' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select line-01' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select dim-04' }));
+    fireEvent.change(commandInput, { target: { value: 'BE' } });
+    fireEvent.submit(commandInput.closest('form'));
+    expect(screen.getByText('Selection action: EDIT BLOCK is not available for the current selection.')).toBeInTheDocument();
+  });
+
   it('shows one context-appropriate scale control as Model Space changes to a Layout', () => {
     render(<Playground />);
 
