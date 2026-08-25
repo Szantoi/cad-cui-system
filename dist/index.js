@@ -207,37 +207,37 @@ function j({ icon: e, title: t = "NO DATA TO DISPLAY", children: n, className: r
 }
 //#endregion
 //#region src/CadCuiRuntime.jsx
-var M = Object.freeze([]), N = Object.freeze({}), te = n(null), P = 1, F = (e) => String(e ?? "").trim(), I = (e) => [...new Set((Array.isArray(e) ? e : M).map(F).filter(Boolean))], L = (e) => ({
-	id: F(e?.id),
-	label: F(e?.label) || F(e?.id),
-	detail: F(e?.detail),
-	color: F(e?.color)
-}), R = (e) => Object.freeze({ ...e && typeof e == "object" ? e : N }), z = (e, t) => !!(e && typeof e == "object" && Object.prototype.hasOwnProperty.call(e, t)), B = (e) => e ?? "", V = (e) => Object.freeze({
-	surface: F(e?.surface),
-	tab: F(e?.tab),
-	menu: F(e?.menu),
-	group: F(e?.group),
-	groupId: F(e?.groupId),
-	control: F(e?.control),
-	label: F(e?.label),
-	detail: F(e?.detail),
-	icon: F(e?.icon),
-	tone: F(e?.tone),
+var M = Object.freeze([]), N = Object.freeze({}), P = n(null), F = 1, I = (e) => String(e ?? "").trim(), L = (e) => [...new Set((Array.isArray(e) ? e : M).map(I).filter(Boolean))], R = (e) => ({
+	id: I(e?.id),
+	label: I(e?.label) || I(e?.id),
+	detail: I(e?.detail),
+	color: I(e?.color)
+}), z = (e) => Object.freeze({ ...e && typeof e == "object" ? e : N }), te = (e, t) => !!(e && typeof e == "object" && Object.prototype.hasOwnProperty.call(e, t)), B = (e) => e ?? "", V = (e) => Object.freeze({
+	surface: I(e?.surface),
+	tab: I(e?.tab),
+	menu: I(e?.menu),
+	group: I(e?.group),
+	groupId: I(e?.groupId),
+	control: I(e?.control),
+	label: I(e?.label),
+	detail: I(e?.detail),
+	icon: I(e?.icon),
+	tone: I(e?.tone),
 	badge: B(e?.badge),
 	order: Number.isFinite(Number(e?.order)) ? Number(e.order) : 0
 }), H = (e) => ({
-	id: F(e?.id),
-	label: F(e?.label) || F(e?.id),
-	detail: F(e?.detail || e?.description),
-	icon: F(e?.icon),
-	tone: F(e?.tone) || "cyan",
-	surface: F(e?.surface),
-	tab: F(e?.tab),
-	menu: F(e?.menu),
-	control: F(e?.control),
+	id: I(e?.id),
+	label: I(e?.label) || I(e?.id),
+	detail: I(e?.detail || e?.description),
+	icon: I(e?.icon),
+	tone: I(e?.tone) || "cyan",
+	surface: I(e?.surface),
+	tab: I(e?.tab),
+	menu: I(e?.menu),
+	control: I(e?.control),
 	order: Number.isFinite(Number(e?.order)) ? Number(e.order) : 0
 }), U = (e) => !e || typeof e != "object" || Object.isFrozen(e) ? e : (Object.freeze(e), Object.values(e).forEach(U), e), W = (e, t) => Array.isArray(e) ? e.includes(t) : !!e?.[t], ne = (e) => e instanceof HTMLElement && !!e.closest("input, textarea, select, [contenteditable=\"true\"]"), re = (e) => {
-	let t = F(e.key).toUpperCase();
+	let t = I(e.key).toUpperCase();
 	return !t || [
 		"CONTROL",
 		"ALT",
@@ -248,41 +248,41 @@ var M = Object.freeze([]), N = Object.freeze({}), te = n(null), P = 1, F = (e) =
 		e.altKey ? "ALT" : "",
 		e.shiftKey ? "SHIFT" : ""
 	].filter(Boolean), t].join("+");
-}, G = (e) => F(e).toUpperCase().replace(/CMD|COMMAND/g, "CTRL").replace(/\s+/g, "");
+}, G = (e) => I(e).toUpperCase().replace(/CMD|COMMAND/g, "CTRL").replace(/\s+/g, "");
 function K(e = N) {
 	let t = (Array.isArray(e.commands) ? e.commands : M).map((e) => ({
-		id: F(e?.id),
-		label: F(e?.label),
-		detail: F(e?.detail || e?.description),
-		icon: F(e?.icon),
-		tone: F(e?.tone) || "cyan",
-		toolId: F(e?.toolId),
-		shortcut: F(e?.shortcut),
-		requires: I(e?.requires),
+		id: I(e?.id),
+		label: I(e?.label),
+		detail: I(e?.detail || e?.description),
+		icon: I(e?.icon),
+		tone: I(e?.tone) || "cyan",
+		toolId: I(e?.toolId),
+		shortcut: I(e?.shortcut),
+		requires: L(e?.requires),
 		customizable: e?.customizable !== !1,
 		alwaysVisible: !!e?.alwaysVisible,
 		disabled: !!e?.disabled,
 		active: !!e?.active,
 		badge: B(e?.badge),
-		intent: R(e?.intent),
+		intent: z(e?.intent),
 		placements: (Array.isArray(e?.placements) ? e.placements : M).map(V)
 	})).filter((e) => e.id && e.label), n = new Set(t.map((e) => e.id)), r = (Array.isArray(e.tabs) ? e.tabs : M).map((e) => ({
-		id: F(e?.id),
-		label: F(e?.label) || F(e?.id),
-		color: F(e?.color) || "#00fbfb",
-		tone: F(e?.tone) || "cyan"
-	})).filter((e) => e.id), i = /* @__PURE__ */ new Set(), a = (Array.isArray(e.groups) ? e.groups : M).map(H).filter((e) => !e.id || i.has(e.id) ? !1 : (i.add(e.id), !0)), o = e.calibration && typeof e.calibration == "object" ? e.calibration : N, s = (Array.isArray(o.accentModes) ? o.accentModes : M).map(L).filter((e) => e.id), c = (Array.isArray(o.densities) ? o.densities : M).map(L).filter((e) => e.id), l = (Array.isArray(o.details) ? o.details : M).map(L).filter((e) => e.id), u = (Array.isArray(e.panels) ? e.panels : M).map((e) => ({
+		id: I(e?.id),
+		label: I(e?.label) || I(e?.id),
+		color: I(e?.color) || "#00fbfb",
+		tone: I(e?.tone) || "cyan"
+	})).filter((e) => e.id), i = /* @__PURE__ */ new Set(), a = (Array.isArray(e.groups) ? e.groups : M).map(H).filter((e) => !e.id || i.has(e.id) ? !1 : (i.add(e.id), !0)), o = e.calibration && typeof e.calibration == "object" ? e.calibration : N, s = (Array.isArray(o.accentModes) ? o.accentModes : M).map(R).filter((e) => e.id), c = (Array.isArray(o.densities) ? o.densities : M).map(R).filter((e) => e.id), l = (Array.isArray(o.details) ? o.details : M).map(R).filter((e) => e.id), u = (Array.isArray(e.panels) ? e.panels : M).map((e) => ({
 		...e,
-		id: F(e?.id),
-		title: F(e?.title) || F(e?.id)
+		id: I(e?.id),
+		title: I(e?.title) || I(e?.id)
 	})).filter((e) => e.id), d = e.defaults && typeof e.defaults == "object" ? e.defaults : N, f = {
 		version: Number(e.version) || 1,
 		activeTab: r.some((e) => e.id === d.activeTab) ? d.activeTab : r[0]?.id || "",
-		hiddenCommandIds: I(d.hiddenCommandIds).filter((e) => n.has(e)),
+		hiddenCommandIds: L(d.hiddenCommandIds).filter((e) => n.has(e)),
 		accentMode: s.some((e) => e.id === d.accentMode) ? d.accentMode : s[0]?.id || "",
 		density: c.some((e) => e.id === d.density) ? d.density : c[0]?.id || "",
 		detail: l.some((e) => e.id === d.detail) ? d.detail : l[0]?.id || "",
-		quickAccessIds: I(d.quickAccessIds).filter((e) => n.has(e)),
+		quickAccessIds: L(d.quickAccessIds).filter((e) => n.has(e)),
 		recentCommandIds: M,
 		commandStatus: {
 			phase: "idle",
@@ -291,9 +291,9 @@ function K(e = N) {
 		}
 	};
 	return U({
-		id: F(e.id) || "cad-cui",
+		id: I(e.id) || "cad-cui",
 		version: Number(e.version) || 1,
-		storageKey: F(e.storageKey) || "cad-cui-preferences:v1",
+		storageKey: I(e.storageKey) || "cad-cui-preferences:v1",
 		tabs: r,
 		groups: a,
 		panels: u,
@@ -312,7 +312,7 @@ var q = K({ id: "cad-cui-default" }), J = (e) => new Map(e.commands.map((e) => [
 };
 function Y(e, { state: t = N, capabilities: n = N, commandStates: r = N, placement: i = e?.placement } = N) {
 	if (!e) return null;
-	let a = ae(r, e), o = new Set(t?.hiddenCommandIds || M), s = Array.isArray(e.requires) ? e.requires : M, c = (e.alwaysVisible || !o.has(e.id)) && s.every((e) => W(n, e)) && a.visible !== !1, l = !!(e.disabled || a.disabled || a.enabled === !1), u = z(a, "active") ? !!a.active : !!e.active, d = z(a, "badge") ? B(a.badge) : z(i, "badge") && i.badge !== "" ? i.badge : e.badge;
+	let a = ae(r, e), o = new Set(t?.hiddenCommandIds || M), s = Array.isArray(e.requires) ? e.requires : M, c = (e.alwaysVisible || !o.has(e.id)) && s.every((e) => W(n, e)) && a.visible !== !1, l = !!(e.disabled || a.disabled || a.enabled === !1), u = te(a, "active") ? !!a.active : !!e.active, d = te(a, "badge") ? B(a.badge) : te(i, "badge") && i.badge !== "" ? i.badge : e.badge;
 	return {
 		...e,
 		placement: i,
@@ -331,7 +331,7 @@ var oe = Y, se = (e, t) => ({
 	placement: t
 });
 function ce(e, t) {
-	let n = t && typeof t == "object" ? t : N, r = J(e), i = Array.isArray(n.hiddenToolIds) ? e.commands.filter((e) => n.hiddenToolIds.includes(e.toolId)).map((e) => e.id) : M, a = I(n.hiddenCommandIds || i).filter((e) => r.has(e) && !r.get(e).alwaysVisible);
+	let n = t && typeof t == "object" ? t : N, r = J(e), i = Array.isArray(n.hiddenToolIds) ? e.commands.filter((e) => n.hiddenToolIds.includes(e.toolId)).map((e) => e.id) : M, a = L(n.hiddenCommandIds || i).filter((e) => r.has(e) && !r.get(e).alwaysVisible);
 	return {
 		version: e.version,
 		activeTab: e.tabs.some((e) => e.id === n.activeTab) ? n.activeTab : e.defaultState.activeTab,
@@ -339,8 +339,8 @@ function ce(e, t) {
 		accentMode: ie(e.calibration.accentModes, n.accentMode) ? n.accentMode : e.defaultState.accentMode,
 		density: ie(e.calibration.densities, n.density) ? n.density : e.defaultState.density,
 		detail: ie(e.calibration.details, n.detail) ? n.detail : e.defaultState.detail,
-		quickAccessIds: I(n.quickAccessIds || e.defaultState.quickAccessIds).filter((e) => r.has(e)),
-		recentCommandIds: I(n.recentCommandIds).filter((e) => r.has(e)).slice(0, 8),
+		quickAccessIds: L(n.quickAccessIds || e.defaultState.quickAccessIds).filter((e) => r.has(e)),
+		recentCommandIds: L(n.recentCommandIds).filter((e) => r.has(e)).slice(0, 8),
 		commandStatus: {
 			phase: "idle",
 			id: "",
@@ -454,7 +454,7 @@ var pe = (e) => (t, n) => {
 		case "preferences.reset": return ce(e, e.defaultState);
 		case "command.completed": return {
 			...t,
-			recentCommandIds: I([n.commandId, ...t.recentCommandIds]).slice(0, 8),
+			recentCommandIds: L([n.commandId, ...t.recentCommandIds]).slice(0, 8),
 			commandStatus: {
 				phase: "idle",
 				id: n.commandId,
@@ -466,7 +466,7 @@ var pe = (e) => (t, n) => {
 			commandStatus: {
 				phase: "error",
 				id: n.commandId,
-				error: F(n.error) || "COMMAND_FAILED"
+				error: I(n.error) || "COMMAND_FAILED"
 			}
 		};
 		default: return t;
@@ -619,13 +619,13 @@ function me({ registry: e = q, capabilities: t = N, commandStates: n = N, handle
 		x,
 		u
 	]);
-	return /* @__PURE__ */ g(te.Provider, {
+	return /* @__PURE__ */ g(P.Provider, {
 		value: C,
 		children: a
 	});
 }
 function he() {
-	let e = s(te);
+	let e = s(P);
 	if (!e) throw Error("useCadCui must be used below CadCuiProvider.");
 	return e;
 }
@@ -799,7 +799,7 @@ function xe({ menuId: e = "canvas", iconMap: t = N, className: n, onClose: r, ..
 }
 function Se({ iconMap: e = N, className: t, ...n }) {
 	let { selectCommands: r, state: i } = he(), [a, o] = m(""), s = c(a), l = d(() => {
-		let e = F(s).toLocaleLowerCase("hu");
+		let e = I(s).toLocaleLowerCase("hu");
 		return r({ surface: "palette" }).filter((t) => !e || `${t.label} ${t.detail} ${t.shortcut}`.toLocaleLowerCase("hu").includes(e));
 	}, [s, r]);
 	return /* @__PURE__ */ _(C, {
@@ -1509,8 +1509,8 @@ function at({ command: e, group: t, activeTab: n, compact: r, renderIcon: i, ren
 		]
 	});
 }
-function ot({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange: i, groups: a, commands: o = [], defaultGroupId: s = "commands", defaultGroupLabel: c = "COMMANDS", label: f = "CAD workspace ribbon", tabListLabel: h = "Workspace commands", minimized: v, defaultMinimized: y = !1, onMinimizedChange: b, collapsible: x = !0, compact: S = !1, identity: C, renderIdentity: w, status: T, statusLabel: E = "Workspace status", renderStatus: D, endSlot: O, renderIcon: ee, renderCommand: k, renderMinimizeControl: A, onCommand: j, className: M, style: N, children: te, ...P }) {
-	let F = `cad-workspace-ribbon-${Qe(u())}`, I = p(/* @__PURE__ */ new Map()), L = p(null), R = p(!1), z = p(""), B = p({
+function ot({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange: i, groups: a, commands: o = [], defaultGroupId: s = "commands", defaultGroupLabel: c = "COMMANDS", label: f = "CAD workspace ribbon", tabListLabel: h = "Workspace commands", minimized: v, defaultMinimized: y = !1, onMinimizedChange: b, collapsible: x = !0, compact: S = !1, identity: C, renderIdentity: w, status: T, statusLabel: E = "Workspace status", renderStatus: D, endSlot: O, renderIcon: ee, renderCommand: k, renderMinimizeControl: A, onCommand: j, className: M, style: N, children: P, ...F }) {
+	let I = `cad-workspace-ribbon-${Qe(u())}`, L = p(/* @__PURE__ */ new Map()), R = p(null), z = p(!1), te = p(""), B = p({
 		pointer: !1,
 		focus: !1
 	}), [V, H] = m(!1), U = d(() => Z(t).filter((e) => e && We(e.id)).map((e) => ({
@@ -1524,7 +1524,7 @@ function ot({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 			focus: !1
 		});
 	}, [q]), l(() => {
-		z.current === K && (z.current = "");
+		te.current === K && (te.current = "");
 	}, [K]);
 	let ie = d(() => rt({
 		groups: a,
@@ -1544,30 +1544,30 @@ function ot({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 		compact: S,
 		minimized: !!q,
 		flyoutOpen: !!(q && V)
-	}, Y = typeof w == "function" ? w(ae) : C, oe = typeof D == "function" ? D(ae) : T, se = `${F}-panel-${Qe(K || "commands")}`, ce = (e, t) => {
-		e.disabled || e.id === K || z.current === e.id || (z.current = e.id, re(e.id, t), et(() => {
-			z.current === e.id && (z.current = "");
+	}, Y = typeof w == "function" ? w(ae) : C, oe = typeof D == "function" ? D(ae) : T, se = `${I}-panel-${Qe(K || "commands")}`, ce = (e, t) => {
+		e.disabled || e.id === K || te.current === e.id || (te.current = e.id, re(e.id, t), et(() => {
+			te.current === e.id && (te.current = "");
 		}));
 	}, le = (e, t) => {
 		if (!(!q || e.disabled)) {
-			if (t?.type === "focus" && R.current) {
-				R.current = !1;
+			if (t?.type === "focus" && z.current) {
+				z.current = !1;
 				return;
 			}
 			e.id !== K && ce(e, t), H(!0);
 		}
 	}, ue = () => {
-		et(() => L.current?.querySelector(tt)?.focus());
+		et(() => R.current?.querySelector(tt)?.focus());
 	}, de = ({ restoreTabFocus: e = !1 } = {}) => {
-		H(!1), !(!e || typeof window > "u") && (R.current = !0, et(() => {
-			let e = I.current.get(K);
-			e ? e.focus() : R.current = !1;
+		H(!1), !(!e || typeof window > "u") && (z.current = !0, et(() => {
+			let e = L.current.get(K);
+			e ? e.focus() : z.current = !1;
 		}));
 	}, fe = (e, t, n) => {
 		let r = U.filter((e) => !e.disabled);
 		if (!r.length) return;
 		let i = r[(Math.max(0, r.findIndex((t) => t.id === e)) + t + r.length) % r.length];
-		n.preventDefault(), ce(i, n), I.current.get(i.id)?.focus();
+		n.preventDefault(), ce(i, n), L.current.get(i.id)?.focus();
 	}, pe = (e, t) => {
 		if (q && t.key === "ArrowDown") {
 			t.preventDefault(), le(e, t), ue();
@@ -1580,7 +1580,7 @@ function ot({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 		if ((t.key === "ArrowRight" || t.key === "ArrowDown") && fe(e.id, 1, t), (t.key === "ArrowLeft" || t.key === "ArrowUp") && fe(e.id, -1, t), t.key === "Home" && fe(U.find((e) => !e.disabled)?.id || e.id, 0, t), t.key === "End") {
 			let e = U.filter((e) => !e.disabled).at(-1);
 			if (!e) return;
-			t.preventDefault(), ce(e, t), I.current.get(e.id)?.focus();
+			t.preventDefault(), ce(e, t), L.current.get(e.id)?.focus();
 		}
 	}, me = (e) => {
 		H(!1), J((e) => !e, e);
@@ -1600,9 +1600,9 @@ function ot({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 		}), /* @__PURE__ */ g("b", { children: q ? "EXPAND" : "COMPACT" })]
 	}), ge = (e) => /* @__PURE__ */ _("div", {
 		id: se,
-		ref: e ? L : void 0,
+		ref: e ? R : void 0,
 		role: "tabpanel",
-		"aria-labelledby": K ? `${F}-tab-${Qe(K)}` : void 0,
+		"aria-labelledby": K ? `${I}-tab-${Qe(K)}` : void 0,
 		tabIndex: e ? -1 : 0,
 		className: X("cad-workspace-ribbon__commands", e && "cad-workspace-ribbon__commands--flyout"),
 		onKeyDown: (t) => {
@@ -1640,25 +1640,25 @@ function ot({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 				"aria-label": E,
 				children: oe
 			}),
-			te && /* @__PURE__ */ g("div", {
+			P && /* @__PURE__ */ g("div", {
 				className: "cad-workspace-ribbon__content",
-				children: te
+				children: P
 			})
 		]
 	}), _e = !!(q && V), ve = () => {
 		let e = B.current;
 		!q || e.pointer || e.focus || de();
 	}, ye = (e) => {
-		P.onPointerEnter?.(e), !(e.defaultPrevented || !q) && (B.current.pointer = !0);
+		F.onPointerEnter?.(e), !(e.defaultPrevented || !q) && (B.current.pointer = !0);
 	}, be = (e) => {
-		P.onFocus?.(e), !(e.defaultPrevented || !q) && (B.current.focus = !0);
+		F.onFocus?.(e), !(e.defaultPrevented || !q) && (B.current.focus = !0);
 	}, xe = (e) => {
-		P.onBlur?.(e), !(e.defaultPrevented || !q || $e(e.currentTarget, e.relatedTarget)) && (B.current.focus = !1, ve());
+		F.onBlur?.(e), !(e.defaultPrevented || !q || $e(e.currentTarget, e.relatedTarget)) && (B.current.focus = !1, ve());
 	}, Se = (e) => {
-		P.onPointerLeave?.(e), !(e.defaultPrevented || !q || $e(e.currentTarget, e.relatedTarget)) && (B.current.pointer = !1, ve());
+		F.onPointerLeave?.(e), !(e.defaultPrevented || !q || $e(e.currentTarget, e.relatedTarget)) && (B.current.pointer = !1, ve());
 	};
 	return /* @__PURE__ */ _("header", {
-		...P,
+		...F,
 		className: X("cad-workspace-ribbon", S && "cad-workspace-ribbon--compact", q && "cad-workspace-ribbon--minimized", M),
 		"data-active-tab": K || void 0,
 		"data-minimized": q ? "true" : "false",
@@ -1684,11 +1684,11 @@ function ot({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 					role: "tablist",
 					"aria-label": h,
 					children: U.map((t) => {
-						let n = t.id === K, r = `${F}-tab-${Qe(t.id)}`;
+						let n = t.id === K, r = `${I}-tab-${Qe(t.id)}`;
 						return /* @__PURE__ */ _("button", {
 							id: r,
 							ref: (e) => {
-								e ? I.current.set(t.id, e) : I.current.delete(t.id);
+								e ? L.current.set(t.id, e) : L.current.delete(t.id);
 							},
 							type: "button",
 							role: "tab",
@@ -1735,25 +1735,32 @@ var st = (e, t) => (n) => {
 	} catch {
 		e.focus?.();
 	}
-}, ft = (e) => {
+}, ft = (e, t) => {
+	if (!e || !t) return !1;
+	try {
+		return e === t || !!e.contains?.(t);
+	} catch {
+		return !1;
+	}
+}, pt = (e) => {
 	if (typeof document > "u" || !e) return !1;
 	let t = document.querySelectorAll("[data-cad-dialog=\"true\"]");
 	return t[t.length - 1] === e;
-}, pt = (e, t = 0) => {
+}, mt = (e, t = 0) => {
 	let n = Number(e);
 	return Number.isFinite(n) ? Math.round(n) : t;
-}, mt = (e, t = {
+}, ht = (e, t = {
 	x: 0,
 	y: 0
 }) => ({
-	x: pt(e?.x, pt(t?.x, 0)),
-	y: pt(e?.y, pt(t?.y, 0))
-}), ht = (e, t) => e?.x === t?.x && e?.y === t?.y, gt = (e, t) => !e || !t ? !1 : e.pointerId === void 0 || t.pointerId === void 0 || e.pointerId === t.pointerId, _t = (e) => [
+	x: mt(e?.x, mt(t?.x, 0)),
+	y: mt(e?.y, mt(t?.y, 0))
+}), gt = (e, t) => e?.x === t?.x && e?.y === t?.y, _t = (e, t) => !e || !t ? !1 : e.pointerId === void 0 || t.pointerId === void 0 || e.pointerId === t.pointerId, vt = (e) => [
 	"top",
 	"right",
 	"bottom",
 	"left"
-].includes(String(e || "").toLocaleLowerCase()) ? String(e).toLocaleLowerCase() : "right", vt = (e, t, n) => !Number.isFinite(e) || !Number.isFinite(t) ? {
+].includes(String(e || "").toLocaleLowerCase()) ? String(e).toLocaleLowerCase() : "right", yt = (e, t, n) => !Number.isFinite(e) || !Number.isFinite(t) ? {
 	min: -Infinity,
 	max: Infinity
 } : e <= t ? {
@@ -1763,11 +1770,11 @@ var st = (e, t) => (n) => {
 	min: n,
 	max: n
 };
-function yt({ position: e, defaultPosition: t = {
+function bt({ position: e, defaultPosition: t = {
 	x: 0,
 	y: 0
 }, onPositionChange: n, collapsed: r, defaultCollapsed: i = !1, onCollapsedChange: a, onDragStart: s, onDragEnd: c, edge: d = "right", moveStep: f = 16, label: h = "Movable overlay", handleLabel: v, handleIcon: y, className: b, children: x, style: S, "aria-label": C, ...w }) {
-	let T = u(), E = `cad-movable-overlay-content-${T}`, D = `cad-movable-overlay-instructions-${T}`, O = p(null), ee = p(null), k = p(null), A = p(null), j = p(null), M = p(null), N = p(!1), te = p(!1), [P, F] = m(!1), [I, L] = $(e, mt(t), (e, t, r) => n?.(e, t, r)), [R, z] = $(r, !!i, (e, t, n) => a?.(e, t, n)), B = mt(I), V = !!R, H = _t(d), U = Math.max(1, Math.round(Number(f) || 16));
+	let T = u(), E = `cad-movable-overlay-content-${T}`, D = `cad-movable-overlay-instructions-${T}`, O = p(null), ee = p(null), k = p(null), A = p(null), j = p(null), M = p(null), N = p(!1), P = p(!1), [F, I] = m(!1), [L, R] = $(e, ht(t), (e, t, r) => n?.(e, t, r)), [z, te] = $(r, !!i, (e, t, n) => a?.(e, t, n)), B = ht(L), V = !!z, H = vt(d), U = Math.max(1, Math.round(Number(f) || 16));
 	j.current = B, M.current = B, N.current = V;
 	let W = o(() => {
 		let e = O.current, t = e?.parentElement, n = e?.getBoundingClientRect?.(), r = t?.getBoundingClientRect?.(), i = M.current || {
@@ -1793,7 +1800,7 @@ function yt({ position: e, defaultPosition: t = {
 			minY: -Infinity,
 			maxY: Infinity
 		};
-		let a = n.left - i.x, o = n.top - i.y, s = vt(r.left - a, r.right - a - n.width, i.x), c = vt(r.top - o, r.bottom - o - n.height, i.y);
+		let a = n.left - i.x, o = n.top - i.y, s = yt(r.left - a, r.right - a - n.width, i.x), c = yt(r.top - o, r.bottom - o - n.height, i.y);
 		return {
 			minX: s.min,
 			maxX: s.max,
@@ -1801,10 +1808,10 @@ function yt({ position: e, defaultPosition: t = {
 			maxY: c.max
 		};
 	}, []), ne = o((e, t, n = "programmatic", r = {}) => {
-		let i = j.current || B, a = mt(typeof e == "function" ? e(i) : e, i), o = W(), s = {
+		let i = j.current || B, a = ht(typeof e == "function" ? e(i) : e, i), o = W(), s = {
 			x: Math.round(we(a.x, o.minX, o.maxX)),
 			y: Math.round(we(a.y, o.minY, o.maxY))
-		}, c = !ht(i, s), l = {
+		}, c = !gt(i, s), l = {
 			changed: c,
 			previousPosition: i,
 			position: s,
@@ -1813,12 +1820,12 @@ function yt({ position: e, defaultPosition: t = {
 			bounds: o,
 			...r
 		};
-		return c && (j.current = s, L(s, l, t)), l;
+		return c && (j.current = s, R(s, l, t)), l;
 	}, [
 		H,
 		B,
 		W,
-		L
+		R
 	]), re = o((e, t, n = "programmatic") => {
 		let r = N.current, i = !!(typeof e == "function" ? e(r) : e), a = {
 			changed: r !== i,
@@ -1827,8 +1834,8 @@ function yt({ position: e, defaultPosition: t = {
 			source: n,
 			edge: H
 		};
-		return a.changed && (N.current = i, z(i, a, t)), a;
-	}, [H, z]), G = o((e) => {
+		return a.changed && (N.current = i, te(i, a, t)), a;
+	}, [H, te]), G = o((e) => {
 		try {
 			e?.pointerId !== void 0 && e.handle?.hasPointerCapture?.(e.pointerId) && e.handle.releasePointerCapture?.(e.pointerId);
 		} catch {}
@@ -1837,11 +1844,11 @@ function yt({ position: e, defaultPosition: t = {
 		A.current = null, !(!e || typeof window > "u") && (window.removeEventListener("pointermove", e.move), window.removeEventListener("pointerup", e.end), window.removeEventListener("pointercancel", e.cancel));
 	}, []), q = o((e) => {
 		let t = k.current;
-		if (!t || !gt(t, e) || e.defaultPrevented) return;
+		if (!t || !_t(t, e) || e.defaultPrevented) return;
 		let n = Number(e.clientX), r = Number(e.clientY);
 		if (!Number.isFinite(n) || !Number.isFinite(r)) return;
 		let i = n - t.startClientX, a = r - t.startClientY;
-		!t.moved && Math.hypot(i, a) >= 3 && (t.moved = !0, F(!0), s?.(t.startPosition, {
+		!t.moved && Math.hypot(i, a) >= 3 && (t.moved = !0, I(!0), s?.(t.startPosition, {
 			edge: H,
 			source: "pointer"
 		}, e)), t.moved && (e.cancelable && e.preventDefault(), ne({
@@ -1857,10 +1864,10 @@ function yt({ position: e, defaultPosition: t = {
 		s
 	]), J = o((e, t = !1) => {
 		let n = k.current;
-		if (!n || e && !gt(n, e) || (k.current = null, K(), G(n), F(!1), te.current = !!n.moved, !n.moved)) return;
+		if (!n || e && !_t(n, e) || (k.current = null, K(), G(n), I(!1), P.current = !!n.moved, !n.moved)) return;
 		let r = j.current || n.startPosition;
 		c?.(r, {
-			changed: !ht(n.startPosition, r),
+			changed: !gt(n.startPosition, r),
 			cancelled: !!t,
 			edge: H,
 			source: "pointer"
@@ -1882,7 +1889,7 @@ function yt({ position: e, defaultPosition: t = {
 			startClientY: r,
 			startPosition: a,
 			moved: !1
-		}, te.current = !1;
+		}, P.current = !1;
 		try {
 			i.setPointerCapture?.(t);
 		} catch {}
@@ -1920,8 +1927,8 @@ function yt({ position: e, defaultPosition: t = {
 			multiplier: t
 		}));
 	}, Y = (e) => {
-		if (te.current) {
-			te.current = !1, e.preventDefault();
+		if (P.current) {
+			P.current = !1, e.preventDefault();
 			return;
 		}
 		re((e) => !e, e, "toggle");
@@ -1958,7 +1965,7 @@ function yt({ position: e, defaultPosition: t = {
 		"data-edge": H,
 		"data-has-handle-icon": ce ? "true" : "false",
 		"data-collapsed": V ? "true" : "false",
-		"data-dragging": P ? "true" : "false",
+		"data-dragging": F ? "true" : "false",
 		"data-position-x": B.x,
 		"data-position-y": B.y,
 		"aria-label": C || h,
@@ -2013,18 +2020,18 @@ function yt({ position: e, defaultPosition: t = {
 		]
 	});
 }
-function bt({ open: e = !1, onClose: t, title: n, description: r, actions: i, tone: a = "neutral", closeOnBackdrop: o = !0, closeOnEscape: s = !0, className: c, children: d, ...f }) {
+function xt({ open: e = !1, onClose: t, title: n, description: r, actions: i, tone: a = "neutral", closeOnBackdrop: o = !0, closeOnEscape: s = !0, className: c, children: d, ...f }) {
 	let m = u(), h = `cad-dialog-title-${m}`, v = `cad-dialog-description-${m}`, y = p(null), b = p(t), x = p(s), { "aria-label": S, "aria-labelledby": C, "aria-describedby": w, onKeyDown: T, ...E } = f;
 	if (b.current = t, x.current = s, l(() => {
 		if (!e || typeof document > "u") return;
 		let t = document.activeElement, n = () => {
 			let e = y.current;
-			if (!ft(e)) return;
+			if (!pt(e)) return;
 			let t = ut(e);
 			dt(t.find((e) => e.hasAttribute("data-autofocus")) || t[0] || e);
 		}, r = (e) => {
 			let t = y.current;
-			if (e.defaultPrevented || !ft(t)) return;
+			if (e.defaultPrevented || !pt(t)) return;
 			if (e.key === "Escape" && x.current) {
 				e.preventDefault(), b.current?.(e);
 				return;
@@ -2092,8 +2099,8 @@ function bt({ open: e = !1, onClose: t, title: n, description: r, actions: i, to
 		})
 	});
 }
-function xt({ open: e, title: t = "Confirm action", description: n, confirmLabel: r = "Confirm", cancelLabel: i = "Cancel", destructive: a = !1, onConfirm: o, onCancel: s, children: c, className: l, ...u }) {
-	return /* @__PURE__ */ g(bt, {
+function St({ open: e, title: t = "Confirm action", description: n, confirmLabel: r = "Confirm", cancelLabel: i = "Cancel", destructive: a = !1, onConfirm: o, onCancel: s, children: c, className: l, ...u }) {
+	return /* @__PURE__ */ g(xt, {
 		...u,
 		open: e,
 		title: t,
@@ -2116,7 +2123,7 @@ function xt({ open: e, title: t = "Confirm action", description: n, confirmLabel
 		children: c
 	});
 }
-function St({ toast: e, onDismiss: t, className: n }) {
+function Ct({ toast: e, onDismiss: t, className: n }) {
 	let r = e || {}, i = r.tone || "neutral";
 	return /* @__PURE__ */ _("article", {
 		className: X("cad-toast", n),
@@ -2147,47 +2154,47 @@ function St({ toast: e, onDismiss: t, className: n }) {
 		]
 	});
 }
-function Ct({ toasts: e = [], onDismiss: t, placement: n = "bottom-right", label: r = "Notifications", className: i, ...a }) {
+function wt({ toasts: e = [], onDismiss: t, placement: n = "bottom-right", label: r = "Notifications", className: i, ...a }) {
 	return /* @__PURE__ */ g("section", {
 		...a,
 		className: X("cad-toast-stack", `cad-toast-stack--${n}`, i),
 		"aria-label": r,
 		"aria-live": "polite",
-		children: Z(e).map((e, n) => /* @__PURE__ */ g(St, {
+		children: Z(e).map((e, n) => /* @__PURE__ */ g(Ct, {
 			toast: e,
 			onDismiss: t
 		}, e?.id || n))
 	});
 }
-function wt({ trigger: e, content: n, open: r, defaultOpen: i = !1, onOpenChange: o, placement: s = "bottom-start", label: c = "More options", contentRole: d = "region", closeOnOutside: f = !0, closeOnEscape: m = !0, restoreFocus: h = !0, focusOnOpen: v, className: y, contentClassName: b, ...x }) {
-	let S = `cad-popover-${u()}`, C = p(null), w = p(null), T = p(r === void 0 ? i : r), [E, D] = $(r, i, (e, t) => o?.(e, t)), O = d === !1 ? void 0 : d, ee = [
+function Tt({ trigger: e, content: n, open: r, defaultOpen: i = !1, onOpenChange: o, placement: s = "bottom-start", label: c = "More options", contentRole: d = "region", closeOnOutside: f = !0, closeOnEscape: m = !0, closeOnFocusOutside: h = !1, closeOnPointerLeave: v = !1, restoreFocus: y = !0, focusOnOpen: b, className: x, contentClassName: S, onKeyDown: C, onBlur: w, onPointerLeave: T, ...E }) {
+	let D = `cad-popover-${u()}`, O = p(null), ee = p(null), k = p(r === void 0 ? i : r), [A, j] = $(r, i, (e, t) => o?.(e, t)), M = d === !1 ? void 0 : d, N = [
 		"dialog",
 		"grid",
 		"listbox",
 		"menu",
 		"tree"
-	].includes(O) ? O : void 0, k = v ?? O === "dialog", A = (e) => D(!1, e), j = (e) => D(!E, e);
+	].includes(M) ? M : void 0, P = b ?? M === "dialog", F = (e) => j(!1, e), I = (e) => j(!A, e);
 	l(() => {
-		let e = T.current;
-		if (T.current = E, !e || E || !h || typeof window > "u") return;
+		let e = k.current;
+		if (k.current = A, !e || A || !y || typeof window > "u") return;
 		let t = window.requestAnimationFrame(() => {
-			let e = C.current?.querySelector("[data-cad-popover-trigger=\"true\"]");
+			let e = O.current?.querySelector("[data-cad-popover-trigger=\"true\"]");
 			e && document.contains(e) && e.focus?.();
 		});
 		return () => window.cancelAnimationFrame(t);
-	}, [E, h]), l(() => {
-		if (!E || !k || typeof window > "u") return;
+	}, [A, y]), l(() => {
+		if (!A || !P || typeof window > "u") return;
 		let e = window.setTimeout(() => {
-			let e = w.current, t = ut(e);
+			let e = ee.current, t = ut(e);
 			dt(t.find((e) => e.hasAttribute("data-autofocus")) || t[0] || e);
 		}, 0);
 		return () => window.clearTimeout(e);
-	}, [E, k]), l(() => {
-		if (!E || typeof document > "u") return;
+	}, [A, P]), l(() => {
+		if (!A || typeof document > "u") return;
 		let e = (e) => {
-			f && !C.current?.contains(e.target) && D(!1, e);
+			f && !O.current?.contains(e.target) && j(!1, e);
 		}, t = (e) => {
-			!m || e.defaultPrevented || e.key !== "Escape" || (e.preventDefault(), D(!1, e));
+			!m || e.defaultPrevented || e.key !== "Escape" || (e.preventDefault(), j(!1, e));
 		};
 		return document.addEventListener("pointerdown", e, !0), document.addEventListener("keydown", t), () => {
 			document.removeEventListener("pointerdown", e, !0), document.removeEventListener("keydown", t);
@@ -2195,44 +2202,50 @@ function wt({ trigger: e, content: n, open: r, defaultOpen: i = !1, onOpenChange
 	}, [
 		m,
 		f,
-		E,
-		D
+		A,
+		j
 	]);
-	let M = a(e) ? t(e, {
+	let L = a(e) ? t(e, {
 		"data-cad-popover-trigger": "true",
-		"aria-haspopup": e.props["aria-haspopup"] ?? ee,
-		"aria-expanded": E,
-		"aria-controls": E ? S : void 0,
-		onClick: st(e.props.onClick, j)
+		"aria-haspopup": e.props["aria-haspopup"] ?? N,
+		"aria-expanded": A,
+		"aria-controls": A ? D : void 0,
+		onClick: st(e.props.onClick, I)
 	}) : /* @__PURE__ */ g("button", {
 		type: "button",
 		"data-cad-popover-trigger": "true",
 		className: "cad-popover__fallback-trigger",
-		"aria-haspopup": ee,
-		"aria-expanded": E,
-		"aria-controls": E ? S : void 0,
-		onClick: j,
+		"aria-haspopup": N,
+		"aria-expanded": A,
+		"aria-controls": A ? D : void 0,
+		onClick: I,
 		children: e || "Options"
-	});
+	}), R = (e) => {
+		C?.(e), !e.defaultPrevented && m && e.key === "Escape" && A && (e.preventDefault(), F(e));
+	}, z = (e) => {
+		w?.(e), !e.defaultPrevented && h && A && !ft(e.currentTarget, e.relatedTarget) && F(e);
+	}, te = (e) => {
+		T?.(e), !e.defaultPrevented && v && A && !ft(e.currentTarget, e.relatedTarget) && F(e);
+	};
 	return /* @__PURE__ */ _("div", {
-		...x,
-		ref: C,
-		className: X("cad-popover", `cad-popover--${s}`, y),
-		onKeyDown: (e) => {
-			x.onKeyDown?.(e), !e.defaultPrevented && m && e.key === "Escape" && E && (e.preventDefault(), A(e));
-		},
-		children: [M, E && /* @__PURE__ */ g("div", {
-			id: S,
-			ref: w,
-			tabIndex: k ? -1 : void 0,
-			className: X("cad-popover__content", b),
-			role: O,
+		...E,
+		ref: O,
+		className: X("cad-popover", `cad-popover--${s}`, x),
+		onKeyDown: R,
+		onBlur: z,
+		onPointerLeave: te,
+		children: [L, A && /* @__PURE__ */ g("div", {
+			id: D,
+			ref: ee,
+			tabIndex: P ? -1 : void 0,
+			className: X("cad-popover__content", S),
+			role: M,
 			"aria-label": c,
-			children: typeof n == "function" ? n({ close: A }) : n
+			children: typeof n == "function" ? n({ close: F }) : n
 		})]
 	});
 }
-function Tt({ content: e, placement: n = "top", className: r, children: i }) {
+function Et({ content: e, placement: n = "top", className: r, children: i }) {
 	let o = u(), [s, c] = m(!1);
 	if (!e || !a(i)) return i || null;
 	let l = t(i, {
@@ -2252,7 +2265,7 @@ function Tt({ content: e, placement: n = "top", className: r, children: i }) {
 		})]
 	});
 }
-function Et({ shortcuts: e = [], title: t = "Keyboard shortcuts", onClose: n, className: r, ...i }) {
+function Dt({ shortcuts: e = [], title: t = "Keyboard shortcuts", onClose: n, className: r, ...i }) {
 	let a = Z(e).reduce((e, t, n) => {
 		let r = t?.group || "General";
 		return e[r] || (e[r] = []), e[r].push({
@@ -2279,7 +2292,7 @@ function Et({ shortcuts: e = [], title: t = "Keyboard shortcuts", onClose: n, cl
 		})]
 	});
 }
-function Dt({ open: e = !0, label: t = "Command input", prompt: n, value: r, defaultValue: i = "", onChange: a, onSubmit: o, onCancel: s, placeholder: c, submitLabel: l = "Accept", className: d, ...f }) {
+function Ot({ open: e = !0, label: t = "Command input", prompt: n, value: r, defaultValue: i = "", onChange: a, onSubmit: o, onCancel: s, placeholder: c, submitLabel: l = "Accept", className: d, ...f }) {
 	let p = u(), [m, h] = $(r, i, (e, t) => a?.(e, t));
 	return e ? /* @__PURE__ */ _("form", {
 		...f,
@@ -2317,26 +2330,26 @@ function Dt({ open: e = !0, label: t = "Command input", prompt: n, value: r, def
 }
 //#endregion
 //#region src/CadCompactWorkspaceRibbon.jsx
-var Ot = (e) => String(e ?? "").trim(), kt = (e, t) => Number.isFinite(Number(e)) ? Number(e) : t, At = (e) => Ot(e).replace(/[^a-zA-Z0-9_-]+/g, "-") || "workspace", jt = (e) => Ot(e?.tabId || e?.tab || e?.placement?.tab), Mt = (e) => Ot(e?.tabId || e?.tab || e?.placement?.tab), Nt = (e) => Z(e?.commands).length ? Z(e.commands) : Z(e?.items), Pt = {
+var kt = (e) => String(e ?? "").trim(), At = (e, t) => Number.isFinite(Number(e)) ? Number(e) : t, jt = (e) => kt(e).replace(/[^a-zA-Z0-9_-]+/g, "-") || "workspace", Mt = (e) => kt(e?.tabId || e?.tab || e?.placement?.tab), Nt = (e) => kt(e?.tabId || e?.tab || e?.placement?.tab), Pt = (e) => Z(e?.commands).length ? Z(e.commands) : Z(e?.items), Ft = {
 	cyan: "#53c9ff",
 	green: "#9add4b",
 	amber: "#ffb554",
 	magenta: "#f08cff",
 	violet: "#b9a1ff",
 	neutral: "#b4bdc7"
-}, Ft = (e) => e?.color || Pt[e?.tone] || "var(--cad-workspace-accent, #53c9ff)", It = (e) => Z(e).filter((e) => e && Ot(e.id)).map((e) => ({
+}, It = (e) => e?.color || Ft[e?.tone] || "var(--cad-workspace-accent, #53c9ff)", Lt = (e) => Z(e).filter((e) => e && kt(e.id)).map((e) => ({
 	...e,
-	id: Ot(e.id),
-	label: Q(e) || Ot(e.id)
-})), Lt = ({ groups: e, activeTabId: t, defaultGroupLabel: n }) => Z(e).filter((e) => e && typeof e == "object" && (!t || !Mt(e) || Mt(e) === t)).map((e, r) => ({
-	id: Ot(e.id) || `group-${r + 1}`,
-	label: Ot(e.label) || n,
-	order: kt(e.order, r),
+	id: kt(e.id),
+	label: Q(e) || kt(e.id)
+})), Rt = ({ groups: e, activeTabId: t, defaultGroupLabel: n }) => Z(e).filter((e) => e && typeof e == "object" && (!t || !Nt(e) || Nt(e) === t)).map((e, r) => ({
+	id: kt(e.id) || `group-${r + 1}`,
+	label: kt(e.label) || n,
+	order: At(e.order, r),
 	index: r,
-	commands: Nt(e).filter((e) => !t || !jt(e) || jt(e) === t)
+	commands: Pt(e).filter((e) => !t || !Mt(e) || Mt(e) === t)
 })).filter((e) => e.commands.length).sort((e, t) => e.order - t.order || e.index - t.index).map(({ index: e, ...t }) => t);
-function Rt({ groups: e, commands: t = [], tabId: n = "", defaultGroupId: r = "commands", defaultGroupLabel: i = "COMMANDS" } = {}) {
-	let a = Lt({
+function zt({ groups: e, commands: t = [], tabId: n = "", defaultGroupId: r = "commands", defaultGroupLabel: i = "COMMANDS" } = {}) {
+	let a = Rt({
 		groups: e,
 		activeTabId: n,
 		defaultGroupLabel: i
@@ -2347,7 +2360,7 @@ function Rt({ groups: e, commands: t = [], tabId: n = "", defaultGroupId: r = "c
 		defaultGroupLabel: i
 	});
 }
-function zt({ command: e, group: t, activeTab: n, renderIcon: r, renderCommand: i, onCommand: o, close: s, closeOnCommand: c }) {
+function Bt({ command: e, group: t, activeTab: n, renderIcon: r, renderCommand: i, onCommand: o, close: s, closeOnCommand: c }) {
 	let l = Q(e) || "COMMAND", u = !!(e?.pressed ?? e?.active), d = !!(e?.toggle || e?.pressed !== void 0 || e?.active !== void 0), f = {
 		command: e,
 		group: t,
@@ -2400,7 +2413,7 @@ function zt({ command: e, group: t, activeTab: n, renderIcon: r, renderCommand: 
 		children: b || void 0
 	});
 }
-function Bt({ tab: e, groups: t, openGroupId: n, onOpenGroupChange: r, renderIcon: i, renderCommand: a, onCommand: o, close: s, closeOnCommand: c, label: l }) {
+function Vt({ tab: e, groups: t, openGroupId: n, onOpenGroupChange: r, renderIcon: i, renderCommand: a, onCommand: o, close: s, closeOnCommand: c, label: l }) {
 	let d = t.find((e) => e.id === n) || null, f = u();
 	return /* @__PURE__ */ _("section", {
 		className: "cad-compact-workspace-ribbon__disclosure-body",
@@ -2415,7 +2428,7 @@ function Bt({ tab: e, groups: t, openGroupId: n, onOpenGroupChange: r, renderIco
 				role: "list",
 				"aria-label": `${e.label} command groups`,
 				children: t.map((e) => {
-					let n = e.id === d?.id, i = `${f}-${At(e.id)}`;
+					let n = e.id === d?.id, i = `${f}-${jt(e.id)}`;
 					return /* @__PURE__ */ g("div", {
 						role: "listitem",
 						children: /* @__PURE__ */ _("button", {
@@ -2443,7 +2456,7 @@ function Bt({ tab: e, groups: t, openGroupId: n, onOpenGroupChange: r, renderIco
 				})
 			}),
 			d && /* @__PURE__ */ _("div", {
-				id: `${f}-${At(d.id)}`,
+				id: `${f}-${jt(d.id)}`,
 				className: "cad-compact-workspace-ribbon__commands",
 				role: "region",
 				"aria-label": `${d.label} commands`,
@@ -2454,7 +2467,7 @@ function Bt({ tab: e, groups: t, openGroupId: n, onOpenGroupChange: r, renderIco
 					className: "cad-compact-workspace-ribbon__command-grid",
 					role: "toolbar",
 					"aria-label": `${d.label} tools`,
-					children: d.commands.map((t, n) => /* @__PURE__ */ g(zt, {
+					children: d.commands.map((t, n) => /* @__PURE__ */ g(Bt, {
 						command: t,
 						group: d,
 						activeTab: e,
@@ -2481,8 +2494,8 @@ function Bt({ tab: e, groups: t, openGroupId: n, onOpenGroupChange: r, renderIco
 		]
 	});
 }
-function Vt({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange: i, openTabId: o, defaultOpenTabId: s = null, onOpenTabChange: c, openGroupId: l, defaultOpenGroupId: f = null, onOpenGroupChange: m, groups: h, commands: v = [], defaultGroupId: y = "commands", defaultGroupLabel: b = "COMMANDS", label: x = "Compact CAD workspace ribbon", tabListLabel: S = "Compact workspace commands", identity: C, endSlot: w, placement: T = "bottom-start", closeOnOutside: E = !0, closeOnEscape: D = !0, closeOnFocusOutside: O = !0, closeOnPointerLeave: ee = !0, closeOnCommand: k = !0, renderIcon: A, renderCommand: j, onCommand: M, className: N, style: te, ...P }) {
-	let F = `cad-compact-workspace-ribbon-${At(u())}`, I = p(/* @__PURE__ */ new Map()), L = d(() => It(t), [t]), R = L.find((e) => !e.disabled)?.id || L[0]?.id || "", [z, B] = $(n, r || R, (e, t) => i?.(e, L.find((t) => t.id === e) || null, t)), V = L.find((e) => e.id === z) || L.find((e) => !e.disabled) || L[0] || null, [H, U] = $(o, s, (e, t) => c?.(e || null, L.find((t) => t.id === e) || null, t)), W = L.find((e) => e.id === H && !e.disabled) || null, ne = W?.id || "", [re, G] = $(l, f, (e, t, n) => m?.(e || null, t || null, W || null, n)), K = d(() => new Map(L.map((e) => [e.id, Rt({
+function Ht({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange: i, openTabId: o, defaultOpenTabId: s = null, onOpenTabChange: c, openGroupId: l, defaultOpenGroupId: f = null, onOpenGroupChange: m, groups: h, commands: v = [], defaultGroupId: y = "commands", defaultGroupLabel: b = "COMMANDS", label: x = "Compact CAD workspace ribbon", tabListLabel: S = "Compact workspace commands", identity: C, endSlot: w, placement: T = "bottom-start", closeOnOutside: E = !0, closeOnEscape: D = !0, closeOnFocusOutside: O = !0, closeOnPointerLeave: ee = !0, closeOnCommand: k = !0, renderIcon: A, renderCommand: j, onCommand: M, className: N, style: P, ...F }) {
+	let I = `cad-compact-workspace-ribbon-${jt(u())}`, L = p(/* @__PURE__ */ new Map()), R = d(() => Lt(t), [t]), z = R.find((e) => !e.disabled)?.id || R[0]?.id || "", [te, B] = $(n, r || z, (e, t) => i?.(e, R.find((t) => t.id === e) || null, t)), V = R.find((e) => e.id === te) || R.find((e) => !e.disabled) || R[0] || null, [H, U] = $(o, s, (e, t) => c?.(e || null, R.find((t) => t.id === e) || null, t)), W = R.find((e) => e.id === H && !e.disabled) || null, ne = W?.id || "", [re, G] = $(l, f, (e, t, n) => m?.(e || null, t || null, W || null, n)), K = d(() => new Map(R.map((e) => [e.id, zt({
 		groups: h,
 		commands: v,
 		tabId: e.id,
@@ -2493,7 +2506,7 @@ function Vt({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 		y,
 		b,
 		h,
-		L
+		R
 	]), q = (e) => {
 		G(null, null, e), U(null, e);
 	}, J = (e, t) => {
@@ -2501,31 +2514,31 @@ function Vt({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 	}, ie = (e, t) => {
 		e.disabled || (B(e.id, t), q(t));
 	}, ae = (e, t, n) => {
-		let r = L.filter((e) => !e.disabled);
+		let r = R.filter((e) => !e.disabled);
 		if (!r.length) return;
 		let i = r[(Math.max(0, r.findIndex((t) => t.id === e)) + t + r.length) % r.length];
-		n.preventDefault(), ie(i, n), I.current.get(i.id)?.focus();
+		n.preventDefault(), ie(i, n), L.current.get(i.id)?.focus();
 	}, Y = (e, t) => {
 		if ((t.key === "ArrowRight" || t.key === "ArrowDown") && ae(e.id, 1, t), (t.key === "ArrowLeft" || t.key === "ArrowUp") && ae(e.id, -1, t), t.key === "Home") {
-			let e = L.find((e) => !e.disabled);
+			let e = R.find((e) => !e.disabled);
 			if (!e) return;
-			t.preventDefault(), ie(e, t), I.current.get(e.id)?.focus();
+			t.preventDefault(), ie(e, t), L.current.get(e.id)?.focus();
 		}
 		if (t.key === "End") {
-			let e = L.filter((e) => !e.disabled).at(-1);
+			let e = R.filter((e) => !e.disabled).at(-1);
 			if (!e) return;
-			t.preventDefault(), ie(e, t), I.current.get(e.id)?.focus();
+			t.preventDefault(), ie(e, t), L.current.get(e.id)?.focus();
 		}
 	}, oe = (e, t, n) => G(e, t, n);
 	return /* @__PURE__ */ g("header", {
-		...P,
+		...F,
 		className: X("cad-workspace-ribbon", "cad-compact-workspace-ribbon", N),
 		"data-active-tab": V?.id || void 0,
 		"data-open-tab": ne || void 0,
 		"aria-label": x,
 		style: {
-			"--cad-ribbon-accent": Ft(V),
-			...te
+			"--cad-ribbon-accent": It(V),
+			...P
 		},
 		children: /* @__PURE__ */ _("div", {
 			className: "cad-workspace-ribbon__tabbar cad-compact-workspace-ribbon__tabbar",
@@ -2534,13 +2547,13 @@ function Vt({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 					className: "cad-workspace-ribbon__identity",
 					children: C
 				}),
-				L.length > 0 && /* @__PURE__ */ g("div", {
+				R.length > 0 && /* @__PURE__ */ g("div", {
 					className: "cad-workspace-ribbon__tabs",
 					role: "tablist",
 					"aria-label": S,
-					children: L.map((t) => {
-						let n = t.id === V?.id, r = t.id === ne, i = `${F}-tab-${At(t.id)}`, o = K.get(t.id) || [];
-						return /* @__PURE__ */ g(wt, {
+					children: R.map((t) => {
+						let n = t.id === V?.id, r = t.id === ne, i = `${I}-tab-${jt(t.id)}`, o = K.get(t.id) || [];
+						return /* @__PURE__ */ g(Tt, {
 							open: r,
 							onOpenChange: (e, n) => {
 								e ? J(t, n) : r && q(n);
@@ -2553,11 +2566,11 @@ function Vt({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 							closeOnPointerLeave: ee,
 							className: "cad-compact-workspace-ribbon__popover",
 							contentClassName: "cad-compact-workspace-ribbon__disclosure",
-							style: { "--cad-compact-ribbon-accent": Ft(t) },
+							style: { "--cad-compact-ribbon-accent": It(t) },
 							trigger: /* @__PURE__ */ _("button", {
 								id: i,
 								ref: (e) => {
-									e ? I.current.set(t.id, e) : I.current.delete(t.id);
+									e ? L.current.set(t.id, e) : L.current.delete(t.id);
 								},
 								type: "button",
 								role: "tab",
@@ -2575,7 +2588,7 @@ function Vt({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 									children: a(t.icon) ? t.icon : typeof t.icon == "function" ? e.createElement(t.icon, { size: 12 }) : null
 								}), /* @__PURE__ */ g("span", { children: t.label })]
 							}),
-							content: ({ close: e }) => /* @__PURE__ */ g(Bt, {
+							content: ({ close: e }) => /* @__PURE__ */ g(Vt, {
 								tab: t,
 								groups: o,
 								openGroupId: r ? re : null,
@@ -2600,7 +2613,7 @@ function Vt({ tabs: t = [], activeTab: n, defaultActiveTab: r, onActiveTabChange
 }
 //#endregion
 //#region src/CadContextUi.jsx
-var Ht = Object.freeze([
+var Ut = Object.freeze([
 	Object.freeze({
 		id: "pan",
 		label: "Pan",
@@ -2645,7 +2658,7 @@ var Ht = Object.freeze([
 		glyph: "⌂",
 		shortcut: "Home"
 	})
-]), Ut = Object.freeze([
+]), Wt = Object.freeze([
 	Object.freeze({
 		id: "2d-wireframe",
 		label: "2D Wireframe"
@@ -2674,7 +2687,7 @@ var Ht = Object.freeze([
 		id: "x-ray",
 		label: "X-ray"
 	})
-]), Wt = Object.freeze([
+]), Gt = Object.freeze([
 	Object.freeze({
 		id: "1:1",
 		label: "1:1"
@@ -2711,7 +2724,7 @@ var Ht = Object.freeze([
 		id: "1:100",
 		label: "1:100"
 	})
-]), Gt = (e, t) => Z(e).map((e, n) => {
+]), Kt = (e, t) => Z(e).map((e, n) => {
 	if (typeof e == "string" || typeof e == "number") return {
 		id: String(e),
 		label: String(e)
@@ -2722,7 +2735,7 @@ var Ht = Object.freeze([
 		id: e?.id ?? `${t}-${n + 1}`,
 		label: r
 	};
-}), Kt = (e) => Z(e).find((e) => !e?.disabled)?.id ?? "", qt = (e, t, n, r) => {
+}), qt = (e) => Z(e).find((e) => !e?.disabled)?.id ?? "", Jt = (e, t, n, r) => {
 	let i = {
 		pan: t.onPan,
 		"zoom-in": t.onZoomIn,
@@ -2734,11 +2747,11 @@ var Ht = Object.freeze([
 	};
 	e.startsWith("zoom") && t.onZoom?.(n, r), i[e]?.(n, r);
 };
-function Jt({ actions: e = Ht, activeId: t, defaultActiveId: n = "", onActiveChange: r, onChange: i, onAction: a, onPan: o, onZoom: s, onZoomIn: c, onZoomOut: l, onZoomWindow: u, onZoomExtents: f, onOrbit: p, onHome: m, label: h = "Viewport navigation", orientation: v = "vertical", className: y, ...b }) {
-	let x = d(() => Gt(e, "navigation-action"), [e]), [S, C] = $(t, n, (e, t, n) => {
+function Yt({ actions: e = Ut, activeId: t, defaultActiveId: n = "", onActiveChange: r, onChange: i, onAction: a, onPan: o, onZoom: s, onZoomIn: c, onZoomOut: l, onZoomWindow: u, onZoomExtents: f, onOrbit: p, onHome: m, label: h = "Viewport navigation", orientation: v = "vertical", className: y, ...b }) {
+	let x = d(() => Kt(e, "navigation-action"), [e]), [S, C] = $(t, n, (e, t, n) => {
 		r?.(e, t, n), i?.(e, t, n);
 	}), w = (e, t) => {
-		e.disabled || ((e.toggle ?? e.mode ?? !1) && C(S === e.id ? "" : e.id, e, t), e.onClick?.(e, t), a?.(e, t), qt(e.id, {
+		e.disabled || ((e.toggle ?? e.mode ?? !1) && C(S === e.id ? "" : e.id, e, t), e.onClick?.(e, t), a?.(e, t), Jt(e.id, {
 			onPan: o,
 			onZoom: s,
 			onZoomIn: c,
@@ -2792,8 +2805,8 @@ function Jt({ actions: e = Ht, activeId: t, defaultActiveId: n = "", onActiveCha
 		})
 	});
 }
-function Yt({ styles: e = Ut, value: t, defaultValue: n, onChange: r, onStyleChange: i, label: a = "Visual style", id: o, selectProps: s = {}, disabled: c = !1, className: l, ...f }) {
-	let p = u(), m = o || `cad-visual-style-${p}`, h = d(() => Gt(e, "visual-style"), [e]), [v, y] = $(t, n ?? h[0]?.id ?? "", (e, t, n) => {
+function Xt({ styles: e = Wt, value: t, defaultValue: n, onChange: r, onStyleChange: i, label: a = "Visual style", id: o, selectProps: s = {}, disabled: c = !1, className: l, ...f }) {
+	let p = u(), m = o || `cad-visual-style-${p}`, h = d(() => Kt(e, "visual-style"), [e]), [v, y] = $(t, n ?? h[0]?.id ?? "", (e, t, n) => {
 		r?.(e, t, n), i?.(e, t, n);
 	}), b = h.find((e) => e.id === v) || h[0];
 	return /* @__PURE__ */ _("div", {
@@ -2827,8 +2840,8 @@ function Yt({ styles: e = Ut, value: t, defaultValue: n, onChange: r, onStyleCha
 		})]
 	});
 }
-function Xt({ scales: e = Wt, value: t, defaultValue: n, onChange: r, onScaleChange: i, onManage: a, manageLabel: o = "Manage", label: s = "Viewport scale", id: c, selectProps: l = {}, disabled: f = !1, className: p, ...m }) {
-	let h = u(), v = c || `cad-viewport-scale-${h}`, y = d(() => Gt(e, "viewport-scale"), [e]), [b, x] = $(t, n ?? y[0]?.id ?? "", (e, t, n) => {
+function Zt({ scales: e = Gt, value: t, defaultValue: n, onChange: r, onScaleChange: i, onManage: a, manageLabel: o = "Manage", label: s = "Viewport scale", id: c, selectProps: l = {}, disabled: f = !1, className: p, ...m }) {
+	let h = u(), v = c || `cad-viewport-scale-${h}`, y = d(() => Kt(e, "viewport-scale"), [e]), [b, x] = $(t, n ?? y[0]?.id ?? "", (e, t, n) => {
 		r?.(e, t, n), i?.(e, t, n);
 	}), S = y.find((e) => e.id === b) || y[0];
 	return /* @__PURE__ */ _("div", {
@@ -2863,8 +2876,8 @@ function Xt({ scales: e = Wt, value: t, defaultValue: n, onChange: r, onScaleCha
 		})]
 	});
 }
-function Zt({ sets: e = [], activeId: t, defaultActiveId: n, onChange: r, onApply: i, onCreate: a, onRename: o, onDelete: s, filter: c, defaultFilter: l = "", onFilterChange: f, showFilter: p = !0, title: m = "Selection sets", filterLabel: h = "Filter selection sets", emptyLabel: v = "No selection sets match the current filter", createLabel: y = "New", applyLabel: b = "Select", renameLabel: x = "Rename", deleteLabel: S = "Delete", className: C, children: w, ...T }) {
-	let E = `cad-selection-set-filter-${u()}`, D = d(() => Gt(e, "selection-set"), [e]), [O, ee] = $(t, n ?? Kt(D), (e, t, n) => r?.(e, t, n)), [k, A] = $(c, l, (e, t) => f?.(e, t)), j = D.find((e) => e.id === O), M = d(() => {
+function Qt({ sets: e = [], activeId: t, defaultActiveId: n, onChange: r, onApply: i, onCreate: a, onRename: o, onDelete: s, filter: c, defaultFilter: l = "", onFilterChange: f, showFilter: p = !0, title: m = "Selection sets", filterLabel: h = "Filter selection sets", emptyLabel: v = "No selection sets match the current filter", createLabel: y = "New", applyLabel: b = "Select", renameLabel: x = "Rename", deleteLabel: S = "Delete", className: C, children: w, ...T }) {
+	let E = `cad-selection-set-filter-${u()}`, D = d(() => Kt(e, "selection-set"), [e]), [O, ee] = $(t, n ?? qt(D), (e, t, n) => r?.(e, t, n)), [k, A] = $(c, l, (e, t) => f?.(e, t)), j = D.find((e) => e.id === O), M = d(() => {
 		let e = String(k || "").trim().toLocaleLowerCase();
 		return e ? D.filter((t) => [
 			Q(t),
@@ -2975,21 +2988,21 @@ function Zt({ sets: e = [], activeId: t, defaultActiveId: n, onChange: r, onAppl
 }
 //#endregion
 //#region src/CadWorkspaceCustomizationUi.jsx
-var Qt = (e) => String(e ?? "").trim(), $t = (e) => !!e && typeof e == "object" && !Array.isArray(e), en = (e, t) => !!e && !!t && e.open === t.open && e.placement === t.placement && e.dockZone === t.dockZone, tn = (e) => e instanceof Map ? Object.fromEntries(e.entries()) : $t(e) ? e : {}, nn = (e) => {
-	if (!$t(e)) return {};
+var $t = (e) => String(e ?? "").trim(), en = (e) => !!e && typeof e == "object" && !Array.isArray(e), tn = (e, t) => !!e && !!t && e.open === t.open && e.placement === t.placement && e.dockZone === t.dockZone, nn = (e) => e instanceof Map ? Object.fromEntries(e.entries()) : en(e) ? e : {}, rn = (e) => {
+	if (!en(e)) return {};
 	let { open: t, visible: n, isOpen: r, placement: i, mode: a, ...o } = e;
 	return o;
-}, rn = (...e) => {
+}, an = (...e) => {
 	let t = e.find((e) => typeof e == "boolean");
 	return t === void 0 ? void 0 : t;
-}, an = (e, t) => Qt(e).toLocaleLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || t, on = Object.freeze({
+}, on = (e, t) => $t(e).toLocaleLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || t, sn = Object.freeze({
 	DOCK: "dock",
 	FLOAT: "float"
-}), sn = Object.freeze({
+}), cn = Object.freeze({
 	LEFT: "left",
 	RIGHT: "right",
 	BOTTOM: "bottom"
-}), cn = Object.freeze({
+}), ln = Object.freeze({
 	OPEN: "open",
 	CLOSE: "close",
 	TOGGLE: "toggle",
@@ -3000,14 +3013,14 @@ var Qt = (e) => String(e ?? "").trim(), $t = (e) => !!e && typeof e == "object" 
 	RESET_ALL: "reset-all",
 	PATCH: "patch"
 });
-function ln(e, t = on.DOCK) {
-	let n = Qt(e).toLocaleLowerCase();
+function un(e, t = sn.DOCK) {
+	let n = $t(e).toLocaleLowerCase();
 	return [
 		"float",
 		"floating",
 		"overlay",
 		"window"
-	].includes(n) ? on.FLOAT : [
+	].includes(n) ? sn.FLOAT : [
 		"dock",
 		"docked",
 		"left",
@@ -3015,37 +3028,37 @@ function ln(e, t = on.DOCK) {
 		"top",
 		"bottom",
 		"side"
-	].includes(n) ? on.DOCK : t;
+	].includes(n) ? sn.DOCK : t;
 }
-function un(e, t = "") {
-	let n = Qt(e).toLocaleLowerCase();
+function dn(e, t = "") {
+	let n = $t(e).toLocaleLowerCase();
 	return [
 		"left",
 		"start",
 		"west",
 		"leading"
-	].includes(n) ? sn.LEFT : [
+	].includes(n) ? cn.LEFT : [
 		"right",
 		"end",
 		"east",
 		"trailing"
-	].includes(n) ? sn.RIGHT : [
+	].includes(n) ? cn.RIGHT : [
 		"bottom",
 		"lower",
 		"footer",
 		"command",
 		"command-line"
-	].includes(n) ? sn.BOTTOM : t;
+	].includes(n) ? cn.BOTTOM : t;
 }
-var dn = (e) => {
-	let t = Z(e?.placements ?? e?.allowedPlacements ?? e?.placementOptions).map((e) => ln(e, "")).filter(Boolean), n = !!(e?.preferenceLocked ?? e?.locked), r = !n && e?.dockable !== !1, i = !n && e?.floatable !== !1, a = (t.length ? t : [...r ? [on.DOCK] : [], ...i ? [on.FLOAT] : []]).filter((e) => e === on.DOCK ? r : i);
+var fn = (e) => {
+	let t = Z(e?.placements ?? e?.allowedPlacements ?? e?.placementOptions).map((e) => un(e, "")).filter(Boolean), n = !!(e?.preferenceLocked ?? e?.locked), r = !n && e?.dockable !== !1, i = !n && e?.floatable !== !1, a = (t.length ? t : [...r ? [sn.DOCK] : [], ...i ? [sn.FLOAT] : []]).filter((e) => e === sn.DOCK ? r : i);
 	return [...new Set(a)];
-}, fn = (e) => Array.isArray(e) ? e : e == null ? [] : [e], pn = (e) => {
+}, pn = (e) => Array.isArray(e) ? e : e == null ? [] : [e], mn = (e) => {
 	if (e?.dockable === !1) return [];
-	let t = fn(e?.dockZones ?? e?.allowedDockZones ?? e?.dockZoneOptions), n = e?.defaultDockZone ?? e?.dockZone ?? e?.zone, r = t.length ? t : n === void 0 ? [] : [n];
-	return [...new Set(r.map((e) => un(e, "")).filter(Boolean))];
+	let t = pn(e?.dockZones ?? e?.allowedDockZones ?? e?.dockZoneOptions), n = e?.defaultDockZone ?? e?.dockZone ?? e?.zone, r = t.length ? t : n === void 0 ? [] : [n];
+	return [...new Set(r.map((e) => dn(e, "")).filter(Boolean))];
 };
-function mn(e = []) {
+function hn(e = []) {
 	let t = /* @__PURE__ */ new Set();
 	return Z(e).reduce((e, n, r) => {
 		if (n == null) return e;
@@ -3053,16 +3066,16 @@ function mn(e = []) {
 			id: String(n),
 			label: String(n)
 		} : n;
-		if (!$t(i)) return e;
-		let a = Qt(i.id ?? i.key) || `panel-${r + 1}`;
+		if (!en(i)) return e;
+		let a = $t(i.id ?? i.key) || `panel-${r + 1}`;
 		if (t.has(a)) return e;
 		t.add(a);
-		let o = !!(i.preferenceLocked ?? i.locked), s = dn(i), c = ln(i.defaultPlacement ?? i.placement ?? i.mode, on.DOCK), l = s.includes(c) ? c : s[0] || c, u = s.includes(on.DOCK) ? pn(i) : [], d = un(i.defaultDockZone ?? i.dockZone ?? i.zone, ""), f = u.includes(d) ? d : u[0] || "", p = rn(i.defaultOpen, i.defaultVisible, i.open, i.visible) ?? !0;
+		let o = !!(i.preferenceLocked ?? i.locked), s = fn(i), c = un(i.defaultPlacement ?? i.placement ?? i.mode, sn.DOCK), l = s.includes(c) ? c : s[0] || c, u = s.includes(sn.DOCK) ? mn(i) : [], d = dn(i.defaultDockZone ?? i.dockZone ?? i.zone, ""), f = u.includes(d) ? d : u[0] || "", p = an(i.defaultOpen, i.defaultVisible, i.open, i.visible) ?? !0;
 		return e.push({
 			...i,
 			id: a,
 			label: Q(i) || `Panel ${r + 1}`,
-			description: Qt(i.description ?? i.detail),
+			description: $t(i.description ?? i.detail),
 			disabled: !!i.disabled,
 			required: !!i.required,
 			preferenceLocked: o,
@@ -3075,8 +3088,8 @@ function mn(e = []) {
 		}), e;
 	}, []);
 }
-var hn = (e, t) => {
-	let n = typeof t == "boolean" ? { open: t } : tn(t), r = rn(n.open, n.visible, n.isOpen, e.defaultOpen), i = ln(n.placement ?? n.mode, e.defaultPlacement), a = e.placements.includes(i) ? i : e.placements[0] || e.defaultPlacement, o = e.dockZones || [], s = un(n.dockZone ?? n.zone, e.defaultDockZone), c = o.includes(s) ? s : o[0] || "", l = nn(n);
+var gn = (e, t) => {
+	let n = typeof t == "boolean" ? { open: t } : nn(t), r = an(n.open, n.visible, n.isOpen, e.defaultOpen), i = un(n.placement ?? n.mode, e.defaultPlacement), a = e.placements.includes(i) ? i : e.placements[0] || e.defaultPlacement, o = e.dockZones || [], s = dn(n.dockZone ?? n.zone, e.defaultDockZone), c = o.includes(s) ? s : o[0] || "", l = rn(n);
 	return o.length && (delete l.dockZone, delete l.zone), {
 		...l,
 		open: e.required ? !0 : !!r,
@@ -3084,120 +3097,120 @@ var hn = (e, t) => {
 		...o.length ? { dockZone: c } : {}
 	};
 };
-function gn(e = [], t = {}) {
-	let n = tn(t);
-	return mn(e).reduce((e, t) => (e[t.id] = hn(t, n[t.id]), e), {});
+function _n(e = [], t = {}) {
+	let n = nn(t);
+	return hn(e).reduce((e, t) => (e[t.id] = gn(t, n[t.id]), e), {});
 }
-function _n(e = [], t = {}, n) {
-	let r = Qt(n);
-	return r ? gn(e, t)[r] : void 0;
+function vn(e = [], t = {}, n) {
+	let r = $t(n);
+	return r ? _n(e, t)[r] : void 0;
 }
-function vn(e = [], t = {}) {
-	let n = mn(e), r = gn(n, t), i = {
-		[sn.LEFT]: [],
-		[sn.RIGHT]: [],
-		[sn.BOTTOM]: []
+function yn(e = [], t = {}) {
+	let n = hn(e), r = _n(n, t), i = {
+		[cn.LEFT]: [],
+		[cn.RIGHT]: [],
+		[cn.BOTTOM]: []
 	};
 	return n.forEach((e) => {
-		let t = r[e.id], n = un(t?.dockZone, "");
-		!t?.open || t.placement !== on.DOCK || !n || i[n].push({
+		let t = r[e.id], n = dn(t?.dockZone, "");
+		!t?.open || t.placement !== sn.DOCK || !n || i[n].push({
 			...e,
 			preference: t
 		});
 	}), i;
 }
-var yn = (e) => typeof e == "string" ? { type: e } : $t(e) ? e : { type: "" }, bn = (e, t, n) => {
-	let { type: r, value: i } = yn(n), a = { ...t }, o = (t) => e.placements.includes(t), s = (t) => e.dockZones?.includes(t);
+var bn = (e) => typeof e == "string" ? { type: e } : en(e) ? e : { type: "" }, xn = (e, t, n) => {
+	let { type: r, value: i } = bn(n), a = { ...t }, o = (t) => e.placements.includes(t), s = (t) => e.dockZones?.includes(t);
 	if (e.disabled || e.preferenceLocked) return t;
 	switch (r) {
-		case cn.OPEN:
+		case ln.OPEN:
 			a.open = !0;
 			break;
-		case cn.CLOSE:
+		case ln.CLOSE:
 			if (!e.closable) return t;
 			a.open = !1;
 			break;
-		case cn.TOGGLE:
+		case ln.TOGGLE:
 			if (t.open && !e.closable) return t;
 			a.open = !t.open;
 			break;
-		case cn.DOCK:
-			if (!o(on.DOCK)) return t;
-			a.placement = on.DOCK;
+		case ln.DOCK:
+			if (!o(sn.DOCK)) return t;
+			a.placement = sn.DOCK;
 			break;
-		case cn.FLOAT:
-			if (!o(on.FLOAT)) return t;
-			a.placement = on.FLOAT;
+		case ln.FLOAT:
+			if (!o(sn.FLOAT)) return t;
+			a.placement = sn.FLOAT;
 			break;
-		case cn.SET_DOCK_ZONE: {
-			let e = un(i, "");
-			if (!o(on.DOCK) || !s(e)) return t;
-			a.placement = on.DOCK, a.dockZone = e;
+		case ln.SET_DOCK_ZONE: {
+			let e = dn(i, "");
+			if (!o(sn.DOCK) || !s(e)) return t;
+			a.placement = sn.DOCK, a.dockZone = e;
 			break;
 		}
-		case cn.RESET: return hn(e, {});
-		case cn.PATCH: {
-			let t = tn(i);
+		case ln.RESET: return gn(e, {});
+		case ln.PATCH: {
+			let t = nn(i);
 			typeof t.open == "boolean" && (t.open || e.closable) && (a.open = t.open);
-			let n = ln(t.placement ?? t.mode, "");
+			let n = un(t.placement ?? t.mode, "");
 			n && o(n) && (a.placement = n);
-			let r = un(t.dockZone ?? t.zone, "");
-			r && s(r) && (a.dockZone = r, a.placement = on.DOCK);
+			let r = dn(t.dockZone ?? t.zone, "");
+			r && s(r) && (a.dockZone = r, a.placement = sn.DOCK);
 			break;
 		}
 		default: return t;
 	}
 	return a;
 };
-function xn(e = [], t = {}, n, r) {
-	let i = Qt(n), a = mn(e).find((e) => e.id === i), o = tn(t);
+function Sn(e = [], t = {}, n, r) {
+	let i = $t(n), a = hn(e).find((e) => e.id === i), o = nn(t);
 	if (!a) return o;
-	let s = hn(a, o[i]), c = bn(a, s, r);
-	return en(s, c) ? o : {
+	let s = gn(a, o[i]), c = xn(a, s, r);
+	return tn(s, c) ? o : {
 		...o,
 		[i]: c
 	};
 }
-function Sn(e = [], t = {}) {
-	let n = tn(t);
-	return mn(e).reduce((e, t) => {
-		let r = nn(n[t.id]);
+function Cn(e = [], t = {}) {
+	let n = nn(t);
+	return hn(e).reduce((e, t) => {
+		let r = rn(n[t.id]);
 		return t.dockZones?.length && (delete r.dockZone, delete r.zone), {
 			...e,
-			[t.id]: hn(t, r)
+			[t.id]: gn(t, r)
 		};
 	}, { ...n });
 }
-function Cn(e = "cad-workspace", t = "default") {
-	let n = $t(e) ? e : {
+function wn(e = "cad-workspace", t = "default") {
+	let n = en(e) ? e : {
 		namespace: e,
 		scope: t
 	};
-	return `${an(n.namespace, "cad-workspace")}:${an(n.scope, "default")}:${an(n.section, "panels")}`;
+	return `${on(n.namespace, "cad-workspace")}:${on(n.scope, "default")}:${on(n.section, "panels")}`;
 }
-function wn({ panels: e = [], value: t, defaultValue: n, onChange: r } = {}) {
-	let i = d(() => mn(e), [e]), [a, s] = $(t, d(() => ({
-		...tn(n),
-		...gn(i, n)
+function Tn({ panels: e = [], value: t, defaultValue: n, onChange: r } = {}) {
+	let i = d(() => hn(e), [e]), [a, s] = $(t, d(() => ({
+		...nn(n),
+		..._n(i, n)
 	}), [n, i]), (e, t, n) => {
 		r?.(e, t, n);
-	}), c = d(() => gn(i, a), [i, a]);
+	}), c = d(() => _n(i, a), [i, a]);
 	return {
 		panels: i,
 		value: c,
 		preferences: c,
 		dispatch: o((e, t, n) => {
-			let r = Qt(e), o = i.find((e) => e.id === r), l = c[r];
+			let r = $t(e), o = i.find((e) => e.id === r), l = c[r];
 			if (!o || !l) return {
 				changed: !1,
 				panel: o,
-				action: yn(t).type
+				action: bn(t).type
 			};
-			let u = xn(i, a, r, t), d = gn(i, u)[r], f = !en(l, d), p = {
+			let u = Sn(i, a, r, t), d = _n(i, u)[r], f = !tn(l, d), p = {
 				changed: f,
 				id: r,
 				panel: o,
-				action: yn(t).type,
+				action: bn(t).type,
 				previousPreference: l,
 				preference: d,
 				value: u,
@@ -3211,9 +3224,9 @@ function wn({ panels: e = [], value: t, defaultValue: n, onChange: r } = {}) {
 			s
 		]),
 		reset: o((e) => {
-			let t = Sn(i, a), n = gn(i, t), r = i.some((e) => !en(c[e.id], n[e.id])), o = {
+			let t = Cn(i, a), n = _n(i, t), r = i.some((e) => !tn(c[e.id], n[e.id])), o = {
 				changed: r,
-				action: cn.RESET_ALL,
+				action: ln.RESET_ALL,
 				panels: i,
 				previousPreferences: c,
 				preferences: n,
@@ -3229,42 +3242,42 @@ function wn({ panels: e = [], value: t, defaultValue: n, onChange: r } = {}) {
 		])
 	};
 }
-var Tn = /* @__PURE__ */ g("span", {
+var En = /* @__PURE__ */ g("span", {
 	"aria-hidden": "true",
 	children: "▣"
-}), En = (t, n) => typeof n == "function" ? n(t) : e.isValidElement(t.icon) ? t.icon : typeof t.icon == "function" || t.icon?.$$typeof ? e.createElement(t.icon, {
+}), Dn = (t, n) => typeof n == "function" ? n(t) : e.isValidElement(t.icon) ? t.icon : typeof t.icon == "function" || t.icon?.$$typeof ? e.createElement(t.icon, {
 	size: 13,
 	"aria-hidden": !0
-}) : t.icon !== void 0 && t.icon !== null ? t.icon : Tn, Dn = (e) => ({
-	[sn.LEFT]: "LEFT",
-	[sn.RIGHT]: "RIGHT",
-	[sn.BOTTOM]: "BOTTOM"
-})[e] || "", On = (e, t) => e === on.FLOAT ? "FLOATING" : [Dn(t), "DOCKED"].filter(Boolean).join(" ");
-function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelChange: a, onPanelAction: s, onPanelOpen: c, onPanelClose: l, onPanelDock: f, onPanelDockZone: p, onPanelFloat: m, onPanelReset: v, onResetAll: y, menuOpen: b, defaultMenuOpen: x = !1, onMenuOpenChange: S, title: C = "Workspace panels", description: w = "Show, dock or float the panels used in this workspace.", trigger: T, renderTrigger: E, triggerLabel: D = "Workspace panels", triggerIcon: O = "▦", scope: ee, placement: k = "bottom-end", emptyLabel: A = "No configurable panels are available.", filter: j, defaultFilter: M = "", onFilterChange: N, filterable: te = !0, filterLabel: P = "Find panel", filterPlaceholder: F = "Search panels", clearFilterLabel: I = "Clear panel filter", filteredEmptyLabel: L = "No panels match the current filter.", resetAllLabel: R = "Reset workspace", showResetAll: z = !0, closeLabel: B, renderPanel: V, renderPanelIcon: H, className: U, contentClassName: W, ...ne }) {
-	let re = u(), { panels: G, preferences: K, dispatch: q, reset: J } = wn({
+}) : t.icon !== void 0 && t.icon !== null ? t.icon : En, On = (e) => ({
+	[cn.LEFT]: "LEFT",
+	[cn.RIGHT]: "RIGHT",
+	[cn.BOTTOM]: "BOTTOM"
+})[e] || "", kn = (e, t) => e === sn.FLOAT ? "FLOATING" : [On(t), "DOCKED"].filter(Boolean).join(" ");
+function An({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelChange: a, onPanelAction: s, onPanelOpen: c, onPanelClose: l, onPanelDock: f, onPanelDockZone: p, onPanelFloat: m, onPanelReset: v, onResetAll: y, menuOpen: b, defaultMenuOpen: x = !1, onMenuOpenChange: S, title: C = "Workspace panels", description: w = "Show, dock or float the panels used in this workspace.", trigger: T, renderTrigger: E, triggerLabel: D = "Workspace panels", triggerIcon: O = "▦", scope: ee, placement: k = "bottom-end", emptyLabel: A = "No configurable panels are available.", filter: j, defaultFilter: M = "", onFilterChange: N, filterable: P = !0, filterLabel: F = "Find panel", filterPlaceholder: I = "Search panels", clearFilterLabel: L = "Clear panel filter", filteredEmptyLabel: R = "No panels match the current filter.", resetAllLabel: z = "Reset workspace", showResetAll: te = !0, closeLabel: B, renderPanel: V, renderPanelIcon: H, className: U, contentClassName: W, ...ne }) {
+	let re = u(), { panels: G, preferences: K, dispatch: q, reset: J } = Tn({
 		panels: t,
 		value: n,
 		defaultValue: r,
 		onChange: i
-	}), ie = G.filter((e) => !e.hidden), ae = ie.filter((e) => K[e.id]?.open).length, Y = ie.filter((e) => K[e.id]?.open && K[e.id]?.placement === on.FLOAT).length, [oe, se] = $(j, M, (e, t) => {
+	}), ie = G.filter((e) => !e.hidden), ae = ie.filter((e) => K[e.id]?.open).length, Y = ie.filter((e) => K[e.id]?.open && K[e.id]?.placement === sn.FLOAT).length, [oe, se] = $(j, M, (e, t) => {
 		N?.(e, t);
-	}), ce = Qt(oe).toLocaleLowerCase(), le = d(() => ie.filter((e) => {
+	}), ce = $t(oe).toLocaleLowerCase(), le = d(() => ie.filter((e) => {
 		if (!ce) return !0;
 		let t = K[e.id] || {};
 		return [
 			e.label,
 			e.description,
 			t.open ? "visible open" : "hidden closed",
-			On(t.placement, t.dockZone),
-			Dn(t.dockZone)
+			kn(t.placement, t.dockZone),
+			On(t.dockZone)
 		].filter(Boolean).join(" ").toLocaleLowerCase().includes(ce);
 	}), [
 		ie,
 		ce,
 		K
-	]), ue = te && ie.length > 6, de = o((e, t, n) => {
+	]), ue = P && ie.length > 6, de = o((e, t, n) => {
 		let r = q(e.id, t, n);
-		r.changed && (a?.(e.id, r.preference, r, n), s?.(r, n), r.action === cn.OPEN && c?.(e, r.preference, r, n), r.action === cn.CLOSE && l?.(e, r.preference, r, n), r.action === cn.DOCK && f?.(e, r.preference, r, n), r.action === cn.SET_DOCK_ZONE && p?.(e, r.preference, r, n), r.action === cn.FLOAT && m?.(e, r.preference, r, n), r.action === cn.RESET && v?.(e, r.preference, r, n));
+		r.changed && (a?.(e.id, r.preference, r, n), s?.(r, n), r.action === ln.OPEN && c?.(e, r.preference, r, n), r.action === ln.CLOSE && l?.(e, r.preference, r, n), r.action === ln.DOCK && f?.(e, r.preference, r, n), r.action === ln.SET_DOCK_ZONE && p?.(e, r.preference, r, n), r.action === ln.FLOAT && m?.(e, r.preference, r, n), r.action === ln.RESET && v?.(e, r.preference, r, n));
 	}, [
 		q,
 		s,
@@ -3307,17 +3320,17 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 		panels: ie,
 		preferences: K
 	}) : T || pe, he = B || `Close ${C}`, ge = `cad-workspace-panel-manager-${re}`, _e = (e, t) => {
-		let n = !!t.open, r = n ? cn.CLOSE : cn.OPEN, i = !e.disabled && (!n || e.closable), a = e.placements.length > 1, o = e.placements.includes(on.DOCK) && e.dockZones.length > 1, s = {
-			open: (t) => de(e, cn.OPEN, t),
-			close: (t) => de(e, cn.CLOSE, t),
-			toggle: (t) => de(e, cn.TOGGLE, t),
-			dock: (t) => de(e, cn.DOCK, t),
+		let n = !!t.open, r = n ? ln.CLOSE : ln.OPEN, i = !e.disabled && (!n || e.closable), a = e.placements.length > 1, o = e.placements.includes(sn.DOCK) && e.dockZones.length > 1, s = {
+			open: (t) => de(e, ln.OPEN, t),
+			close: (t) => de(e, ln.CLOSE, t),
+			toggle: (t) => de(e, ln.TOGGLE, t),
+			dock: (t) => de(e, ln.DOCK, t),
 			dockTo: (t, n) => de(e, {
-				type: cn.SET_DOCK_ZONE,
+				type: ln.SET_DOCK_ZONE,
 				value: t
 			}, n),
-			float: (t) => de(e, cn.FLOAT, t),
-			reset: (t) => de(e, cn.RESET, t)
+			float: (t) => de(e, ln.FLOAT, t),
+			reset: (t) => de(e, ln.RESET, t)
 		};
 		return typeof V == "function" ? V(e, t, s) : /* @__PURE__ */ _("article", {
 			className: "cad-workspace-panel-manager__panel",
@@ -3342,7 +3355,7 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 							/* @__PURE__ */ g("span", {
 								className: "cad-workspace-panel-manager__panel-icon",
 								"aria-hidden": "true",
-								children: En(e, H)
+								children: Dn(e, H)
 							}),
 							/* @__PURE__ */ _("span", {
 								className: "cad-workspace-panel-manager__panel-copy",
@@ -3365,10 +3378,10 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 					role: "group",
 					"aria-label": `${e.label} placement`,
 					children: [
-						a && e.placements.includes(on.DOCK) && /* @__PURE__ */ _("button", {
+						a && e.placements.includes(sn.DOCK) && /* @__PURE__ */ _("button", {
 							type: "button",
 							"aria-label": `Dock ${e.label}`,
-							"aria-pressed": t.placement === on.DOCK,
+							"aria-pressed": t.placement === sn.DOCK,
 							disabled: e.disabled || e.preferenceLocked,
 							onClick: s.dock,
 							children: [/* @__PURE__ */ g("span", {
@@ -3376,10 +3389,10 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 								children: "▣"
 							}), "DOCK"]
 						}),
-						a && e.placements.includes(on.FLOAT) && /* @__PURE__ */ _("button", {
+						a && e.placements.includes(sn.FLOAT) && /* @__PURE__ */ _("button", {
 							type: "button",
 							"aria-label": `Float ${e.label}`,
-							"aria-pressed": t.placement === on.FLOAT,
+							"aria-pressed": t.placement === sn.FLOAT,
 							disabled: e.disabled || e.preferenceLocked,
 							onClick: s.float,
 							children: [/* @__PURE__ */ g("span", {
@@ -3388,8 +3401,8 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 							}), "FLOAT"]
 						}),
 						a && /* @__PURE__ */ g("output", {
-							"aria-label": `${e.label} placement: ${On(t.placement, t.dockZone).toLocaleLowerCase()}`,
-							children: On(t.placement, t.dockZone)
+							"aria-label": `${e.label} placement: ${kn(t.placement, t.dockZone).toLocaleLowerCase()}`,
+							children: kn(t.placement, t.dockZone)
 						}),
 						!e.preferenceLocked && /* @__PURE__ */ g("button", {
 							type: "button",
@@ -3407,17 +3420,17 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 					"aria-label": `${e.label} dock zone`,
 					children: e.dockZones.map((n) => /* @__PURE__ */ g("button", {
 						type: "button",
-						"aria-label": `Dock ${e.label} to ${Dn(n).toLocaleLowerCase()}`,
-						"aria-pressed": t.placement === on.DOCK && t.dockZone === n,
+						"aria-label": `Dock ${e.label} to ${On(n).toLocaleLowerCase()}`,
+						"aria-pressed": t.placement === sn.DOCK && t.dockZone === n,
 						disabled: e.disabled || e.preferenceLocked,
 						onClick: (e) => s.dockTo(n, e),
-						children: Dn(n)
+						children: On(n)
 					}, n))
 				})
 			]
 		});
 	};
-	return /* @__PURE__ */ g(wt, {
+	return /* @__PURE__ */ g(Tt, {
 		...ne,
 		id: ge,
 		className: X("cad-workspace-panel-manager", U),
@@ -3467,19 +3480,19 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 						children: [
 							/* @__PURE__ */ g("label", {
 								htmlFor: `${ge}-filter`,
-								children: P
+								children: F
 							}),
 							/* @__PURE__ */ g("input", {
 								id: `${ge}-filter`,
 								type: "search",
 								value: oe ?? "",
-								placeholder: F,
+								placeholder: I,
 								onChange: (e) => se(e.target.value, e)
 							}),
 							ce && /* @__PURE__ */ g("button", {
 								type: "button",
-								"aria-label": I,
-								title: I,
+								"aria-label": L,
+								title: L,
 								onClick: (e) => se("", e),
 								children: "×"
 							})
@@ -3505,18 +3518,18 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 					}) : /* @__PURE__ */ g("p", {
 						className: "cad-workspace-panel-manager__empty cad-workspace-panel-manager__empty--filtered",
 						role: "status",
-						children: L
+						children: R
 					})
 				] }) : /* @__PURE__ */ g("p", {
 					className: "cad-workspace-panel-manager__empty",
 					role: "status",
 					children: A
 				}),
-				z && ie.length > 0 && /* @__PURE__ */ _("footer", {
+				te && ie.length > 0 && /* @__PURE__ */ _("footer", {
 					className: "cad-workspace-panel-manager__footer",
 					children: [/* @__PURE__ */ _("button", {
 						type: "button",
-						"aria-label": R,
+						"aria-label": z,
 						onClick: fe,
 						children: [
 							/* @__PURE__ */ g("span", {
@@ -3524,7 +3537,7 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 								children: "↺"
 							}),
 							" ",
-							R
+							z
 						]
 					}), /* @__PURE__ */ g("span", { children: "Host-owned layout state" })]
 				})
@@ -3532,10 +3545,10 @@ function kn({ panels: t = [], value: n, defaultValue: r, onChange: i, onPanelCha
 		})
 	});
 }
-var An = kn, jn = (e) => !!e;
-function Mn({ active: e, defaultActive: t = !1, onActiveChange: n } = {}) {
-	let [r, i] = $(e, jn(t), (e, t, r) => n?.(jn(e), t, r)), a = jn(r), s = o((e, t, n = "programmatic") => {
-		let r = jn(typeof e == "function" ? e(a) : e);
+var jn = An, Mn = (e) => !!e;
+function Nn({ active: e, defaultActive: t = !1, onActiveChange: n } = {}) {
+	let [r, i] = $(e, Mn(t), (e, t, r) => n?.(Mn(e), t, r)), a = Mn(r), s = o((e, t, n = "programmatic") => {
+		let r = Mn(typeof e == "function" ? e(a) : e);
 		if (r === a) return {
 			changed: !1,
 			active: a,
@@ -3556,8 +3569,8 @@ function Mn({ active: e, defaultActive: t = !1, onActiveChange: n } = {}) {
 		toggle: o((e, t = "toggle") => s(!a, e, t), [a, s])
 	};
 }
-var Nn = i(function({ active: e, defaultActive: t = !1, onActiveChange: n, label: r = "Enter focus mode", activeLabel: i = "Exit focus mode", shortcut: a, disabled: o = !1, onClick: s, className: c, title: l, ...u }, d) {
-	let f = Mn({
+var Pn = i(function({ active: e, defaultActive: t = !1, onActiveChange: n, label: r = "Enter focus mode", activeLabel: i = "Exit focus mode", shortcut: a, disabled: o = !1, onClick: s, className: c, title: l, ...u }, d) {
+	let f = Nn({
 		active: e,
 		defaultActive: t,
 		onActiveChange: n
@@ -3599,27 +3612,27 @@ var Nn = i(function({ active: e, defaultActive: t = !1, onActiveChange: n, label
 		]
 	});
 });
-Nn.displayName = "CadWorkspaceFocusToggle";
+Pn.displayName = "CadWorkspaceFocusToggle";
 //#endregion
 //#region src/CadWorkspaceProfiles.js
-var Pn = (e) => String(e ?? "").trim(), Fn = "model", In = (e) => {
-	let t = Pn(e).toLowerCase();
+var Fn = (e) => String(e ?? "").trim(), In = "model", Ln = (e) => {
+	let t = Fn(e).toLowerCase();
 	return /^[a-z0-9][a-z0-9-]{0,63}$/.test(t) ? t : "";
-}, Ln = (e, t) => Pn(e).replace(/\s+/g, " ").slice(0, 48) || t;
-function Rn(e, { modelId: t = Fn, modelName: n = "Model" } = {}) {
-	let r = In(t) || "model", i = Array.isArray(e) ? e : Array.isArray(e?.profiles) ? e.profiles : [], a = /* @__PURE__ */ new Set(), o = i.reduce((e, t, i) => {
-		let o = In(t?.id) || (i === 0 ? r : "");
+}, Rn = (e, t) => Fn(e).replace(/\s+/g, " ").slice(0, 48) || t;
+function zn(e, { modelId: t = In, modelName: n = "Model" } = {}) {
+	let r = Ln(t) || "model", i = Array.isArray(e) ? e : Array.isArray(e?.profiles) ? e.profiles : [], a = /* @__PURE__ */ new Set(), o = i.reduce((e, t, i) => {
+		let o = Ln(t?.id) || (i === 0 ? r : "");
 		return !o || a.has(o) ? e : (a.add(o), e.push({
 			...t,
 			id: o,
-			name: Ln(t?.name ?? t?.label, o === r ? n : `Layout ${e.length}`),
+			name: Rn(t?.name ?? t?.label, o === r ? n : `Layout ${e.length}`),
 			system: o === r || !!t?.system
 		}), e);
 	}, []), s = o.findIndex((e) => e.id === r);
 	return [s >= 0 ? {
 		...o[s],
 		id: r,
-		name: Ln(o[s].name, n),
+		name: Rn(o[s].name, n),
 		system: !0
 	} : {
 		id: r,
@@ -3627,45 +3640,45 @@ function Rn(e, { modelId: t = Fn, modelName: n = "Model" } = {}) {
 		system: !0
 	}, ...o.filter((e) => e.id !== r)];
 }
-function zn(e, { prefix: t = "Layout", modelId: n = Fn } = {}) {
-	let r = Rn(e, { modelId: n }), i = new Set(r.map((e) => e.name.toLocaleLowerCase())), a = Math.max(1, r.filter((e) => e.id !== n).length + 1), o = `${Pn(t) || "Layout"} ${a}`;
-	for (; i.has(o.toLocaleLowerCase());) a += 1, o = `${Pn(t) || "Layout"} ${a}`;
+function Bn(e, { prefix: t = "Layout", modelId: n = In } = {}) {
+	let r = zn(e, { modelId: n }), i = new Set(r.map((e) => e.name.toLocaleLowerCase())), a = Math.max(1, r.filter((e) => e.id !== n).length + 1), o = `${Fn(t) || "Layout"} ${a}`;
+	for (; i.has(o.toLocaleLowerCase());) a += 1, o = `${Fn(t) || "Layout"} ${a}`;
 	return o;
 }
-function Bn(e, { id: t, name: n, modelId: r = Fn, modelName: i = "Model", prefix: a = "Layout", ...o } = {}) {
-	let s = Rn(e, {
+function Vn(e, { id: t, name: n, modelId: r = In, modelName: i = "Model", prefix: a = "Layout", ...o } = {}) {
+	let s = zn(e, {
 		modelId: r,
 		modelName: i
-	}), c = new Set(s.map((e) => e.id)), l = In(t) || "layout", u = l, d = 1;
+	}), c = new Set(s.map((e) => e.id)), l = Ln(t) || "layout", u = l, d = 1;
 	for (; c.has(u);) d += 1, u = `${l}-${d}`;
 	return [...s, {
 		...o,
 		id: u,
-		name: Ln(n, zn(s, {
+		name: Rn(n, Bn(s, {
 			prefix: a,
 			modelId: r
 		})),
 		system: !1
 	}];
 }
-function Vn(e, t, n, { modelId: r = Fn, modelName: i = "Model" } = {}) {
-	let a = In(t);
-	return !a || !Pn(n) ? Rn(e, {
+function Hn(e, t, n, { modelId: r = In, modelName: i = "Model" } = {}) {
+	let a = Ln(t);
+	return !a || !Fn(n) ? zn(e, {
 		modelId: r,
 		modelName: i
-	}) : Rn(e, {
+	}) : zn(e, {
 		modelId: r,
 		modelName: i
 	}).map((e) => e.id === a ? {
 		...e,
-		name: Ln(n, e.name)
+		name: Rn(n, e.name)
 	} : e);
 }
-function Hn(e, t, n, { modelId: r = Fn, modelName: i = "Model" } = {}) {
-	let a = Rn(e, {
+function Un(e, t, n, { modelId: r = In, modelName: i = "Model" } = {}) {
+	let a = zn(e, {
 		modelId: r,
 		modelName: i
-	}), o = In(t), s = o && o !== r ? a.filter((e) => e.id !== o) : a;
+	}), o = Ln(t), s = o && o !== r ? a.filter((e) => e.id !== o) : a;
 	return {
 		profiles: s,
 		activeId: s.some((e) => e.id === n) ? n : r
@@ -3673,7 +3686,7 @@ function Hn(e, t, n, { modelId: r = Fn, modelName: i = "Model" } = {}) {
 }
 //#endregion
 //#region src/CadWorkspaceUi.jsx
-var Un = (e) => Z(e).find((e) => !e?.disabled)?.id || "", Wn = (e, t) => typeof e == "string" ? {
+var Wn = (e) => Z(e).find((e) => !e?.disabled)?.id || "", Gn = (e, t) => typeof e == "string" ? {
 	id: `${e}-${t}`,
 	label: e
 } : {
@@ -3681,7 +3694,7 @@ var Un = (e) => Z(e).find((e) => !e?.disabled)?.id || "", Wn = (e, t) => typeof 
 	label: Q(e),
 	detail: e?.detail,
 	tone: e?.tone
-}, Gn = (e) => {
+}, Kn = (e) => {
 	let t = e?.attention ?? e?.alert, n = t && typeof t == "object" ? t : { tone: t }, r = String(n?.tone ?? "").trim().toLowerCase();
 	return r !== "warning" && r !== "danger" ? null : {
 		tone: r,
@@ -3689,11 +3702,11 @@ var Un = (e) => Z(e).find((e) => !e?.disabled)?.id || "", Wn = (e, t) => typeof 
 		symbol: n?.symbol || "!"
 	};
 };
-function Kn({ items: e = [], activeId: t, defaultActiveId: n, onChange: r, onClose: i, onCreate: a, onContextMenu: o, onRename: s, onOverflow: c, addLabel: l = "New layout", addButtonProps: f = {}, overflowLabel: p = "More drawing spaces", overflowButtonProps: m = {}, ariaLabel: h = "Drawing spaces", className: v, ...y }) {
+function qn({ items: e = [], activeId: t, defaultActiveId: n, onChange: r, onClose: i, onCreate: a, onContextMenu: o, onRename: s, onOverflow: c, addLabel: l = "New layout", addButtonProps: f = {}, overflowLabel: p = "More drawing spaces", overflowButtonProps: m = {}, ariaLabel: h = "Drawing spaces", className: v, ...y }) {
 	let b = u(), x = d(() => Z(e).map((e, t) => ({
 		...e,
 		id: e?.id || `space-${t}`
-	})), [e]), [S, C] = $(t, n || Un(x), (e, t, n) => r?.(e, t, n)), w = x.some((e) => e.id === S) ? S : Un(x), T = (e, t) => {
+	})), [e]), [S, C] = $(t, n || Wn(x), (e, t, n) => r?.(e, t, n)), w = x.some((e) => e.id === S) ? S : Wn(x), T = (e, t) => {
 		!e || e.disabled || C(e.id, e, t);
 	}, E = (e) => document.getElementById(`cad-space-tab-${b}-${e.id}`)?.focus(), D = (e, t) => {
 		let n = x.filter((e) => !e.disabled);
@@ -3806,9 +3819,9 @@ function Kn({ items: e = [], activeId: t, defaultActiveId: n, onChange: r, onClo
 		})
 	});
 }
-var qn = Kn, Jn = Kn;
-function Yn({ profiles: e = [], activeId: t, onChange: n, onCreate: r, onClose: i, onRename: a, modelId: o = Fn, modelName: s = "Model", className: c, ...l }) {
-	let u = d(() => Rn(e, {
+var Jn = qn, Yn = qn;
+function Xn({ profiles: e = [], activeId: t, onChange: n, onCreate: r, onClose: i, onRename: a, modelId: o = In, modelName: s = "Model", className: c, ...l }) {
+	let u = d(() => zn(e, {
 		modelId: o,
 		modelName: s
 	}), [
@@ -3826,7 +3839,7 @@ function Yn({ profiles: e = [], activeId: t, onChange: n, onCreate: r, onClose: 
 		u,
 		i
 	]), m = (e) => f.get(e?.id) || e;
-	return /* @__PURE__ */ g(Kn, {
+	return /* @__PURE__ */ g(qn, {
 		...l,
 		className: X("cad-workspace-profile-tabs", c),
 		ariaLabel: l.ariaLabel || "Workspace profiles",
@@ -3839,7 +3852,7 @@ function Yn({ profiles: e = [], activeId: t, onChange: n, onCreate: r, onClose: 
 		onRename: (e, t) => a?.(e.id, m(e), t)
 	});
 }
-function Xn({ title: e, icon: t, actions: n, collapsible: r = !1, collapsed: i, defaultCollapsed: a = !1, onCollapsedChange: o, className: s, children: c, ...l }) {
+function Zn({ title: e, icon: t, actions: n, collapsible: r = !1, collapsed: i, defaultCollapsed: a = !1, onCollapsedChange: o, className: s, children: c, ...l }) {
 	let d = `cad-dock-panel-body-${u()}`, [f, p] = $(i, a, (e, t) => o?.(e, t));
 	return /* @__PURE__ */ _("section", {
 		...l,
@@ -3872,8 +3885,8 @@ function Xn({ title: e, icon: t, actions: n, collapsible: r = !1, collapsed: i, 
 		})]
 	});
 }
-function Zn({ items: e = [], activeId: t, defaultActiveId: n, onChange: r, onClose: i, label: a = "Docked panels", compact: o = !1, className: s, children: c, renderPanel: l, ...d }) {
-	let f = u(), [p, m] = $(t, n || Un(e), (e, t, n) => r?.(e, t, n)), h = Z(e).find((e) => e?.id === p) || Z(e).find((e) => !e?.disabled), v = (e, t) => {
+function Qn({ items: e = [], activeId: t, defaultActiveId: n, onChange: r, onClose: i, label: a = "Docked panels", compact: o = !1, className: s, children: c, renderPanel: l, ...d }) {
+	let f = u(), [p, m] = $(t, n || Wn(e), (e, t, n) => r?.(e, t, n)), h = Z(e).find((e) => e?.id === p) || Z(e).find((e) => !e?.disabled), v = (e, t) => {
 		!e || e.disabled || m(e.id, e, t);
 	}, y = (t) => {
 		if (!t.target.closest("[role=\"tab\"]")) return;
@@ -3892,7 +3905,7 @@ function Zn({ items: e = [], activeId: t, defaultActiveId: n, onChange: r, onClo
 			"aria-label": a,
 			onKeyDown: y,
 			children: Z(e).map((e, t) => {
-				let n = e?.id === h?.id, r = e?.icon, a = Q(e), s = o && e?.tabLabel !== void 0 ? e.tabLabel : o && e?.shortLabel !== void 0 ? e.shortLabel : a, c = e?.ariaLabel || e?.accessibleLabel || a, l = e?.title || a, u = Gn(e), d = u ? `${c}, ${u.label}` : c;
+				let n = e?.id === h?.id, r = e?.icon, a = Q(e), s = o && e?.tabLabel !== void 0 ? e.tabLabel : o && e?.shortLabel !== void 0 ? e.shortLabel : a, c = e?.ariaLabel || e?.accessibleLabel || a, l = e?.title || a, u = Kn(e), d = u ? `${c}, ${u.label}` : c;
 				return /* @__PURE__ */ _("div", {
 					className: X("cad-dock-tabs__tab-wrap", n && "cad-dock-tabs__tab-wrap--active"),
 					children: [/* @__PURE__ */ _("button", {
@@ -3941,7 +3954,7 @@ function Zn({ items: e = [], activeId: t, defaultActiveId: n, onChange: r, onClo
 		})]
 	});
 }
-function Qn({ mode: e, label: t, active: n, disabled: r = !1, shortcut: i, tone: a = "inherit", onChange: o, className: s }) {
+function $n({ mode: e, label: t, active: n, disabled: r = !1, shortcut: i, tone: a = "inherit", onChange: o, className: s }) {
 	let c = t || Q(e), l = n ?? e?.active ?? !1, u = r || e?.disabled;
 	return /* @__PURE__ */ _("button", {
 		type: "button",
@@ -3956,13 +3969,13 @@ function Qn({ mode: e, label: t, active: n, disabled: r = !1, shortcut: i, tone:
 		children: [/* @__PURE__ */ g("span", { children: c }), (i || e?.shortcut) && /* @__PURE__ */ g("small", { children: i || e?.shortcut })]
 	});
 }
-var $n = (e) => e == null || e === "" ? "" : typeof e == "string" || typeof e == "number" ? String(e) : Array.isArray(e) ? e.map((e, t) => `${"XYZ"[t] || t}: ${e}`).join("  ") : [
+var er = (e) => e == null || e === "" ? "" : typeof e == "string" || typeof e == "number" ? String(e) : Array.isArray(e) ? e.map((e, t) => `${"XYZ"[t] || t}: ${e}`).join("  ") : [
 	"x",
 	"y",
 	"z"
 ].filter((t) => e[t] !== void 0).map((t) => `${t.toUpperCase()}: ${e[t]}`).join("  ");
-function er({ coordinates: e, coordinateLabel: t = "Coordinates", modes: n = [], onModeChange: r, units: i, scale: a, message: o, layout: s = "strip", className: c, children: l, ...u }) {
-	let d = $n(e), f = s === "tiles" || s === "auto" ? s : "strip";
+function tr({ coordinates: e, coordinateLabel: t = "Coordinates", modes: n = [], onModeChange: r, units: i, scale: a, message: o, layout: s = "strip", className: c, children: l, ...u }) {
+	let d = er(e), f = s === "tiles" || s === "auto" ? s : "strip";
 	return /* @__PURE__ */ _("footer", {
 		...u,
 		className: X("cad-status-bar", c),
@@ -3978,7 +3991,7 @@ function er({ coordinates: e, coordinateLabel: t = "Coordinates", modes: n = [],
 				className: "cad-status-bar__modes",
 				role: "group",
 				"aria-label": "Drafting modes",
-				children: Z(n).map((e, t) => /* @__PURE__ */ g(Qn, {
+				children: Z(n).map((e, t) => /* @__PURE__ */ g($n, {
 					mode: e,
 					onChange: (t, n, i) => {
 						e?.onChange?.(t, n, i), r?.(e?.id, t, n, i);
@@ -4003,8 +4016,8 @@ function er({ coordinates: e, coordinateLabel: t = "Coordinates", modes: n = [],
 		]
 	});
 }
-function tr({ items: e = [], label: t = "Command history", onSelect: n, className: r }) {
-	let i = d(() => Z(e).map(Wn), [e]);
+function nr({ items: e = [], label: t = "Command history", onSelect: n, className: r }) {
+	let i = d(() => Z(e).map(Gn), [e]);
 	return /* @__PURE__ */ g("ol", {
 		className: X("cad-command-history", r),
 		"aria-label": t,
@@ -4018,7 +4031,7 @@ function tr({ items: e = [], label: t = "Command history", onSelect: n, classNam
 		}, e.id))
 	});
 }
-function nr({ options: e = [], label: t = "Command options", onSelect: n, className: r }) {
+function rr({ options: e = [], label: t = "Command options", onSelect: n, className: r }) {
 	return /* @__PURE__ */ g("div", {
 		className: X("cad-command-options", r),
 		role: "group",
@@ -4040,13 +4053,13 @@ function nr({ options: e = [], label: t = "Command options", onSelect: n, classN
 		})
 	});
 }
-var rr = (e, t, n, r) => {
+var ir = (e, t, n, r) => {
 	let i = Number(e), a = Number(t);
 	return Math.min(r, Math.max(n, Math.round(Number.isFinite(i) ? i : Number.isFinite(a) ? a : 152)));
 };
-function ir({ value: e, defaultValue: t = "", onChange: n, onSubmit: r, prompt: i = "Command:", history: a = [], suggestions: o = [], options: s = [], onSuggestionSelect: c, onOptionSelect: l, clearOnSubmit: f = !0, submitSuggestionOnEnter: h = !1, disabled: v = !1, placeholder: y = "Type a command or search", showHistory: b = !0, height: x, defaultHeight: S = 152, minHeight: C = 72, maxHeight: w = 360, resizeStep: T = 8, resizable: E = !0, onHeightChange: D, label: O = "CAD command line", className: ee, inputProps: k = {}, style: A, id: j, ...M }) {
-	let N = u(), [te, P] = $(e, t, (e, t) => n?.(e, t)), F = Number(C), I = Math.max(48, Number.isFinite(F) ? Math.round(F) : 72), L = Number(w), R = Math.max(I, Number.isFinite(L) ? Math.round(L) : 360), z = rr(S, 152, I, R), [B, V] = $(x, z, (e, t) => D?.(e, t)), H = rr(B, z, I, R), U = Math.max(1, Number.isFinite(Number(T)) ? Math.round(Number(T)) : 8), W = p(null), [ne, re] = m(!1), [G, K] = m(-1), q = d(() => Z(o).map(Wn), [o]), J = `cad-command-suggestions-${N}`, ie = j || `cad-command-line-${N}`, ae = (e, t) => {
-		let n = rr(typeof e == "function" ? e(H) : e, H, I, R);
+function ar({ value: e, defaultValue: t = "", onChange: n, onSubmit: r, prompt: i = "Command:", history: a = [], suggestions: o = [], options: s = [], onSuggestionSelect: c, onOptionSelect: l, clearOnSubmit: f = !0, submitSuggestionOnEnter: h = !1, disabled: v = !1, placeholder: y = "Type a command or search", showHistory: b = !0, height: x, defaultHeight: S = 152, minHeight: C = 72, maxHeight: w = 360, resizeStep: T = 8, resizable: E = !0, onHeightChange: D, label: O = "CAD command line", className: ee, inputProps: k = {}, style: A, id: j, ...M }) {
+	let N = u(), [P, F] = $(e, t, (e, t) => n?.(e, t)), I = Number(C), L = Math.max(48, Number.isFinite(I) ? Math.round(I) : 72), R = Number(w), z = Math.max(L, Number.isFinite(R) ? Math.round(R) : 360), te = ir(S, 152, L, z), [B, V] = $(x, te, (e, t) => D?.(e, t)), H = ir(B, te, L, z), U = Math.max(1, Number.isFinite(Number(T)) ? Math.round(Number(T)) : 8), W = p(null), [ne, re] = m(!1), [G, K] = m(-1), q = d(() => Z(o).map(Gn), [o]), J = `cad-command-suggestions-${N}`, ie = j || `cad-command-line-${N}`, ae = (e, t) => {
+		let n = ir(typeof e == "function" ? e(H) : e, H, L, z);
 		n !== H && V(n, t);
 	}, Y = (e) => {
 		if (!W.current) return;
@@ -4062,14 +4075,14 @@ function ir({ value: e, defaultValue: t = "", onChange: n, onSubmit: r, prompt: 
 		let t = W.current;
 		!t || t.pointerId !== e.pointerId || ae(t.startHeight + t.startY - e.clientY, e);
 	}, ce = (e, t, n = !1) => {
-		e && (P(e.label, t), c?.(e, t), n && (r?.(e.label, t), f && P("", t)), K(-1));
+		e && (F(e.label, t), c?.(e, t), n && (r?.(e.label, t), f && F("", t)), K(-1));
 	}, le = (e) => {
 		if (e.preventDefault(), G >= 0 && q[G]) {
 			ce(q[G], e, h);
 			return;
 		}
-		let t = String(te ?? "").trim();
-		t && (r?.(t, e), f && P("", e));
+		let t = String(P ?? "").trim();
+		t && (r?.(t, e), f && F("", e));
 	}, ue = ne && q.length > 0, de = s.length > 0 || b && a.length > 0;
 	return /* @__PURE__ */ _("section", {
 		...M,
@@ -4088,8 +4101,8 @@ function ir({ value: e, defaultValue: t = "", onChange: n, onSubmit: r, prompt: 
 				"aria-label": "Resize command line",
 				"aria-controls": ie,
 				"aria-orientation": "horizontal",
-				"aria-valuemin": I,
-				"aria-valuemax": R,
+				"aria-valuemin": L,
+				"aria-valuemax": z,
 				"aria-valuenow": H,
 				"aria-valuetext": `${H} pixels`,
 				onPointerDown: oe,
@@ -4098,7 +4111,7 @@ function ir({ value: e, defaultValue: t = "", onChange: n, onSubmit: r, prompt: 
 				onPointerCancel: Y,
 				onKeyDown: (e) => {
 					let t = e.shiftKey ? U * 3 : U;
-					e.key === "ArrowUp" && (e.preventDefault(), ae(H + t, e)), e.key === "ArrowDown" && (e.preventDefault(), ae(H - t, e)), e.key === "PageUp" && (e.preventDefault(), ae(H + t * 3, e)), e.key === "PageDown" && (e.preventDefault(), ae(H - t * 3, e)), e.key === "Home" && (e.preventDefault(), ae(I, e)), e.key === "End" && (e.preventDefault(), ae(R, e));
+					e.key === "ArrowUp" && (e.preventDefault(), ae(H + t, e)), e.key === "ArrowDown" && (e.preventDefault(), ae(H - t, e)), e.key === "PageUp" && (e.preventDefault(), ae(H + t * 3, e)), e.key === "PageDown" && (e.preventDefault(), ae(H - t * 3, e)), e.key === "Home" && (e.preventDefault(), ae(L, e)), e.key === "End" && (e.preventDefault(), ae(z, e));
 				}
 			}),
 			/* @__PURE__ */ _("form", {
@@ -4114,7 +4127,7 @@ function ir({ value: e, defaultValue: t = "", onChange: n, onSubmit: r, prompt: 
 						...k,
 						id: `cad-command-input-${N}`,
 						className: "cad-command-line__input",
-						value: te ?? "",
+						value: P ?? "",
 						disabled: v,
 						placeholder: y,
 						autoComplete: "off",
@@ -4130,7 +4143,7 @@ function ir({ value: e, defaultValue: t = "", onChange: n, onSubmit: r, prompt: 
 							re(!1), K(-1), k.onBlur?.(e);
 						},
 						onChange: (e) => {
-							P(e.target.value, e), K(-1), k.onChange?.(e);
+							F(e.target.value, e), K(-1), k.onChange?.(e);
 						},
 						onKeyDown: (e) => {
 							e.key === "ArrowDown" && q.length && (e.preventDefault(), K((e) => (e + 1) % q.length)), e.key === "ArrowUp" && q.length && (e.preventDefault(), K((e) => (e - 1 + q.length) % q.length)), e.key === "Escape" && (K(-1), re(!1), e.currentTarget.blur()), k.onKeyDown?.(e);
@@ -4163,18 +4176,18 @@ function ir({ value: e, defaultValue: t = "", onChange: n, onSubmit: r, prompt: 
 			}),
 			de && /* @__PURE__ */ _("div", {
 				className: "cad-command-line__transcript",
-				children: [s.length > 0 && /* @__PURE__ */ g(nr, {
+				children: [s.length > 0 && /* @__PURE__ */ g(rr, {
 					options: s,
 					onSelect: l
-				}), b && a.length > 0 && /* @__PURE__ */ g(tr, {
+				}), b && a.length > 0 && /* @__PURE__ */ g(nr, {
 					items: a,
-					onSelect: (e, t) => P(e.label, t)
+					onSelect: (e, t) => F(e.label, t)
 				})]
 			})
 		]
 	});
 }
-function ar({ activeView: e = "top", onViewChange: t, className: n, label: r = "View cube" }) {
+function or({ activeView: e = "top", onViewChange: t, className: n, label: r = "View cube" }) {
 	return /* @__PURE__ */ _("div", {
 		className: X("cad-view-cube", n),
 		role: "group",
@@ -4197,7 +4210,7 @@ function ar({ activeView: e = "top", onViewChange: t, className: n, label: r = "
 		})]
 	});
 }
-function or({ xLabel: e = "X", yLabel: t = "Y", zLabel: n = "Z", className: r, label: i = "UCS orientation" }) {
+function sr({ xLabel: e = "X", yLabel: t = "Y", zLabel: n = "Z", className: r, label: i = "UCS orientation" }) {
 	return /* @__PURE__ */ _("svg", {
 		className: X("cad-ucs-indicator", r),
 		viewBox: "0 0 56 56",
@@ -4228,7 +4241,7 @@ function or({ xLabel: e = "X", yLabel: t = "Y", zLabel: n = "Z", className: r, l
 		]
 	});
 }
-var sr = (e, t) => {
+var cr = (e, t) => {
 	if (!e || !t) return !1;
 	try {
 		return e === t || !!e.contains?.(t);
@@ -4236,46 +4249,46 @@ var sr = (e, t) => {
 		return !1;
 	}
 };
-function cr({ activeView: e, onViewChange: t, onZoomIn: n, onZoomOut: r, onZoomExtents: i, showCube: a = !0, showUcs: o = !0, collapsible: s = !1, collapsed: c, defaultCollapsed: d = !1, onCollapsedChange: f, peekOpen: m, defaultPeekOpen: h = !1, onPeekOpenChange: v, peekOnHover: y = !0, peekOnFocus: b = !0, className: x, label: S = "Viewport controls", panelLabel: C, onPointerEnter: w, onPointerLeave: T, onFocusCapture: E, onBlurCapture: D, onKeyDown: O, ...ee }) {
+function lr({ activeView: e, onViewChange: t, onZoomIn: n, onZoomOut: r, onZoomExtents: i, showCube: a = !0, showUcs: o = !0, collapsible: s = !1, collapsed: c, defaultCollapsed: d = !1, onCollapsedChange: f, peekOpen: m, defaultPeekOpen: h = !1, onPeekOpenChange: v, peekOnHover: y = !0, peekOnFocus: b = !0, className: x, label: S = "Viewport controls", panelLabel: C, onPointerEnter: w, onPointerLeave: T, onFocusCapture: E, onBlurCapture: D, onKeyDown: O, ...ee }) {
 	let k = u(), A = `cad-viewport-controls-content-${k}`, j = `cad-viewport-controls-instructions-${k}`, M = p(null), N = p({
 		pointer: !1,
 		focus: !1,
 		dismissed: !1
-	}), [te, P] = $(c, !!d, (e, t, n) => f?.(!!e, t, n)), [F, I] = $(m, !!h, (e, t, n) => v?.(!!e, t, n)), L = !!s, R = L && !!te, z = R && !!F, B = !L || !R || z, V = String(S || "Viewport controls"), H = C || `${V} panel`, U = (e, t, n = "programmatic") => {
-		let r = !!te, i = !!(typeof e == "function" ? e(r) : e), a = {
+	}), [P, F] = $(c, !!d, (e, t, n) => f?.(!!e, t, n)), [I, L] = $(m, !!h, (e, t, n) => v?.(!!e, t, n)), R = !!s, z = R && !!P, te = z && !!I, B = !R || !z || te, V = String(S || "Viewport controls"), H = C || `${V} panel`, U = (e, t, n = "programmatic") => {
+		let r = !!P, i = !!(typeof e == "function" ? e(r) : e), a = {
 			changed: r !== i,
 			previousCollapsed: r,
 			collapsed: i,
 			source: n
 		};
-		return a.changed && P(i, a, t), a;
+		return a.changed && F(i, a, t), a;
 	}, W = (e, t, n = "programmatic") => {
-		let r = !!F, i = !!(typeof e == "function" ? e(r) : e), a = {
+		let r = !!I, i = !!(typeof e == "function" ? e(r) : e), a = {
 			changed: r !== i,
 			previousOpen: r,
 			open: i,
-			collapsed: R,
+			collapsed: z,
 			source: n
 		};
-		return a.changed && I(i, a, t), a;
+		return a.changed && L(i, a, t), a;
 	}, ne = (e, t) => {
-		!L || !R || N.current.dismissed || W(!0, e, t);
+		!R || !z || N.current.dismissed || W(!0, e, t);
 	}, re = (e, t) => {
 		let n = N.current;
-		!L || !R || n.pointer || n.focus || (n.dismissed = !1, W(!1, e, t));
+		!R || !z || n.pointer || n.focus || (n.dismissed = !1, W(!1, e, t));
 	}, G = (e) => {
-		w?.(e), !(e.defaultPrevented || !L) && (N.current.pointer = !0, N.current.dismissed = !1, y && ne(e, "pointer-enter"));
+		w?.(e), !(e.defaultPrevented || !R) && (N.current.pointer = !0, N.current.dismissed = !1, y && ne(e, "pointer-enter"));
 	}, K = (e) => {
-		T?.(e), !(e.defaultPrevented || !L || sr(e.currentTarget, e.relatedTarget)) && (N.current.pointer = !1, re(e, "pointer-leave"));
+		T?.(e), !(e.defaultPrevented || !R || cr(e.currentTarget, e.relatedTarget)) && (N.current.pointer = !1, re(e, "pointer-leave"));
 	}, q = (e) => {
-		E?.(e), !(e.defaultPrevented || !L) && (N.current.focus = !0, N.current.dismissed = !1, b && ne(e, "focus-enter"));
+		E?.(e), !(e.defaultPrevented || !R) && (N.current.focus = !0, N.current.dismissed = !1, b && ne(e, "focus-enter"));
 	}, J = (e) => {
-		D?.(e), !(e.defaultPrevented || !L || sr(e.currentTarget, e.relatedTarget)) && (N.current.focus = !1, re(e, "focus-leave"));
+		D?.(e), !(e.defaultPrevented || !R || cr(e.currentTarget, e.relatedTarget)) && (N.current.focus = !1, re(e, "focus-leave"));
 	}, ie = (e) => {
-		let t = !R;
+		let t = !z;
 		t ? (N.current.dismissed = !0, W(!1, e, "collapse")) : W(!1, e, "pin-open"), U(t, e, "toggle");
 	}, ae = (e) => {
-		O?.(e), !(e.defaultPrevented || e.key !== "Escape" || !R || !z) && (e.preventDefault(), N.current.dismissed = !0, N.current.focus = !1, W(!1, e, "escape"), M.current?.focus());
+		O?.(e), !(e.defaultPrevented || e.key !== "Escape" || !z || !te) && (e.preventDefault(), N.current.dismissed = !0, N.current.focus = !1, W(!1, e, "escape"), M.current?.focus());
 	};
 	l(() => {
 		if (!(B || typeof document > "u") && document.getElementById(A)?.contains(document.activeElement)) try {
@@ -4284,14 +4297,14 @@ function cr({ activeView: e, onViewChange: t, onZoomIn: n, onZoomOut: r, onZoomE
 			M.current?.focus?.();
 		}
 	}, [A, B]);
-	let Y = R ? `Open ${V}` : `Collapse ${V}`, oe = R ? B ? `Keep ${V} open` : `Open ${V}` : `Collapse ${V}`;
+	let Y = z ? `Open ${V}` : `Collapse ${V}`, oe = z ? B ? `Keep ${V} open` : `Open ${V}` : `Collapse ${V}`;
 	return /* @__PURE__ */ _("aside", {
 		...ee,
 		className: X("cad-viewport-controls", x),
 		"aria-label": V,
-		"data-collapsible": L ? "true" : "false",
-		"data-collapsed": R ? "true" : "false",
-		"data-peek-open": z ? "true" : "false",
+		"data-collapsible": R ? "true" : "false",
+		"data-collapsed": z ? "true" : "false",
+		"data-peek-open": te ? "true" : "false",
 		"data-expanded": B ? "true" : "false",
 		onPointerEnter: G,
 		onPointerLeave: K,
@@ -4299,12 +4312,12 @@ function cr({ activeView: e, onViewChange: t, onZoomIn: n, onZoomOut: r, onZoomE
 		onBlurCapture: J,
 		onKeyDown: ae,
 		children: [
-			L && /* @__PURE__ */ _("button", {
+			R && /* @__PURE__ */ _("button", {
 				ref: M,
 				type: "button",
 				className: "cad-viewport-controls__handle",
 				"aria-label": Y,
-				"aria-pressed": !R,
+				"aria-pressed": !z,
 				"aria-controls": A,
 				"aria-expanded": B,
 				"aria-describedby": j,
@@ -4323,18 +4336,18 @@ function cr({ activeView: e, onViewChange: t, onZoomIn: n, onZoomOut: r, onZoomE
 					/* @__PURE__ */ g("span", {
 						className: "cad-viewport-controls__handle-chevron",
 						"aria-hidden": "true",
-						children: R ? "‹" : "›"
+						children: z ? "‹" : "›"
 					})
 				]
 			}),
 			/* @__PURE__ */ _("div", {
 				id: A,
 				className: "cad-viewport-controls__content",
-				role: L ? "region" : void 0,
-				"aria-label": L ? H : void 0,
+				role: R ? "region" : void 0,
+				"aria-label": R ? H : void 0,
 				hidden: !B,
 				children: [
-					a && /* @__PURE__ */ g(ar, {
+					a && /* @__PURE__ */ g(or, {
 						activeView: e,
 						onViewChange: t
 					}),
@@ -4363,10 +4376,10 @@ function cr({ activeView: e, onViewChange: t, onZoomIn: n, onZoomOut: r, onZoomE
 							})
 						]
 					}),
-					o && /* @__PURE__ */ g(or, {})
+					o && /* @__PURE__ */ g(sr, {})
 				]
 			}),
-			L && /* @__PURE__ */ g("span", {
+			R && /* @__PURE__ */ g("span", {
 				id: j,
 				className: "cad-cui-sr-only",
 				children: "When collapsed, hover or focus the ViewCube to temporarily reveal its navigation controls. Use this button to keep it open."
@@ -4374,7 +4387,7 @@ function cr({ activeView: e, onViewChange: t, onZoomIn: n, onZoomOut: r, onZoomE
 		]
 	});
 }
-function lr({ count: e = 0, entityLabel: t = "objects", fields: n = [], emptyLabel: r = "Nothing selected", className: i }) {
+function ur({ count: e = 0, entityLabel: t = "objects", fields: n = [], emptyLabel: r = "Nothing selected", className: i }) {
 	return /* @__PURE__ */ _("output", {
 		className: X("cad-selection-summary", i),
 		"aria-live": "polite",
@@ -4385,7 +4398,7 @@ function lr({ count: e = 0, entityLabel: t = "objects", fields: n = [], emptyLab
 		] }, e?.id || t)) })]
 	});
 }
-function ur({ distance: e, angle: t, area: n, volume: r, className: i, label: a = "Measurement" }) {
+function dr({ distance: e, angle: t, area: n, volume: r, className: i, label: a = "Measurement" }) {
 	let o = [
 		{
 			id: "distance",
@@ -4416,36 +4429,36 @@ function ur({ distance: e, angle: t, area: n, volume: r, className: i, label: a 
 }
 //#endregion
 //#region src/CadWorkspaceDockUi.jsx
-var dr = Object.freeze({
+var fr = Object.freeze({
 	OPEN: "open",
 	RAIL: "rail",
 	CLOSED: "closed"
-}), fr = new Set(Object.values(dr)), pr = /* @__PURE__ */ new Set([
+}), pr = new Set(Object.values(fr)), mr = /* @__PURE__ */ new Set([
 	"left",
 	"right",
 	"top",
 	"bottom"
-]), mr = /* @__PURE__ */ new Set([
+]), hr = /* @__PURE__ */ new Set([
 	"left",
 	"right",
 	"bottom"
-]), hr = (e, t) => {
+]), gr = (e, t) => {
 	let n = Number(e);
 	return Number.isFinite(n) ? n : t;
-}, gr = (e, t, n, r) => we(Math.round(hr(e, t)), n, r), _r = (e, t) => {
-	let n = Math.max(0, Math.round(hr(e, 72)));
+}, _r = (e, t, n, r) => we(Math.round(gr(e, t)), n, r), vr = (e, t) => {
+	let n = Math.max(0, Math.round(gr(e, 72)));
 	return {
 		minimum: n,
-		maximum: Math.max(n, Math.round(hr(t, 720)))
+		maximum: Math.max(n, Math.round(gr(t, 720)))
 	};
-}, vr = (e) => Math.max(1, Math.round(hr(e, 16))), yr = (e, t = dr.OPEN) => {
+}, yr = (e) => Math.max(1, Math.round(gr(e, 16))), br = (e, t = fr.OPEN) => {
 	let n = String(e ?? "").trim().toLocaleLowerCase();
-	return fr.has(n) ? n : t;
-}, br = (e, t = "always") => {
+	return pr.has(n) ? n : t;
+}, xr = (e, t = "always") => {
 	let n = String(e ?? "").trim().toLocaleLowerCase();
 	return n === "when-open" || n === "always" ? n : t;
-}, xr = (e) => pr.has(e) ? e : "left", Sr = (e) => {
-	let t = xr(e), n = t === "left" || t === "right", r = t === "left" || t === "top";
+}, Sr = (e) => mr.has(e) ? e : "left", Cr = (e) => {
+	let t = Sr(e), n = t === "left" || t === "right", r = t === "left" || t === "top";
 	return {
 		edge: t,
 		axis: n ? "x" : "y",
@@ -4454,10 +4467,10 @@ var dr = Object.freeze({
 		growKey: n ? r ? "ArrowRight" : "ArrowLeft" : r ? "ArrowDown" : "ArrowUp",
 		shrinkKey: n ? r ? "ArrowLeft" : "ArrowRight" : r ? "ArrowUp" : "ArrowDown"
 	};
-}, Cr = (e, t) => e ? e.pointerId === null || t?.pointerId === null || t?.pointerId === void 0 || t.pointerId === e.pointerId : !1;
-function wr({ mode: e, defaultMode: t = dr.OPEN, onModeChange: n, size: r, defaultSize: i = 280, minSize: a = 72, maxSize: s = 720, onSizeChange: c } = {}) {
-	let { minimum: l, maximum: u } = _r(a, s), d = yr(t), f = gr(i, 280, l, u), [p, m] = $(e, d, (e, t, r) => n?.(yr(e, d), t, r)), [h, g] = $(r, f, (e, t, n) => c?.(gr(e, f, l, u), t, n)), _ = yr(p, d), v = gr(h, f, l, u), y = o((e, t, n = "programmatic") => {
-		let r = yr(typeof e == "function" ? e(_) : e, _), i = {
+}, wr = (e, t) => e ? e.pointerId === null || t?.pointerId === null || t?.pointerId === void 0 || t.pointerId === e.pointerId : !1;
+function Tr({ mode: e, defaultMode: t = fr.OPEN, onModeChange: n, size: r, defaultSize: i = 280, minSize: a = 72, maxSize: s = 720, onSizeChange: c } = {}) {
+	let { minimum: l, maximum: u } = vr(a, s), d = br(t), f = _r(i, 280, l, u), [p, m] = $(e, d, (e, t, r) => n?.(br(e, d), t, r)), [h, g] = $(r, f, (e, t, n) => c?.(_r(e, f, l, u), t, n)), _ = br(p, d), v = _r(h, f, l, u), y = o((e, t, n = "programmatic") => {
+		let r = br(typeof e == "function" ? e(_) : e, _), i = {
 			changed: r !== _,
 			mode: r,
 			previousMode: _,
@@ -4472,7 +4485,7 @@ function wr({ mode: e, defaultMode: t = dr.OPEN, onModeChange: n, size: r, defau
 		maxSize: u,
 		setMode: y,
 		setSize: o((e, t, n = "programmatic", r = {}) => {
-			let i = gr(typeof e == "function" ? e(v) : e, v, l, u), a = {
+			let i = _r(typeof e == "function" ? e(v) : e, v, l, u), a = {
 				changed: i !== v,
 				size: i,
 				previousSize: v,
@@ -4488,22 +4501,22 @@ function wr({ mode: e, defaultMode: t = dr.OPEN, onModeChange: n, size: r, defau
 			l,
 			g
 		]),
-		open: o((e, t = "open") => y(dr.OPEN, e, t), [y]),
-		rail: o((e, t = "rail") => y(dr.RAIL, e, t), [y]),
-		close: o((e, t = "close") => y(dr.CLOSED, e, t), [y]),
-		isOpen: _ === dr.OPEN,
-		isRail: _ === dr.RAIL,
-		isClosed: _ === dr.CLOSED
+		open: o((e, t = "open") => y(fr.OPEN, e, t), [y]),
+		rail: o((e, t = "rail") => y(fr.RAIL, e, t), [y]),
+		close: o((e, t = "close") => y(fr.CLOSED, e, t), [y]),
+		isOpen: _ === fr.OPEN,
+		isRail: _ === fr.RAIL,
+		isClosed: _ === fr.CLOSED
 	};
 }
-function Tr({ mode: e, defaultMode: t = dr.OPEN, onModeChange: n, label: r = "Workspace dock", controls: i, disabled: a = !1, openDisabled: o = !1, railDisabled: s = !1, hideDisabled: c = !1, openLabel: l, railLabel: u, hideLabel: d, onOpenClick: f, onRailClick: p, onHideClick: m, className: h, "aria-label": v, "aria-controls": y, ...b }) {
-	let x = wr({
+function Er({ mode: e, defaultMode: t = fr.OPEN, onModeChange: n, label: r = "Workspace dock", controls: i, disabled: a = !1, openDisabled: o = !1, railDisabled: s = !1, hideDisabled: c = !1, openLabel: l, railLabel: u, hideLabel: d, onOpenClick: f, onRailClick: p, onHideClick: m, className: h, "aria-label": v, "aria-controls": y, ...b }) {
+	let x = Tr({
 		mode: e,
 		defaultMode: t,
 		onModeChange: n
 	}), S = y || i, C = String(r || "Workspace dock"), w = [
 		{
-			mode: dr.OPEN,
+			mode: fr.OPEN,
 			label: l || `Open ${C}`,
 			caption: "OPEN",
 			symbol: "▤",
@@ -4511,7 +4524,7 @@ function Tr({ mode: e, defaultMode: t = dr.OPEN, onModeChange: n, label: r = "Wo
 			onClick: f
 		},
 		{
-			mode: dr.RAIL,
+			mode: fr.RAIL,
 			label: u || `Rail ${C}`,
 			caption: "RAIL",
 			symbol: "▥",
@@ -4519,7 +4532,7 @@ function Tr({ mode: e, defaultMode: t = dr.OPEN, onModeChange: n, label: r = "Wo
 			onClick: p
 		},
 		{
-			mode: dr.CLOSED,
+			mode: fr.CLOSED,
 			label: d || `Hide ${C}`,
 			caption: "HIDE",
 			symbol: "×",
@@ -4553,16 +4566,16 @@ function Tr({ mode: e, defaultMode: t = dr.OPEN, onModeChange: n, label: r = "Wo
 		}, e.mode))
 	});
 }
-var Er = i(function({ size: e, defaultSize: t = 280, minSize: n = 72, maxSize: r = 720, resizeStep: i = 16, edge: a = "left", onSizeChange: s, onResizeStart: c, onResizeEnd: u, disabled: f = !1, label: h = "dock", separatorLabel: _, controls: v, className: y, children: b, onPointerDown: x, onPointerMove: S, onPointerUp: C, onPointerCancel: w, onLostPointerCapture: T, onKeyDown: E, "aria-label": D, "aria-controls": O, ...ee }, k) {
-	let A = wr({
+var Dr = i(function({ size: e, defaultSize: t = 280, minSize: n = 72, maxSize: r = 720, resizeStep: i = 16, edge: a = "left", onSizeChange: s, onResizeStart: c, onResizeEnd: u, disabled: f = !1, label: h = "dock", separatorLabel: _, controls: v, className: y, children: b, onPointerDown: x, onPointerMove: S, onPointerUp: C, onPointerCancel: w, onLostPointerCapture: T, onKeyDown: E, "aria-label": D, "aria-controls": O, ...ee }, k) {
+	let A = Tr({
 		size: e,
 		defaultSize: t,
 		minSize: n,
 		maxSize: r,
 		onSizeChange: s
-	}), j = d(() => Sr(a), [a]), M = vr(i), N = p(null), te = p(null), P = p(A.size), F = p(A.setSize), I = p(c), L = p(u), [R, z] = m(!1);
-	F.current = A.setSize, I.current = c, L.current = u, l(() => {
-		N.current || (P.current = A.size);
+	}), j = d(() => Cr(a), [a]), M = yr(i), N = p(null), P = p(null), F = p(A.size), I = p(A.setSize), L = p(c), R = p(u), [z, te] = m(!1);
+	I.current = A.setSize, L.current = c, R.current = u, l(() => {
+		N.current || (F.current = A.size);
 	}, [A.size]);
 	let B = o((e) => {
 		try {
@@ -4570,24 +4583,24 @@ var Er = i(function({ size: e, defaultSize: t = 280, minSize: n = 72, maxSize: r
 		} catch {}
 	}, []), V = o((e) => {
 		let t = N.current;
-		if (!t || !Cr(t, e) || e.defaultPrevented) return;
+		if (!t || !wr(t, e) || e.defaultPrevented) return;
 		let n = t.axis === "x" ? Number(e.clientX) : Number(e.clientY);
 		if (!Number.isFinite(n)) return;
-		let r = (n - t.startCoordinate) * (t.growsWithPositiveMovement ? 1 : -1), i = gr(t.startSize + r, t.startSize, t.minSize, t.maxSize);
-		P.current = i, F.current?.(i, e, "pointer", {
+		let r = (n - t.startCoordinate) * (t.growsWithPositiveMovement ? 1 : -1), i = _r(t.startSize + r, t.startSize, t.minSize, t.maxSize);
+		F.current = i, I.current?.(i, e, "pointer", {
 			edge: t.edge,
 			orientation: t.orientation,
 			axis: t.axis
 		});
 	}, []), H = o(() => {
-		let e = te.current;
-		te.current = null, !(!e || typeof window > "u") && (window.removeEventListener("pointermove", e.pointerMove), window.removeEventListener("pointerup", e.pointerEnd), window.removeEventListener("pointercancel", e.pointerCancel));
+		let e = P.current;
+		P.current = null, !(!e || typeof window > "u") && (window.removeEventListener("pointermove", e.pointerMove), window.removeEventListener("pointerup", e.pointerEnd), window.removeEventListener("pointercancel", e.pointerCancel));
 	}, []), U = o((e, t = !1) => {
 		let n = N.current;
-		if (!n || !Cr(n, e)) return;
-		N.current = null, H(), B(n), z(!1);
-		let r = gr(P.current, n.startSize, n.minSize, n.maxSize);
-		P.current = r, L.current?.(r, {
+		if (!n || !wr(n, e)) return;
+		N.current = null, H(), B(n), te(!1);
+		let r = _r(F.current, n.startSize, n.minSize, n.maxSize);
+		F.current = r, R.current?.(r, {
 			changed: r !== n.startSize,
 			source: "pointer",
 			edge: n.edge,
@@ -4600,8 +4613,8 @@ var Er = i(function({ size: e, defaultSize: t = 280, minSize: n = 72, maxSize: r
 		let e = N.current;
 		if (!e) return;
 		N.current = null, H(), B(e);
-		let t = gr(P.current, e.startSize, e.minSize, e.maxSize);
-		L.current?.(t, {
+		let t = _r(F.current, e.startSize, e.minSize, e.maxSize);
+		R.current?.(t, {
 			changed: t !== e.startSize,
 			source: "pointer",
 			edge: e.edge,
@@ -4627,11 +4640,11 @@ var Er = i(function({ size: e, defaultSize: t = 280, minSize: n = 72, maxSize: r
 			maxSize: A.maxSize,
 			...j
 		};
-		P.current = A.size, N.current = r;
+		F.current = A.size, N.current = r;
 		try {
 			n !== null && e.currentTarget.setPointerCapture?.(n);
 		} catch {}
-		if (z(!0), I.current?.(A.size, {
+		if (te(!0), L.current?.(A.size, {
 			source: "pointer",
 			edge: j.edge,
 			orientation: j.orientation,
@@ -4642,18 +4655,18 @@ var Er = i(function({ size: e, defaultSize: t = 280, minSize: n = 72, maxSize: r
 				pointerEnd: W,
 				pointerCancel: ne
 			};
-			te.current = e, window.addEventListener("pointermove", e.pointerMove), window.addEventListener("pointerup", e.pointerEnd), window.addEventListener("pointercancel", e.pointerCancel);
+			P.current = e, window.addEventListener("pointermove", e.pointerMove), window.addEventListener("pointerup", e.pointerEnd), window.addEventListener("pointercancel", e.pointerCancel);
 		}
 	}, G = (e, t) => {
-		let n = gr(P.current, A.size, A.minSize, A.maxSize), r = gr(n + e, n, A.minSize, A.maxSize);
-		P.current = r, A.setSize(r, t, "keyboard", {
+		let n = _r(F.current, A.size, A.minSize, A.maxSize), r = _r(n + e, n, A.minSize, A.maxSize);
+		F.current = r, A.setSize(r, t, "keyboard", {
 			edge: j.edge,
 			orientation: j.orientation,
 			axis: j.axis
 		});
 	}, K = (e, t) => {
 		let n = e === "min" ? A.minSize : A.maxSize;
-		P.current = n, A.setSize(n, t, "keyboard", {
+		F.current = n, A.setSize(n, t, "keyboard", {
 			edge: j.edge,
 			orientation: j.orientation,
 			axis: j.axis
@@ -4689,7 +4702,7 @@ var Er = i(function({ size: e, defaultSize: t = 280, minSize: n = 72, maxSize: r
 		className: X("cad-workspace-dock-resize-handle", y),
 		"data-edge": j.edge,
 		"data-orientation": j.orientation,
-		"data-resizing": R ? "true" : "false",
+		"data-resizing": z ? "true" : "false",
 		"data-disabled": f ? "true" : "false",
 		role: "separator",
 		tabIndex: f ? -1 : 0,
@@ -4719,10 +4732,10 @@ var Er = i(function({ size: e, defaultSize: t = 280, minSize: n = 72, maxSize: r
 		})
 	});
 });
-Er.displayName = "CadWorkspaceDockResizeHandle";
-var Dr = (e) => mr.has(e) ? e : "left";
-function Or({ peekOpen: e, defaultPeekOpen: t = !1, onPeekOpenChange: n, edge: r = "left" } = {}) {
-	let i = Dr(r), [a, s] = $(e, !!t, (e, t, r) => n?.(!!e, t, r)), c = !!a, l = o((e, t, n = "programmatic") => {
+Dr.displayName = "CadWorkspaceDockResizeHandle";
+var Or = (e) => hr.has(e) ? e : "left";
+function kr({ peekOpen: e, defaultPeekOpen: t = !1, onPeekOpenChange: n, edge: r = "left" } = {}) {
+	let i = Or(r), [a, s] = $(e, !!t, (e, t, r) => n?.(!!e, t, r)), c = !!a, l = o((e, t, n = "programmatic") => {
 		let r = !!(typeof e == "function" ? e(c) : e), a = {
 			changed: r !== c,
 			open: r,
@@ -4744,7 +4757,7 @@ function Or({ peekOpen: e, defaultPeekOpen: t = !1, onPeekOpenChange: n, edge: r
 		closePeek: o((e, t = "programmatic") => l(!1, e, t), [l])
 	};
 }
-var kr = (e, t) => {
+var Ar = (e, t) => {
 	if (!e || !t) return !1;
 	try {
 		return e === t || !!e.contains?.(t);
@@ -4752,52 +4765,52 @@ var kr = (e, t) => {
 		return !1;
 	}
 };
-function Ar({ edge: e = "left", label: t = "Workspace dock", previewLabel: n, expandLabel: r, children: i, renderPreview: a, previewMount: o, peekOpen: s, defaultPeekOpen: c = !1, onPeekOpenChange: l, onExpand: f, disabled: m = !1, id: h, controls: v, className: y, railClassName: b, previewClassName: x, onPointerEnter: S, onPointerLeave: C, onFocusCapture: w, onBlurCapture: T, onKeyDown: E, "aria-label": D, ...O }) {
+function jr({ edge: e = "left", label: t = "Workspace dock", previewLabel: n, expandLabel: r, children: i, renderPreview: a, previewMount: o, peekOpen: s, defaultPeekOpen: c = !1, onPeekOpenChange: l, onExpand: f, disabled: m = !1, id: h, controls: v, className: y, railClassName: b, previewClassName: x, onPointerEnter: S, onPointerLeave: C, onFocusCapture: w, onBlurCapture: T, onKeyDown: E, "aria-label": D, ...O }) {
 	let ee = u(), k = p(null), A = p({
 		pointer: !1,
 		focus: !1,
 		dismissed: !1
-	}), j = Dr(e), M = h || `cad-workspace-dock-rail-${ee}`, N = `${M}-label`, te = `${M}-preview`, P = Or({
+	}), j = Or(e), M = h || `cad-workspace-dock-rail-${ee}`, N = `${M}-label`, P = `${M}-preview`, F = kr({
 		edge: j,
 		peekOpen: s,
 		defaultPeekOpen: c,
 		onPeekOpenChange: l
-	}), F = !m && P.peekOpen, I = String(t || "Workspace dock"), L = n || `${I} preview`, R = r || `Expand ${I}`, z = typeof a == "function" ? a : typeof i == "function" ? i : null, B = br(o, z ? "when-open" : "always"), V = d(() => ({
-		active: F,
-		peekOpen: F,
+	}), I = !m && F.peekOpen, L = String(t || "Workspace dock"), R = n || `${L} preview`, z = r || `Expand ${L}`, te = typeof a == "function" ? a : typeof i == "function" ? i : null, B = xr(o, te ? "when-open" : "always"), V = d(() => ({
+		active: I,
+		peekOpen: I,
 		edge: j,
-		label: I,
-		previewId: te,
-		controls: v || te,
+		label: L,
+		previewId: P,
+		controls: v || P,
 		disabled: !!m
 	}), [
 		v,
 		m,
-		F,
-		te,
+		I,
+		P,
 		j,
-		I
-	]), H = F || B === "always", U = H ? z ? z(V) : i : null, W = (e, t) => {
-		m || (A.current.dismissed = !1, P.openPeek(e, t));
+		L
+	]), H = I || B === "always", U = H ? te ? te(V) : i : null, W = (e, t) => {
+		m || (A.current.dismissed = !1, F.openPeek(e, t));
 	}, ne = (e, t) => {
 		let n = A.current;
-		m || n.pointer || n.focus || (n.dismissed = !1, P.closePeek(e, t));
+		m || n.pointer || n.focus || (n.dismissed = !1, F.closePeek(e, t));
 	}, re = (e) => {
 		S?.(e), !(e.defaultPrevented || m) && (A.current.pointer = !0, W(e, "pointer-enter"));
 	}, G = (e) => {
-		C?.(e), !(e.defaultPrevented || m || kr(e.currentTarget, e.relatedTarget)) && (A.current.pointer = !1, ne(e, "pointer-leave"));
+		C?.(e), !(e.defaultPrevented || m || Ar(e.currentTarget, e.relatedTarget)) && (A.current.pointer = !1, ne(e, "pointer-leave"));
 	}, K = (e) => {
 		w?.(e), !(e.defaultPrevented || m) && (A.current.focus = !0, A.current.dismissed || W(e, "focus-enter"));
 	}, q = (e) => {
-		T?.(e), !(e.defaultPrevented || m || kr(e.currentTarget, e.relatedTarget)) && (A.current.focus = !1, ne(e, "focus-leave"));
+		T?.(e), !(e.defaultPrevented || m || Ar(e.currentTarget, e.relatedTarget)) && (A.current.focus = !1, ne(e, "focus-leave"));
 	}, J = (e) => {
-		E?.(e), !(e.defaultPrevented || m || e.key !== "Escape" || !F) && (e.preventDefault(), A.current.dismissed = !0, P.closePeek(e, "escape"), k.current?.focus());
+		E?.(e), !(e.defaultPrevented || m || e.key !== "Escape" || !I) && (e.preventDefault(), A.current.dismissed = !0, F.closePeek(e, "escape"), k.current?.focus());
 	}, ie = (e) => {
 		m || (f?.(e, {
 			edge: j,
-			label: I,
-			previewId: te,
-			controls: v || te,
+			label: L,
+			previewId: P,
+			controls: v || P,
 			source: "rail-expand"
 		}), e.defaultPrevented || W(e, "expand"));
 	};
@@ -4806,7 +4819,7 @@ function Ar({ edge: e = "left", label: t = "Workspace dock", previewLabel: n, ex
 		id: M,
 		className: X("cad-workspace-dock-rail", y),
 		"data-edge": j,
-		"data-peek-open": F ? "true" : "false",
+		"data-peek-open": I ? "true" : "false",
 		"data-preview-mount": B,
 		"data-preview-rendered": H ? "true" : "false",
 		"data-disabled": m ? "true" : "false",
@@ -4820,11 +4833,11 @@ function Ar({ edge: e = "left", label: t = "Workspace dock", previewLabel: n, ex
 			id: N,
 			type: "button",
 			className: X("cad-workspace-dock-rail__label", b),
-			"aria-label": D || `Preview ${I}`,
-			"aria-controls": te,
-			"aria-expanded": F,
+			"aria-label": D || `Preview ${L}`,
+			"aria-controls": P,
+			"aria-expanded": I,
 			disabled: m,
-			title: R,
+			title: z,
 			onClick: ie,
 			children: [
 				/* @__PURE__ */ _("span", {
@@ -4836,27 +4849,27 @@ function Ar({ edge: e = "left", label: t = "Workspace dock", previewLabel: n, ex
 						/* @__PURE__ */ g("i", {})
 					]
 				}),
-				/* @__PURE__ */ g("span", { children: I }),
+				/* @__PURE__ */ g("span", { children: L }),
 				/* @__PURE__ */ g("small", {
 					"aria-hidden": "true",
 					children: "PEEK"
 				})
 			]
 		}), /* @__PURE__ */ g("aside", {
-			id: te,
+			id: P,
 			className: X("cad-workspace-dock-rail__preview", x),
 			"data-edge": j,
 			role: "region",
-			"aria-label": n ? L : void 0,
+			"aria-label": n ? R : void 0,
 			"aria-labelledby": n ? void 0 : N,
-			"aria-hidden": !F,
-			hidden: !F,
+			"aria-hidden": !I,
+			hidden: !I,
 			children: U
 		})]
 	});
 }
-function jr({ edge: e = "left", panels: t = [], activeId: n, defaultActiveId: r, onActiveChange: i, onPanelClose: a, label: s = "Docked panels", tabsLabel: c, compactTabs: l = !1, renderPanel: u, children: d, id: f, className: p, tabsClassName: m, panelClassName: h, emptyLabel: _ = "No panels are available in this dock.", ...v }) {
-	let y = Dr(e), b = Z(t), x = o((e) => {
+function Mr({ edge: e = "left", panels: t = [], activeId: n, defaultActiveId: r, onActiveChange: i, onPanelClose: a, label: s = "Docked panels", tabsLabel: c, compactTabs: l = !1, renderPanel: u, children: d, id: f, className: p, tabsClassName: m, panelClassName: h, emptyLabel: _ = "No panels are available in this dock.", ...v }) {
+	let y = Or(e), b = Z(t), x = o((e) => {
 		let t = u?.(e), n = t === void 0 ? e?.content ?? e?.children : t;
 		return h ? /* @__PURE__ */ g("div", {
 			className: h,
@@ -4870,7 +4883,7 @@ function jr({ edge: e = "left", panels: t = [], activeId: n, defaultActiveId: r,
 		"data-edge": y,
 		"aria-label": s,
 		role: "complementary",
-		children: b.length > 0 ? /* @__PURE__ */ g(Zn, {
+		children: b.length > 0 ? /* @__PURE__ */ g(Qn, {
 			items: b,
 			activeId: n,
 			defaultActiveId: r,
@@ -4889,7 +4902,7 @@ function jr({ edge: e = "left", panels: t = [], activeId: n, defaultActiveId: r,
 }
 //#endregion
 //#region src/CadDraftingUi.jsx
-var Mr = Object.freeze({
+var Nr = Object.freeze({
 	point: Object.freeze([
 		{
 			id: "x",
@@ -4934,7 +4947,7 @@ var Mr = Object.freeze({
 			unit: "mm"
 		}
 	])
-}), Nr = Object.freeze([
+}), Pr = Object.freeze([
 	{
 		id: "endpoint",
 		label: "Endpoint",
@@ -4995,7 +5008,7 @@ var Mr = Object.freeze({
 		glyph: "∥",
 		shortcut: "PAR"
 	}
-]), Pr = Object.freeze([
+]), Fr = Object.freeze([
 	{
 		id: "coincident",
 		label: "Coincident",
@@ -5041,7 +5054,7 @@ var Mr = Object.freeze({
 		label: "Fix",
 		glyph: "▣"
 	}
-]), Fr = Object.freeze([
+]), Ir = Object.freeze([
 	"1:1",
 	"1:2",
 	"1:5",
@@ -5049,7 +5062,7 @@ var Mr = Object.freeze({
 	"1:20",
 	"1:50",
 	"1:100"
-]), Ir = Object.freeze([
+]), Lr = Object.freeze([
 	{
 		id: "top",
 		label: "Top"
@@ -5078,7 +5091,7 @@ var Mr = Object.freeze({
 		id: "isometric",
 		label: "Isometric"
 	}
-]), Lr = (e) => Z(e).map((e, t) => typeof e == "string" ? {
+]), Rr = (e) => Z(e).map((e, t) => typeof e == "string" ? {
 	id: e,
 	label: e
 } : {
@@ -5086,8 +5099,8 @@ var Mr = Object.freeze({
 	id: e?.id || `${Q(e)}-${t}`,
 	label: Q(e)
 });
-function Rr({ mode: e = "point", fields: t, value: n, defaultValue: r = {}, onChange: i, onSubmit: a, prompt: o = "Specify point", unit: s = "mm", visible: c = !0, submitLabel: l = "Accept", className: f, children: p, ...m }) {
-	let h = u(), v = Z(t).length ? Z(t) : Mr[e] || Mr.point, y = d(() => v.reduce((e, t) => t?.id && t.value !== void 0 ? {
+function zr({ mode: e = "point", fields: t, value: n, defaultValue: r = {}, onChange: i, onSubmit: a, prompt: o = "Specify point", unit: s = "mm", visible: c = !0, submitLabel: l = "Accept", className: f, children: p, ...m }) {
+	let h = u(), v = Z(t).length ? Z(t) : Nr[e] || Nr.point, y = d(() => v.reduce((e, t) => t?.id && t.value !== void 0 ? {
 		...e,
 		[t.id]: t.value
 	} : e, {}), [v]), [b, x] = $(n, d(() => ({
@@ -5145,8 +5158,8 @@ function Rr({ mode: e = "point", fields: t, value: n, defaultValue: r = {}, onCh
 		]
 	}) : null;
 }
-function zr({ modes: e = Nr, activeIds: t, defaultActiveIds: n = [], multiple: r = !0, onChange: i, onClose: a, label: o = "Object snaps", className: s, ...c }) {
-	let l = d(() => Lr(e), [e]), [u, f] = $(t, n, (e, t, n) => i?.(e, t, n)), p = new Set(Z(u)), m = (e, t) => {
+function Br({ modes: e = Pr, activeIds: t, defaultActiveIds: n = [], multiple: r = !0, onChange: i, onClose: a, label: o = "Object snaps", className: s, ...c }) {
+	let l = d(() => Rr(e), [e]), [u, f] = $(t, n, (e, t, n) => i?.(e, t, n)), p = new Set(Z(u)), m = (e, t) => {
 		if (e.disabled) return;
 		let n = r ? p.has(e.id) ? [...p].filter((t) => t !== e.id) : [...p, e.id] : p.has(e.id) ? [] : [e.id];
 		f(n, e, t);
@@ -5185,7 +5198,7 @@ function zr({ modes: e = Nr, activeIds: t, defaultActiveIds: n = [], multiple: r
 		})]
 	});
 }
-function Br({ tools: e = [], selectionCount: t, label: n = "Selection tools", onAction: r, onDismiss: i, className: a, ...o }) {
+function Vr({ tools: e = [], selectionCount: t, label: n = "Selection tools", onAction: r, onDismiss: i, className: a, ...o }) {
 	return /* @__PURE__ */ _("aside", {
 		...o,
 		className: X("cad-grip-toolbar", a),
@@ -5225,8 +5238,8 @@ function Br({ tools: e = [], selectionCount: t, label: n = "Selection tools", on
 		]
 	});
 }
-function Vr({ constraints: e = Pr, activeIds: t, defaultActiveIds: n = [], onChange: r, onAction: i, label: a = "Geometric constraints", layout: o = "strip", className: s, ...c }) {
-	let l = d(() => Lr(e), [e]), [u, f] = $(t, n, (e, t, n) => r?.(e, t, n)), p = new Set(Z(u)), m = o === "auto" || o === "tiles" ? o : "strip", h = (e, t) => {
+function Hr({ constraints: e = Fr, activeIds: t, defaultActiveIds: n = [], onChange: r, onAction: i, label: a = "Geometric constraints", layout: o = "strip", className: s, ...c }) {
+	let l = d(() => Rr(e), [e]), [u, f] = $(t, n, (e, t, n) => r?.(e, t, n)), p = new Set(Z(u)), m = o === "auto" || o === "tiles" ? o : "strip", h = (e, t) => {
 		if (e.disabled) return;
 		let n = p.has(e.id) ? [...p].filter((t) => t !== e.id) : [...p, e.id];
 		f(n, e, t), i?.(e, t);
@@ -5252,8 +5265,8 @@ function Vr({ constraints: e = Pr, activeIds: t, defaultActiveIds: n = [], onCha
 		}, e.id))
 	});
 }
-function Hr({ scales: e = Fr, value: t, defaultValue: n, onChange: r, label: i = "Annotation scale", onManage: a, id: o, selectProps: s = {}, disabled: c = !1, layout: l = "stacked", className: f, ...p }) {
-	let m = u(), h = o || `cad-annotation-scale-${m}`, v = d(() => Lr(e), [e]), [y, b] = $(t, n ?? v[0]?.id ?? "", (e, t, n) => r?.(e, t, n)), x = l === "inline" ? "inline" : "stacked";
+function Ur({ scales: e = Ir, value: t, defaultValue: n, onChange: r, label: i = "Annotation scale", onManage: a, id: o, selectProps: s = {}, disabled: c = !1, layout: l = "stacked", className: f, ...p }) {
+	let m = u(), h = o || `cad-annotation-scale-${m}`, v = d(() => Rr(e), [e]), [y, b] = $(t, n ?? v[0]?.id ?? "", (e, t, n) => r?.(e, t, n)), x = l === "inline" ? "inline" : "stacked";
 	return /* @__PURE__ */ _("div", {
 		...p,
 		className: X("cad-annotation-scale-picker", f),
@@ -5287,8 +5300,8 @@ function Hr({ scales: e = Fr, value: t, defaultValue: n, onChange: r, label: i =
 		]
 	});
 }
-function Ur({ presets: e = Ir, value: t, defaultValue: n, onChange: r, label: i = "View preset", id: a, selectProps: o = {}, disabled: s = !1, className: c, ...l }) {
-	let f = u(), p = a || `cad-view-preset-${f}`, m = d(() => Lr(e), [e]), [h, v] = $(t, n ?? m[0]?.id ?? "", (e, t, n) => r?.(e, t, n));
+function Wr({ presets: e = Lr, value: t, defaultValue: n, onChange: r, label: i = "View preset", id: a, selectProps: o = {}, disabled: s = !1, className: c, ...l }) {
+	let f = u(), p = a || `cad-view-preset-${f}`, m = d(() => Rr(e), [e]), [h, v] = $(t, n ?? m[0]?.id ?? "", (e, t, n) => r?.(e, t, n));
 	return /* @__PURE__ */ _("div", {
 		...l,
 		className: X("cad-view-preset-picker", c),
@@ -5312,7 +5325,7 @@ function Ur({ presets: e = Ir, value: t, defaultValue: n, onChange: r, label: i 
 		})]
 	});
 }
-function Wr({ angle: e, distance: t, increment: n, active: r, defaultActive: i = !1, onActiveChange: a, className: o, label: s = "Polar tracking", ...c }) {
+function Gr({ angle: e, distance: t, increment: n, active: r, defaultActive: i = !1, onActiveChange: a, className: o, label: s = "Polar tracking", ...c }) {
 	let [l, u] = $(r, i, (e, t) => a?.(e, t));
 	return /* @__PURE__ */ _("div", {
 		...c,
@@ -5338,8 +5351,8 @@ function Wr({ angle: e, distance: t, increment: n, active: r, defaultActive: i =
 		]
 	});
 }
-function Gr({ type: e = "endpoint", label: t, active: n = !0, className: r, style: i, ...a }) {
-	let o = Nr.find((t) => t.id === e)?.glyph || "•";
+function Kr({ type: e = "endpoint", label: t, active: n = !0, className: r, style: i, ...a }) {
+	let o = Pr.find((t) => t.id === e)?.glyph || "•";
 	return /* @__PURE__ */ _("span", {
 		...a,
 		className: X("cad-object-snap-marker", n && "cad-object-snap-marker--active", r),
@@ -5353,7 +5366,7 @@ function Gr({ type: e = "endpoint", label: t, active: n = !0, className: r, styl
 		}), t && /* @__PURE__ */ g("small", { children: t })]
 	});
 }
-function Kr({ label: e = "Selection grip", variant: t = "square", active: n = !1, disabled: r = !1, onPointerDown: i, onClick: a, className: o, ...s }) {
+function qr({ label: e = "Selection grip", variant: t = "square", active: n = !1, disabled: r = !1, onPointerDown: i, onClick: a, className: o, ...s }) {
 	return /* @__PURE__ */ g("button", {
 		...s,
 		type: "button",
@@ -5368,7 +5381,7 @@ function Kr({ label: e = "Selection grip", variant: t = "square", active: n = !1
 }
 //#endregion
 //#region src/CadLayoutUi.jsx
-var qr = Object.freeze([
+var Jr = Object.freeze([
 	"#ff0000",
 	"#ffff00",
 	"#00ff00",
@@ -5393,7 +5406,7 @@ var qr = Object.freeze([
 	"#ff7fff",
 	"#ffffff",
 	"#202020"
-]), Jr = Object.freeze([
+]), Yr = Object.freeze([
 	{
 		id: "continuous",
 		label: "Continuous"
@@ -5410,7 +5423,7 @@ var qr = Object.freeze([
 		id: "dashdot",
 		label: "Dash dot"
 	}
-]), Yr = Object.freeze([
+]), Xr = Object.freeze([
 	{
 		id: "default",
 		label: "Default",
@@ -5446,7 +5459,7 @@ var qr = Object.freeze([
 		label: "1.00 mm",
 		value: 1
 	}
-]), Xr = (e) => Z(e).map((e, t) => typeof e == "string" || typeof e == "number" ? {
+]), Zr = (e) => Z(e).map((e, t) => typeof e == "string" || typeof e == "number" ? {
 	id: String(e),
 	label: String(e),
 	value: e
@@ -5454,20 +5467,20 @@ var qr = Object.freeze([
 	...e,
 	id: e?.id || `${Q(e)}-${t}`,
 	label: Q(e)
-}), Zr = (e) => typeof e == "string" ? {
+}), Qr = (e) => typeof e == "string" ? {
 	mode: "rgb",
 	value: e
 } : !e || typeof e != "object" ? { mode: "by-layer" } : {
 	...e,
 	mode: e.mode || "rgb",
 	value: e.value || e.hex
-}, Qr = (e) => {
-	let t = Zr(e);
+}, $r = (e) => {
+	let t = Qr(e);
 	return t.mode === "by-layer" ? "ByLayer" : t.mode === "by-block" ? "ByBlock" : t.value || t.hex || "Color";
 };
-function $r({ orientation: e = "horizontal", size: t, defaultSize: n = 30, minSize: r = 12, maxSize: i = 88, keyboardStep: a = 5, primary: o, secondary: s, onSizeChange: c, onResizeStart: u, onResizeEnd: d, separatorLabel: f = "Resize panels", className: m, ...h }) {
-	let v = p(null), y = p(null), b = p(n), x = p(null), S = p(d), C = p(null), w = p(null), T = p(null), E = Number(r), D = Number(i), O = Number.isFinite(E) ? E : 0, ee = Math.max(O, Number.isFinite(D) ? D : 100), k = Number(n), A = we(Number.isFinite(k) ? k : O, O, ee), j = Number(a), M = Number.isFinite(j) && j > 0 ? j : 5, [N, te] = $(t, n, (e, t, n) => c?.(e, t, n)), P = Number(N), F = we(Number.isFinite(P) ? P : A, O, ee), I = e === "vertical" ? "y" : "x", L = e === "vertical" ? "horizontal" : "vertical";
-	b.current = F, x.current = te, S.current = d, T.current ||= () => {
+function ei({ orientation: e = "horizontal", size: t, defaultSize: n = 30, minSize: r = 12, maxSize: i = 88, keyboardStep: a = 5, primary: o, secondary: s, onSizeChange: c, onResizeStart: u, onResizeEnd: d, separatorLabel: f = "Resize panels", className: m, ...h }) {
+	let v = p(null), y = p(null), b = p(n), x = p(null), S = p(d), C = p(null), w = p(null), T = p(null), E = Number(r), D = Number(i), O = Number.isFinite(E) ? E : 0, ee = Math.max(O, Number.isFinite(D) ? D : 100), k = Number(n), A = we(Number.isFinite(k) ? k : O, O, ee), j = Number(a), M = Number.isFinite(j) && j > 0 ? j : 5, [N, P] = $(t, n, (e, t, n) => c?.(e, t, n)), F = Number(N), I = we(Number.isFinite(F) ? F : A, O, ee), L = e === "vertical" ? "y" : "x", R = e === "vertical" ? "horizontal" : "vertical";
+	b.current = I, x.current = P, S.current = d, T.current ||= () => {
 		typeof window > "u" || (window.removeEventListener("pointermove", C.current), window.removeEventListener("pointerup", w.current), window.removeEventListener("pointercancel", w.current));
 	}, C.current ||= (e) => {
 		let t = y.current, n = v.current;
@@ -5495,32 +5508,32 @@ function $r({ orientation: e = "horizontal", size: t, defaultSize: n = 30, minSi
 			e?.pointerId !== null && e?.pointerId !== void 0 && e.divider?.releasePointerCapture?.(e.pointerId);
 		} catch {}
 	}, []);
-	let R = (t) => {
+	let z = (t) => {
 		if (!(t.button !== 0 || y.current)) {
-			t.preventDefault(), b.current = F, y.current = {
+			t.preventDefault(), b.current = I, y.current = {
 				pointerId: t.pointerId ?? null,
 				divider: t.currentTarget,
 				orientation: e,
 				minSize: O,
 				maxSize: ee,
-				axis: I
+				axis: L
 			};
 			try {
 				t.pointerId !== void 0 && t.currentTarget.setPointerCapture?.(t.pointerId);
 			} catch {}
-			u?.(F, t), window.addEventListener("pointermove", C.current), window.addEventListener("pointerup", w.current), window.addEventListener("pointercancel", w.current);
+			u?.(I, t), window.addEventListener("pointermove", C.current), window.addEventListener("pointerup", w.current), window.addEventListener("pointercancel", w.current);
 		}
-	}, z = (e, t) => {
+	}, te = (e, t) => {
 		let n = we(we(Number(b.current), O, ee) + e, O, ee);
 		b.current = n, x.current?.(n, {
 			source: "keyboard",
-			axis: I
+			axis: L
 		}, t);
 	}, B = (e, t) => {
 		let n = we(e, O, ee);
 		b.current = n, x.current?.(n, {
 			source: "keyboard",
-			axis: I
+			axis: L
 		}, t);
 	};
 	return /* @__PURE__ */ _("section", {
@@ -5528,7 +5541,7 @@ function $r({ orientation: e = "horizontal", size: t, defaultSize: n = 30, minSi
 		ref: v,
 		className: X("cad-split-pane", `cad-split-pane--${e}`, m),
 		style: {
-			"--cad-split-size": `${F}%`,
+			"--cad-split-size": `${I}%`,
 			...h.style
 		},
 		children: [
@@ -5540,23 +5553,23 @@ function $r({ orientation: e = "horizontal", size: t, defaultSize: n = 30, minSi
 				className: "cad-split-pane__divider",
 				role: "separator",
 				"aria-label": f,
-				"aria-orientation": L,
+				"aria-orientation": R,
 				"aria-valuemin": O,
 				"aria-valuemax": ee,
-				"aria-valuenow": F,
-				"aria-valuetext": `${F}%`,
+				"aria-valuenow": I,
+				"aria-valuetext": `${I}%`,
 				tabIndex: 0,
-				onPointerDown: R,
+				onPointerDown: z,
 				onPointerCancel: w.current,
 				onLostPointerCapture: w.current,
 				onKeyDown: (t) => {
 					let n = e === "vertical" ? ["ArrowDown", "ArrowRight"] : ["ArrowRight", "ArrowDown"], r = e === "vertical" ? ["ArrowUp", "ArrowLeft"] : ["ArrowLeft", "ArrowUp"];
 					if (n.includes(t.key)) {
-						t.preventDefault(), z(M, t);
+						t.preventDefault(), te(M, t);
 						return;
 					}
 					if (r.includes(t.key)) {
-						t.preventDefault(), z(-M, t);
+						t.preventDefault(), te(-M, t);
 						return;
 					}
 					if (t.key === "Home") {
@@ -5574,8 +5587,8 @@ function $r({ orientation: e = "horizontal", size: t, defaultSize: n = 30, minSi
 		]
 	});
 }
-function ei({ item: e, open: t, onToggle: n, onAction: r, onClose: i }) {
-	let a = Xr(e?.items), o = `cad-menu-bar-popup-${u()}`, s = a.length > 0;
+function ti({ item: e, open: t, onToggle: n, onAction: r, onClose: i }) {
+	let a = Zr(e?.items), o = `cad-menu-bar-popup-${u()}`, s = a.length > 0;
 	return /* @__PURE__ */ _("div", {
 		className: X("cad-menu-bar__menu", t && "cad-menu-bar__menu--open"),
 		"data-menu-id": e.id,
@@ -5600,7 +5613,7 @@ function ei({ item: e, open: t, onToggle: n, onAction: r, onClose: i }) {
 			children: a.map((e) => e.type === "separator" ? /* @__PURE__ */ g("div", {
 				className: "cad-menu-bar__separator",
 				role: "separator"
-			}, e.id) : /* @__PURE__ */ g(ti, {
+			}, e.id) : /* @__PURE__ */ g(ni, {
 				item: e,
 				onAction: r,
 				onClose: i
@@ -5608,8 +5621,8 @@ function ei({ item: e, open: t, onToggle: n, onAction: r, onClose: i }) {
 		})]
 	});
 }
-function ti({ item: e, onAction: t, onClose: n, className: r }) {
-	let i = Xr(e?.items), a = i.length > 0, [o, s] = $(void 0, !1);
+function ni({ item: e, onAction: t, onClose: n, className: r }) {
+	let i = Zr(e?.items), a = i.length > 0, [o, s] = $(void 0, !1);
 	return /* @__PURE__ */ _("div", {
 		className: X("cad-submenu", o && "cad-submenu--open", r),
 		role: "none",
@@ -5654,7 +5667,7 @@ function ti({ item: e, onAction: t, onClose: n, className: r }) {
 			children: i.map((e) => e.type === "separator" ? /* @__PURE__ */ g("div", {
 				className: "cad-menu-bar__separator",
 				role: "separator"
-			}, e.id) : /* @__PURE__ */ g(ti, {
+			}, e.id) : /* @__PURE__ */ g(ni, {
 				item: e,
 				onAction: t,
 				onClose: n
@@ -5662,8 +5675,8 @@ function ti({ item: e, onAction: t, onClose: n, className: r }) {
 		})]
 	});
 }
-function ni({ items: e = [], openId: t, defaultOpenId: n = "", onOpenChange: r, onAction: i, label: a = "CAD application menu", endSlot: o, endSlotLabel: s = "Application controls", className: c, ...u }) {
-	let f = d(() => Xr(e), [e]), [m, h] = $(t, n, (e, t, n) => r?.(e, t, n)), v = p(null), y = p(""), b = f.find((e) => e.id === m && !e.disabled && Xr(e.items).length > 0), x = b?.id || "", S = (e) => {
+function ri({ items: e = [], openId: t, defaultOpenId: n = "", onOpenChange: r, onAction: i, label: a = "CAD application menu", endSlot: o, endSlotLabel: s = "Application controls", className: c, ...u }) {
+	let f = d(() => Zr(e), [e]), [m, h] = $(t, n, (e, t, n) => r?.(e, t, n)), v = p(null), y = p(""), b = f.find((e) => e.id === m && !e.disabled && Zr(e.items).length > 0), x = b?.id || "", S = (e) => {
 		!e || typeof window > "u" || window.requestAnimationFrame(() => {
 			[...v.current?.querySelectorAll(".cad-menu-bar__menu") || []].find((t) => t.dataset.menuId === e)?.querySelector(":scope > button:not(:disabled)")?.focus?.();
 		});
@@ -5672,7 +5685,7 @@ function ni({ items: e = [], openId: t, defaultOpenId: n = "", onOpenChange: r, 
 	}, w = (e, t, n = !1) => {
 		x && (h("", e || b, t), n && S(e?.id || x));
 	}, T = (e, t) => {
-		if (!(e?.disabled || Xr(e?.items).length === 0)) {
+		if (!(e?.disabled || Zr(e?.items).length === 0)) {
 			if (e.id === x) {
 				w(e, t);
 				return;
@@ -5717,10 +5730,10 @@ function ni({ items: e = [], openId: t, defaultOpenId: n = "", onOpenChange: r, 
 		onKeyDown: (e) => {
 			if (u.onKeyDown?.(e), !e.defaultPrevented && (e.key === "ArrowRight" && (e.preventDefault(), E(e, 1)), e.key === "ArrowLeft" && (e.preventDefault(), E(e, -1)), e.key === "Escape" && x && (e.preventDefault(), w(b, e, !0)), e.key === "ArrowDown" && document.activeElement?.dataset.menuId)) {
 				let t = f.find((e) => e.id === document.activeElement.dataset.menuId);
-				t && !t.disabled && Xr(t.items).length > 0 && (e.preventDefault(), t.id === x ? window.requestAnimationFrame(() => C(t.id)) : (y.current = t.id, h(t.id, t, e)));
+				t && !t.disabled && Zr(t.items).length > 0 && (e.preventDefault(), t.id === x ? window.requestAnimationFrame(() => C(t.id)) : (y.current = t.id, h(t.id, t, e)));
 			}
 		},
-		children: f.map((e) => /* @__PURE__ */ g(ei, {
+		children: f.map((e) => /* @__PURE__ */ g(ti, {
 			item: e,
 			open: x === e.id,
 			onToggle: T,
@@ -5738,8 +5751,8 @@ function ni({ items: e = [], openId: t, defaultOpenId: n = "", onOpenChange: r, 
 		})]
 	});
 }
-function ri({ value: e, defaultValue: t = { mode: "by-layer" }, onChange: n, colors: r = qr, allowByLayer: i = !0, allowByBlock: a = !0, label: o = "Color", className: s, ...c }) {
-	let [l, u] = $(e, t, (e, t) => n?.(e, t)), d = Zr(l), f = (e, t) => u(e, t);
+function ii({ value: e, defaultValue: t = { mode: "by-layer" }, onChange: n, colors: r = Jr, allowByLayer: i = !0, allowByBlock: a = !0, label: o = "Color", className: s, ...c }) {
+	let [l, u] = $(e, t, (e, t) => n?.(e, t)), d = Qr(l), f = (e, t) => u(e, t);
 	return /* @__PURE__ */ _("section", {
 		...c,
 		className: X("cad-color-picker", s),
@@ -5747,7 +5760,7 @@ function ri({ value: e, defaultValue: t = { mode: "by-layer" }, onChange: n, col
 		children: [
 			/* @__PURE__ */ _("header", { children: [/* @__PURE__ */ g("strong", { children: o }), /* @__PURE__ */ g(Le, {
 				color: d.value || (d.mode === "by-layer" ? "#b4bdc7" : "#ffffff"),
-				label: Qr(d)
+				label: $r(d)
 			})] }),
 			(i || a) && /* @__PURE__ */ _("div", {
 				className: "cad-color-picker__modes",
@@ -5805,9 +5818,9 @@ function ri({ value: e, defaultValue: t = { mode: "by-layer" }, onChange: n, col
 		]
 	});
 }
-function ii({ value: e, onChange: t, label: n = "Color", className: r, ...i }) {
-	let a = Zr(e);
-	return /* @__PURE__ */ g(wt, {
+function ai({ value: e, onChange: t, label: n = "Color", className: r, ...i }) {
+	let a = Qr(e);
+	return /* @__PURE__ */ g(Tt, {
 		label: n,
 		className: X("cad-color-picker-button", r),
 		trigger: /* @__PURE__ */ g("button", {
@@ -5815,10 +5828,10 @@ function ii({ value: e, onChange: t, label: n = "Color", className: r, ...i }) {
 			className: "cad-color-picker-button__trigger",
 			children: /* @__PURE__ */ g(Le, {
 				color: a.value || "#b4bdc7",
-				label: Qr(a)
+				label: $r(a)
 			})
 		}),
-		content: ({ close: r }) => /* @__PURE__ */ g(ri, {
+		content: ({ close: r }) => /* @__PURE__ */ g(ii, {
 			...i,
 			value: e,
 			onChange: (e, n) => {
@@ -5828,9 +5841,9 @@ function ii({ value: e, onChange: t, label: n = "Color", className: r, ...i }) {
 		})
 	});
 }
-function ai({ linetypes: e = Jr, value: t, defaultValue: n, onChange: r, label: i = "Linetype", className: a, ...o }) {
-	let s = d(() => Xr(e), [e]), [c, l] = $(t, n ?? s[0]?.id ?? "", (e, t, n) => r?.(e, t, n)), u = s.find((e) => e.id === c) || s[0];
-	return /* @__PURE__ */ g(wt, {
+function oi({ linetypes: e = Yr, value: t, defaultValue: n, onChange: r, label: i = "Linetype", className: a, ...o }) {
+	let s = d(() => Zr(e), [e]), [c, l] = $(t, n ?? s[0]?.id ?? "", (e, t, n) => r?.(e, t, n)), u = s.find((e) => e.id === c) || s[0];
+	return /* @__PURE__ */ g(Tt, {
 		label: i,
 		className: X("cad-linetype-picker", a),
 		trigger: /* @__PURE__ */ _("button", {
@@ -5861,9 +5874,9 @@ function ai({ linetypes: e = Jr, value: t, defaultValue: n, onChange: r, label: 
 		})
 	});
 }
-function oi({ lineweights: e = Yr, value: t, defaultValue: n, onChange: r, label: i = "Lineweight", className: a, ...o }) {
-	let s = d(() => Xr(e), [e]), [c, l] = $(t, n ?? s[0]?.id ?? "", (e, t, n) => r?.(e, t, n)), u = s.find((e) => e.id === c) || s[0];
-	return /* @__PURE__ */ g(wt, {
+function si({ lineweights: e = Xr, value: t, defaultValue: n, onChange: r, label: i = "Lineweight", className: a, ...o }) {
+	let s = d(() => Zr(e), [e]), [c, l] = $(t, n ?? s[0]?.id ?? "", (e, t, n) => r?.(e, t, n)), u = s.find((e) => e.id === c) || s[0];
+	return /* @__PURE__ */ g(Tt, {
 		label: i,
 		className: X("cad-lineweight-picker", a),
 		trigger: /* @__PURE__ */ _("button", {
@@ -5897,7 +5910,7 @@ function oi({ lineweights: e = Yr, value: t, defaultValue: n, onChange: r, label
 		})
 	});
 }
-function si({ block: e, selected: t = !1, onSelect: n, onInsert: r, onEdit: i, onDelete: a, renderThumbnail: o, className: s }) {
+function ci({ block: e, selected: t = !1, onSelect: n, onInsert: r, onEdit: i, onDelete: a, renderThumbnail: o, className: s }) {
 	let c = e || {}, l = Q(c);
 	return /* @__PURE__ */ _("article", {
 		className: X("cad-block-tile", t && "cad-block-tile--selected", s),
@@ -5942,7 +5955,7 @@ function si({ block: e, selected: t = !1, onSelect: n, onInsert: r, onEdit: i, o
 		] })]
 	});
 }
-function ci({ blocks: e = [], value: t, defaultValue: n = "", onChange: r, onInsert: i, onCreate: a, onEdit: o, onDelete: s, filter: c, defaultFilter: l = "", onFilterChange: f, view: p = "grid", renderThumbnail: m, title: h = "Blocks", className: v, emptyLabel: y = "No blocks match the current filter" }) {
+function li({ blocks: e = [], value: t, defaultValue: n = "", onChange: r, onInsert: i, onCreate: a, onEdit: o, onDelete: s, filter: c, defaultFilter: l = "", onFilterChange: f, view: p = "grid", renderThumbnail: m, title: h = "Blocks", className: v, emptyLabel: y = "No blocks match the current filter" }) {
 	let b = `cad-block-filter-${u()}`, [x, S] = $(t, n, (e, t, n) => r?.(e, t, n)), [C, w] = $(c, l, (e, t) => f?.(e, t)), T = d(() => Z(e).filter((e) => `${Q(e)} ${e?.category || ""}`.toLocaleLowerCase().includes(String(C || "").toLocaleLowerCase())), [e, C]);
 	return /* @__PURE__ */ _("section", {
 		className: X("cad-block-palette", `cad-block-palette--${p}`, v),
@@ -5977,7 +5990,7 @@ function ci({ blocks: e = [], value: t, defaultValue: n = "", onChange: r, onIns
 			/* @__PURE__ */ _("div", {
 				className: "cad-block-palette__blocks",
 				role: "list",
-				children: [T.map((e, t) => /* @__PURE__ */ g(si, {
+				children: [T.map((e, t) => /* @__PURE__ */ g(ci, {
 					block: e,
 					selected: e?.id === x,
 					onSelect: (e, t) => S(e.id, e, t),
@@ -5990,7 +6003,7 @@ function ci({ blocks: e = [], value: t, defaultValue: n = "", onChange: r, onIns
 		]
 	});
 }
-function li({ value: e, defaultValue: t = {
+function ui({ value: e, defaultValue: t = {
 	scale: 1,
 	rotation: 0,
 	uniform: !0,
@@ -6041,7 +6054,7 @@ function li({ value: e, defaultValue: t = {
 }
 //#endregion
 //#region src/CadInspectorUi.jsx
-function ui({ value: e, defaultValue: t = "", onChange: n, placeholder: r = "Filter", label: i = "Filter list", className: a, ...o }) {
+function di({ value: e, defaultValue: t = "", onChange: n, placeholder: r = "Filter", label: i = "Filter list", className: a, ...o }) {
 	let s = u(), [c, l] = $(e, t, (e, t) => n?.(e, t));
 	return /* @__PURE__ */ _("div", {
 		className: X("cad-filter-bar", a),
@@ -6067,7 +6080,7 @@ function ui({ value: e, defaultValue: t = "", onChange: n, placeholder: r = "Fil
 		]
 	});
 }
-function di({ property: e, value: t, onValueChange: n, inputId: r, className: i }) {
+function fi({ property: e, value: t, onValueChange: n, inputId: r, className: i }) {
 	let a = e || {}, o = a.type || "text", s = t ?? a.value ?? "", c = (e, t) => {
 		a.onChange?.(e, a, t), n?.(a.id, e, a, t);
 	};
@@ -6121,7 +6134,7 @@ function di({ property: e, value: t, onValueChange: n, inputId: r, className: i 
 			disabled: a.disabled,
 			onChange: (e) => c(e.target.value, e)
 		})]
-	}) : o === "cad-color" ? /* @__PURE__ */ g(ii, {
+	}) : o === "cad-color" ? /* @__PURE__ */ g(ai, {
 		value: s,
 		onChange: c,
 		label: a.label || a.id,
@@ -6129,19 +6142,19 @@ function di({ property: e, value: t, onValueChange: n, inputId: r, className: i 
 		colors: a.colors,
 		allowByLayer: a.allowByLayer,
 		allowByBlock: a.allowByBlock
-	}) : o === "linetype" ? /* @__PURE__ */ g(ai, {
+	}) : o === "linetype" ? /* @__PURE__ */ g(oi, {
 		value: s,
 		onChange: (e, t, n) => c(e, n),
 		label: a.label || a.id,
 		className: X("cad-property-field", "cad-property-field--style", i),
 		linetypes: a.options
-	}) : o === "lineweight" ? /* @__PURE__ */ g(oi, {
+	}) : o === "lineweight" ? /* @__PURE__ */ g(si, {
 		value: s,
 		onChange: (e, t, n) => c(e, n),
 		label: a.label || a.id,
 		className: X("cad-property-field", "cad-property-field--style", i),
 		lineweights: a.options
-	}) : o === "scale" ? /* @__PURE__ */ g(Hr, {
+	}) : o === "scale" ? /* @__PURE__ */ g(Ur, {
 		value: s,
 		onChange: (e, t, n) => c(e, n),
 		label: a.label || a.id,
@@ -6208,7 +6221,7 @@ function di({ property: e, value: t, onValueChange: n, inputId: r, className: i 
 		onChange: (e) => c(e.target.value, e)
 	});
 }
-function fi({ property: e, value: t, onValueChange: n, className: r }) {
+function pi({ property: e, value: t, onValueChange: n, className: r }) {
 	let i = u(), a = e || {};
 	if (a.hidden) return null;
 	let o = `cad-property-${i}-${a.id || "field"}`, s = !a.readOnly && typeof a.render != "function" && ![
@@ -6229,7 +6242,7 @@ function fi({ property: e, value: t, onValueChange: n, className: r }) {
 			className: "cad-property-row__label",
 			title: a.description || a.label,
 			children: a.label || a.id
-		}), /* @__PURE__ */ g(di, {
+		}), /* @__PURE__ */ g(fi, {
 			property: a,
 			value: t,
 			inputId: o,
@@ -6237,7 +6250,7 @@ function fi({ property: e, value: t, onValueChange: n, className: r }) {
 		})]
 	});
 }
-function pi({ id: e, title: t, properties: n = [], collapsible: r = !0, open: i, defaultOpen: a = !0, onOpenChange: o, onValueChange: s, className: c, children: l }) {
+function mi({ id: e, title: t, properties: n = [], collapsible: r = !0, open: i, defaultOpen: a = !0, onOpenChange: o, onValueChange: s, className: c, children: l }) {
 	let d = u(), f = e || `cad-property-section-${d}`, [p, m] = $(i, a, (e, t) => o?.(e, t)), h = r ? /* @__PURE__ */ _("button", {
 		type: "button",
 		className: "cad-property-section__heading",
@@ -6258,14 +6271,14 @@ function pi({ id: e, title: t, properties: n = [], collapsible: r = !0, open: i,
 			id: `${f}-body`,
 			className: "cad-property-section__body",
 			hidden: !p,
-			children: l || Z(n).map((e, t) => /* @__PURE__ */ g(fi, {
+			children: l || Z(n).map((e, t) => /* @__PURE__ */ g(pi, {
 				property: e,
 				onValueChange: s
 			}, e?.id || t))
 		})]
 	});
 }
-function mi({ sections: e, properties: t, onValueChange: n, label: r = "Properties", className: i, ...a }) {
+function hi({ sections: e, properties: t, onValueChange: n, label: r = "Properties", className: i, ...a }) {
 	let o = Z(e).length ? Z(e) : [{
 		id: "properties",
 		title: r,
@@ -6275,13 +6288,13 @@ function mi({ sections: e, properties: t, onValueChange: n, label: r = "Properti
 		...a,
 		className: X("cad-property-grid", i),
 		"aria-label": r,
-		children: o.map((e, t) => /* @__PURE__ */ g(pi, {
+		children: o.map((e, t) => /* @__PURE__ */ g(mi, {
 			...e,
 			onValueChange: n
 		}, e?.id || t))
 	});
 }
-function hi({ layers: e = [], value: t, defaultValue: n, onChange: r, label: i = "Current layer", className: a, disabled: o = !1 }) {
+function gi({ layers: e = [], value: t, defaultValue: n, onChange: r, label: i = "Current layer", className: a, disabled: o = !1 }) {
 	let [s, c] = $(t, n ?? Z(e)[0]?.id ?? "", (e, t, n) => r?.(e, t, n));
 	return /* @__PURE__ */ _("label", {
 		className: X("cad-layer-picker", a),
@@ -6299,7 +6312,7 @@ function hi({ layers: e = [], value: t, defaultValue: n, onChange: r, label: i =
 		})]
 	});
 }
-function gi({ layer: e, active: t = !1, onActivate: n, onLayerChange: r, onColorClick: i, className: a }) {
+function _i({ layer: e, active: t = !1, onActivate: n, onLayerChange: r, onColorClick: i, className: a }) {
 	let o = e || {}, s = (e, t) => r?.(o.id, e, o, t), c = Q(o), l = (e, t, n, i) => r ? /* @__PURE__ */ g("button", {
 		type: "button",
 		"aria-label": e,
@@ -6354,7 +6367,7 @@ function gi({ layer: e, active: t = !1, onActivate: n, onLayerChange: r, onColor
 		]
 	});
 }
-function _i({ layers: e = [], activeLayerId: t, onActiveLayerChange: n, onLayerChange: r, onAddLayer: i, onDeleteLayer: a, onColorClick: o, title: s = "Layers", filter: c, defaultFilter: l = "", onFilterChange: u, filterable: f = !0, className: p, emptyLabel: m = "No layers match this filter" }) {
+function vi({ layers: e = [], activeLayerId: t, onActiveLayerChange: n, onLayerChange: r, onAddLayer: i, onDeleteLayer: a, onColorClick: o, title: s = "Layers", filter: c, defaultFilter: l = "", onFilterChange: u, filterable: f = !0, className: p, emptyLabel: m = "No layers match this filter" }) {
 	let [h, v] = $(c, l, (e, t) => u?.(e, t)), y = d(() => Z(e).filter((e) => Q(e).toLocaleLowerCase().includes(String(h || "").toLocaleLowerCase())), [e, h]);
 	return /* @__PURE__ */ _("section", {
 		className: X("cad-layer-panel", p),
@@ -6375,7 +6388,7 @@ function _i({ layers: e = [], activeLayerId: t, onActiveLayerChange: n, onLayerC
 					children: "×"
 				})] })]
 			}),
-			f && /* @__PURE__ */ g(ui, {
+			f && /* @__PURE__ */ g(di, {
 				value: h,
 				onChange: v,
 				label: "Filter layers",
@@ -6394,7 +6407,7 @@ function _i({ layers: e = [], activeLayerId: t, onActiveLayerChange: n, onLayerC
 			/* @__PURE__ */ _("div", {
 				className: "cad-layer-panel__rows",
 				role: "list",
-				children: [y.map((e, i) => /* @__PURE__ */ g(gi, {
+				children: [y.map((e, i) => /* @__PURE__ */ g(_i, {
 					layer: e,
 					active: e?.id === t || e?.active,
 					onActivate: n ? (e, t) => n(e.id, e, t) : void 0,
@@ -6408,7 +6421,7 @@ function _i({ layers: e = [], activeLayerId: t, onActiveLayerChange: n, onLayerC
 		]
 	});
 }
-function vi({ node: e, level: t, selectedId: n, expandedIds: r, onSelect: i, onExpandedChange: a }) {
+function yi({ node: e, level: t, selectedId: n, expandedIds: r, onSelect: i, onExpandedChange: a }) {
 	let o = e || {}, s = Z(o.children), c = s.length > 0, l = r.has(o.id), u = o.id === n, d = o.icon, f = (e) => {
 		if (!c) return;
 		let t = new Set(r);
@@ -6441,7 +6454,7 @@ function vi({ node: e, level: t, selectedId: n, expandedIds: r, onSelect: i, onE
 					o.meta && /* @__PURE__ */ g("small", { children: o.meta })
 				]
 			})]
-		}), c && l && /* @__PURE__ */ g("ul", { children: s.map((e, o) => /* @__PURE__ */ g(vi, {
+		}), c && l && /* @__PURE__ */ g("ul", { children: s.map((e, o) => /* @__PURE__ */ g(yi, {
 			node: e,
 			level: t + 1,
 			selectedId: n,
@@ -6451,13 +6464,13 @@ function vi({ node: e, level: t, selectedId: n, expandedIds: r, onSelect: i, onE
 		}, e?.id || o)) })]
 	});
 }
-function yi({ nodes: e = [], selectedId: t, defaultSelectedId: n = "", onSelect: r, expandedIds: i, defaultExpandedIds: a, onExpandedChange: o, label: s = "CAD object tree", className: c, ...l }) {
+function bi({ nodes: e = [], selectedId: t, defaultSelectedId: n = "", onSelect: r, expandedIds: i, defaultExpandedIds: a, onExpandedChange: o, label: s = "CAD object tree", className: c, ...l }) {
 	let u = a ?? Z(e).filter((e) => e?.expanded).map((e) => e.id), [d, f] = $(t, n, (e, t, n) => r?.(e, t, n)), [p, m] = $(i, u, (e, t, n) => o?.(e, t, n)), h = new Set(Z(p));
 	return /* @__PURE__ */ g("ul", {
 		...l,
 		className: X("cad-object-tree", c),
 		"aria-label": s,
-		children: Z(e).map((e, t) => /* @__PURE__ */ g(vi, {
+		children: Z(e).map((e, t) => /* @__PURE__ */ g(yi, {
 			node: e,
 			level: 1,
 			selectedId: d,
@@ -6467,7 +6480,7 @@ function yi({ nodes: e = [], selectedId: t, defaultSelectedId: n = "", onSelect:
 		}, e?.id || t))
 	});
 }
-function bi({ label: e, value: t = 0, status: n, onCancel: r, className: i }) {
+function xi({ label: e, value: t = 0, status: n, onCancel: r, className: i }) {
 	let a = Math.max(0, Math.min(100, Number(t) || 0));
 	return /* @__PURE__ */ _("section", {
 		className: X("cad-task-progress", i),
@@ -6488,7 +6501,7 @@ function bi({ label: e, value: t = 0, status: n, onCancel: r, className: i }) {
 		})]
 	});
 }
-function xi({ references: e = [], onReload: t, onUnload: n, className: r, title: i = "External references" }) {
+function Si({ references: e = [], onReload: t, onUnload: n, className: r, title: i = "External references" }) {
 	return /* @__PURE__ */ _("section", {
 		className: X("cad-reference-list", r),
 		"aria-label": i,
@@ -6517,16 +6530,16 @@ function xi({ references: e = [], onReload: t, onUnload: n, className: r, title:
 }
 //#endregion
 //#region src/CadDataUi.jsx
-var Si = (e, t) => typeof t?.render == "function" ? t.render(e, t) : typeof t?.accessor == "function" ? t.accessor(e, t) : e?.[t?.accessor || t?.id], Ci = (e, t) => {
-	let n = typeof t?.sortValue == "function" ? t.sortValue(e, t) : Si(e, t);
+var Ci = (e, t) => typeof t?.render == "function" ? t.render(e, t) : typeof t?.accessor == "function" ? t.accessor(e, t) : e?.[t?.accessor || t?.id], wi = (e, t) => {
+	let n = typeof t?.sortValue == "function" ? t.sortValue(e, t) : Ci(e, t);
 	return typeof n == "string" ? n.toLocaleLowerCase() : n;
 };
-function wi({ columns: e = [], rows: t = [], rowId: n = (e) => e?.id, selectedIds: r, defaultSelectedIds: i = [], onSelectionChange: a, selectionMode: o = "multiple", onRowActivate: s, sort: c, defaultSort: l, onSortChange: u, caption: f = "CAD data", emptyLabel: p = "No rows to display", layout: m = "table", className: h, ...v }) {
+function Ti({ columns: e = [], rows: t = [], rowId: n = (e) => e?.id, selectedIds: r, defaultSelectedIds: i = [], onSelectionChange: a, selectionMode: o = "multiple", onRowActivate: s, sort: c, defaultSort: l, onSortChange: u, caption: f = "CAD data", emptyLabel: p = "No rows to display", layout: m = "table", className: h, ...v }) {
 	let y = d(() => Z(e).filter((e) => e?.id), [e]), [b, x] = $(r, i, (e, t, n) => a?.(e, t, n)), [S, C] = $(c, l, (e, t, n) => u?.(e, t, n)), w = new Set(Z(b)), T = m === "auto" || m === "cards" ? m : "table", E = d(() => {
 		let e = [...Z(t)], n = y.find((e) => e.id === S?.columnId);
 		if (!n || !S?.direction) return e;
 		let r = S.direction === "desc" ? -1 : 1;
-		return e.sort((e, t) => String(Ci(e, n) ?? "").localeCompare(String(Ci(t, n) ?? ""), void 0, { numeric: !0 }) * r);
+		return e.sort((e, t) => String(wi(e, n) ?? "").localeCompare(String(wi(t, n) ?? ""), void 0, { numeric: !0 }) * r);
 	}, [
 		S,
 		y,
@@ -6591,7 +6604,7 @@ function wi({ columns: e = [], rows: t = [], rowId: n = (e) => e?.id, selectedId
 					}), y.map((t) => /* @__PURE__ */ g("td", {
 						"data-align": t.align || "start",
 						"data-column": t.label || t.id,
-						children: Si(e, t) ?? "—"
+						children: Ci(e, t) ?? "—"
 					}, t.id))]
 				}, r || t);
 			}), !E.length && /* @__PURE__ */ g("tr", { children: /* @__PURE__ */ g("td", {
@@ -6602,7 +6615,7 @@ function wi({ columns: e = [], rows: t = [], rowId: n = (e) => e?.id, selectedId
 		] })
 	});
 }
-function Ti({ filters: e = [], activeIds: t, defaultActiveIds: n = [], onChange: r, label: i = "Selection filter", className: a, ...o }) {
+function Ei({ filters: e = [], activeIds: t, defaultActiveIds: n = [], onChange: r, label: i = "Selection filter", className: a, ...o }) {
 	let [s, c] = $(t, n, (e, t, n) => r?.(e, t, n)), l = new Set(Z(s));
 	return /* @__PURE__ */ _("section", {
 		...o,
@@ -6642,7 +6655,7 @@ function Ti({ filters: e = [], activeIds: t, defaultActiveIds: n = [], onChange:
 		})]
 	});
 }
-function Ei({ candidates: e = [], activeId: t, defaultActiveId: n, onChange: r, onAccept: i, onCancel: a, label: o = "Selection cycle", layout: s = "strip", className: c, ...l }) {
+function Di({ candidates: e = [], activeId: t, defaultActiveId: n, onChange: r, onAccept: i, onCancel: a, label: o = "Selection cycle", layout: s = "strip", className: c, ...l }) {
 	let u = d(() => Z(e).map((e, t) => ({
 		...e,
 		id: e?.id || `${Q(e)}-${t}`
@@ -6694,7 +6707,7 @@ function Ei({ candidates: e = [], activeId: t, defaultActiveId: n, onChange: r, 
 		]
 	}) : null;
 }
-function Di({ title: e = "Quick properties", properties: t, sections: n, onValueChange: r, onPinChange: i, pinned: a = !1, onClose: o, className: s, ...c }) {
+function Oi({ title: e = "Quick properties", properties: t, sections: n, onValueChange: r, onPinChange: i, pinned: a = !1, onClose: o, className: s, ...c }) {
 	return /* @__PURE__ */ _("aside", {
 		...c,
 		className: X("cad-quick-properties", s),
@@ -6710,7 +6723,7 @@ function Di({ title: e = "Quick properties", properties: t, sections: n, onValue
 			"aria-label": `Close ${e}`,
 			onClick: o,
 			children: "×"
-		})] })] }), /* @__PURE__ */ g(mi, {
+		})] })] }), /* @__PURE__ */ g(hi, {
 			properties: t,
 			sections: n,
 			onValueChange: r,
@@ -6720,7 +6733,7 @@ function Di({ title: e = "Quick properties", properties: t, sections: n, onValue
 }
 //#endregion
 //#region src/CadWorkspacePreset.js
-var Oi = "cad-cui-workspace-preset", ki = 1, Ai = Object.freeze({
+var ki = "cad-cui-workspace-preset", Ai = 1, ji = Object.freeze({
 	INVALID_INPUT: "invalid-input",
 	INVALID_JSON: "invalid-json",
 	INVALID_PRESET: "invalid-preset",
@@ -6729,12 +6742,12 @@ var Oi = "cad-cui-workspace-preset", ki = 1, Ai = Object.freeze({
 	INVALID_FIELD: "invalid-field",
 	UNSAFE_KEY: "unsafe-key",
 	NORMALIZATION_FAILED: "normalization-failed"
-}), ji = /* @__PURE__ */ new Set([
+}), Mi = /* @__PURE__ */ new Set([
 	"__proto__",
 	"constructor",
 	"prototype"
-]), Mi = Symbol("omit"), Ni = (e) => String(e ?? "").trim(), Pi = (e) => !!e && typeof e == "object" && !Array.isArray(e), Fi = (e) => Pi(e) && (Object.getPrototypeOf(e) === Object.prototype || Object.getPrototypeOf(e) === null), Ii = (e) => !ji.has(e), Li = (e) => e instanceof Map ? Object.fromEntries(e.entries()) : Pi(e) ? e : {}, Ri = (e, t) => Ni(e).replace(/\s+/g, " ").slice(0, 80) || t, zi = (e) => Ni(e).slice(0, 400), Bi = (e) => Ni(e).toLocaleLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80), Vi = (e, t) => Number.isSafeInteger(e) && e > 0 ? e : t, Hi = (e) => {
-	let t = Li(e), n = zi(t.schema) || "cad-cui-workspace-preset", r = Vi(t.version, 1), i = Ri(t.defaultName, "Workspace"), a = typeof t.normalizePanelPreferences == "function" ? t.normalizePanelPreferences : typeof t.panelPreferenceNormalizer == "function" ? t.panelPreferenceNormalizer : void 0;
+]), Ni = Symbol("omit"), Pi = (e) => String(e ?? "").trim(), Fi = (e) => !!e && typeof e == "object" && !Array.isArray(e), Ii = (e) => Fi(e) && (Object.getPrototypeOf(e) === Object.prototype || Object.getPrototypeOf(e) === null), Li = (e) => !Mi.has(e), Ri = (e) => e instanceof Map ? Object.fromEntries(e.entries()) : Fi(e) ? e : {}, zi = (e, t) => Pi(e).replace(/\s+/g, " ").slice(0, 80) || t, Bi = (e) => Pi(e).slice(0, 400), Vi = (e) => Pi(e).toLocaleLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80), Hi = (e, t) => Number.isSafeInteger(e) && e > 0 ? e : t, Ui = (e) => {
+	let t = Ri(e), n = Bi(t.schema) || "cad-cui-workspace-preset", r = Hi(t.version, 1), i = zi(t.defaultName, "Workspace"), a = typeof t.normalizePanelPreferences == "function" ? t.normalizePanelPreferences : typeof t.panelPreferenceNormalizer == "function" ? t.panelPreferenceNormalizer : void 0;
 	return {
 		schema: n,
 		version: r,
@@ -6742,85 +6755,85 @@ var Oi = "cad-cui-workspace-preset", ki = 1, Ai = Object.freeze({
 		panels: t.panels ?? t.panelDefinitions ?? [],
 		panelNormalizer: a
 	};
-}, Ui = (e) => {
-	let t = Ni(e);
+}, Wi = (e) => {
+	let t = Pi(e);
 	return !t || Number.isNaN(Date.parse(t)) ? "" : new Date(t).toISOString();
 };
-function Wi(e, t = /* @__PURE__ */ new Set()) {
+function Gi(e, t = /* @__PURE__ */ new Set()) {
 	if (e === null || typeof e == "string" || typeof e == "boolean") return e;
-	if (typeof e == "number") return Number.isFinite(e) ? e : Mi;
-	if (typeof e != "object" || t.has(e)) return Mi;
+	if (typeof e == "number") return Number.isFinite(e) ? e : Ni;
+	if (typeof e != "object" || t.has(e)) return Ni;
 	if (Array.isArray(e)) {
 		let n = new Set(t);
 		return n.add(e), e.map((e) => {
-			let t = Wi(e, n);
-			return t === Mi ? null : t;
+			let t = Gi(e, n);
+			return t === Ni ? null : t;
 		});
 	}
-	if (!Fi(e)) return Mi;
+	if (!Ii(e)) return Ni;
 	let n = new Set(t);
 	return n.add(e), Object.keys(e).sort().reduce((t, r) => {
-		if (!Ii(r)) return t;
-		let i = Wi(e[r], n);
-		return i !== Mi && (t[r] = i), t;
+		if (!Li(r)) return t;
+		let i = Gi(e[r], n);
+		return i !== Ni && (t[r] = i), t;
 	}, {});
 }
-var Gi = (e) => {
-	let t = Wi(Li(e));
-	return Fi(t) ? t : {};
-}, Ki = (e) => e.panels ?? e.panelPreferences ?? e.preferences ?? {}, qi = (e) => e.settings ?? e.ui ?? e.state ?? {}, Ji = (e, t) => {
-	if (!t.panelNormalizer) return Gi(e);
+var Ki = (e) => {
+	let t = Gi(Ri(e));
+	return Ii(t) ? t : {};
+}, qi = (e) => e.panels ?? e.panelPreferences ?? e.preferences ?? {}, Ji = (e) => e.settings ?? e.ui ?? e.state ?? {}, Yi = (e, t) => {
+	if (!t.panelNormalizer) return Ki(e);
 	try {
-		return Gi(t.panelNormalizer(t.panels, e));
+		return Ki(t.panelNormalizer(t.panels, e));
 	} catch {
-		return Gi(e);
+		return Ki(e);
 	}
-}, Yi = (e, t) => {
-	let n = Li(e), r = Bi(n.id ?? n.presetId), i = zi(n.description), a = Ui(n.savedAt ?? n.updatedAt), o = {
+}, Xi = (e, t) => {
+	let n = Ri(e), r = Vi(n.id ?? n.presetId), i = Bi(n.description), a = Wi(n.savedAt ?? n.updatedAt), o = {
 		schema: t.schema,
 		version: t.version,
-		name: Ri(n.name ?? n.label, t.defaultName),
-		panels: Ji(Ki(n), t),
-		settings: Gi(qi(n)),
-		metadata: Gi(n.metadata)
+		name: zi(n.name ?? n.label, t.defaultName),
+		panels: Yi(qi(n), t),
+		settings: Ki(Ji(n)),
+		metadata: Ki(n.metadata)
 	};
 	return r && (o.id = r), i && (o.description = i), a && (o.savedAt = a), o;
-}, Xi = (e, t, n) => ({
+}, Zi = (e, t, n) => ({
 	code: e,
 	message: t,
 	...n ? { path: n } : {}
-}), Zi = (e, t = "$", n = /* @__PURE__ */ new Set(), r = []) => {
+}), Qi = (e, t = "$", n = /* @__PURE__ */ new Set(), r = []) => {
 	if (typeof e != "object" || !e || n.has(e)) return r;
 	let i = new Set(n);
-	return i.add(e), Array.isArray(e) ? (e.forEach((e, n) => Zi(e, `${t}[${n}]`, i, r)), r) : (Object.keys(e).forEach((n) => {
+	return i.add(e), Array.isArray(e) ? (e.forEach((e, n) => Qi(e, `${t}[${n}]`, i, r)), r) : (Object.keys(e).forEach((n) => {
 		let a = `${t}.${n}`;
-		if (!Ii(n)) {
-			r.push(Xi(Ai.UNSAFE_KEY, `Preset key "${n}" is not allowed.`, a));
+		if (!Li(n)) {
+			r.push(Zi(ji.UNSAFE_KEY, `Preset key "${n}" is not allowed.`, a));
 			return;
 		}
-		Zi(e[n], a, i, r);
+		Qi(e[n], a, i, r);
 	}), r);
-}, Qi = (e) => [
+}, $i = (e) => [
 	"panels",
 	"settings",
 	"metadata"
-].reduce((t, n) => (e[n] !== void 0 && !Pi(e[n]) && t.push(Xi(Ai.INVALID_FIELD, `Preset field "${n}" must be an object.`, `$.${n}`)), t), []);
-function $i(e = {}, t = {}) {
-	return Yi(e, Hi(t));
+].reduce((t, n) => (e[n] !== void 0 && !Fi(e[n]) && t.push(Zi(ji.INVALID_FIELD, `Preset field "${n}" must be an object.`, `$.${n}`)), t), []);
+function ea(e = {}, t = {}) {
+	return Xi(e, Ui(t));
 }
-var ea = $i;
-function ta(e = {}, t = {}) {
-	return $i(e, t);
+var ta = ea;
+function na(e = {}, t = {}) {
+	return ea(e, t);
 }
-function na(e, t = {}) {
-	let n = Hi(t);
-	if (!Pi(e)) return {
+function ra(e, t = {}) {
+	let n = Ui(t);
+	if (!Fi(e)) return {
 		ok: !1,
 		preset: void 0,
-		errors: [Xi(Ai.INVALID_PRESET, "A workspace preset must be a JSON object.", "$")]
+		errors: [Zi(ji.INVALID_PRESET, "A workspace preset must be a JSON object.", "$")]
 	};
 	let r = [];
-	if (e.schema !== n.schema && r.push(Xi(Ai.UNSUPPORTED_SCHEMA, `Expected preset schema "${n.schema}".`, "$.schema")), (!Number.isSafeInteger(e.version) || e.version !== n.version) && r.push(Xi(Ai.UNSUPPORTED_VERSION, `Expected preset version ${n.version}.`, "$.version")), e.name !== void 0 && typeof e.name != "string" && r.push(Xi(Ai.INVALID_FIELD, "Preset field \"name\" must be a string.", "$.name")), e.id !== void 0 && typeof e.id != "string" && r.push(Xi(Ai.INVALID_FIELD, "Preset field \"id\" must be a string.", "$.id")), e.description !== void 0 && typeof e.description != "string" && r.push(Xi(Ai.INVALID_FIELD, "Preset field \"description\" must be a string.", "$.description")), e.savedAt !== void 0 && (!Ui(e.savedAt) || typeof e.savedAt != "string") && r.push(Xi(Ai.INVALID_FIELD, "Preset field \"savedAt\" must be a valid ISO date string.", "$.savedAt")), r.push(...Qi(e), ...Zi(e)), r.length) return {
+	if (e.schema !== n.schema && r.push(Zi(ji.UNSUPPORTED_SCHEMA, `Expected preset schema "${n.schema}".`, "$.schema")), (!Number.isSafeInteger(e.version) || e.version !== n.version) && r.push(Zi(ji.UNSUPPORTED_VERSION, `Expected preset version ${n.version}.`, "$.version")), e.name !== void 0 && typeof e.name != "string" && r.push(Zi(ji.INVALID_FIELD, "Preset field \"name\" must be a string.", "$.name")), e.id !== void 0 && typeof e.id != "string" && r.push(Zi(ji.INVALID_FIELD, "Preset field \"id\" must be a string.", "$.id")), e.description !== void 0 && typeof e.description != "string" && r.push(Zi(ji.INVALID_FIELD, "Preset field \"description\" must be a string.", "$.description")), e.savedAt !== void 0 && (!Wi(e.savedAt) || typeof e.savedAt != "string") && r.push(Zi(ji.INVALID_FIELD, "Preset field \"savedAt\" must be a valid ISO date string.", "$.savedAt")), r.push(...$i(e), ...Qi(e)), r.length) return {
 		ok: !1,
 		preset: void 0,
 		errors: r
@@ -6828,24 +6841,24 @@ function na(e, t = {}) {
 	try {
 		return {
 			ok: !0,
-			preset: Yi(e, n),
+			preset: Xi(e, n),
 			errors: []
 		};
 	} catch {
 		return {
 			ok: !1,
 			preset: void 0,
-			errors: [Xi(Ai.NORMALIZATION_FAILED, "The workspace preset could not be normalized.")]
+			errors: [Zi(ji.NORMALIZATION_FAILED, "The workspace preset could not be normalized.")]
 		};
 	}
 }
-function ra(e = {}, t = {}) {
-	let n = na(Yi(e, Hi(t)), t);
+function ia(e = {}, t = {}) {
+	let n = ra(Xi(e, Ui(t)), t);
 	if (!n.ok) return {
 		...n,
 		json: void 0
 	};
-	let r = Li(t), i = r.pretty === !1 ? 0 : Math.max(0, Math.min(10, Number.isFinite(r.space) ? Math.floor(r.space) : 2));
+	let r = Ri(t), i = r.pretty === !1 ? 0 : Math.max(0, Math.min(10, Number.isFinite(r.space) ? Math.floor(r.space) : 2));
 	try {
 		return {
 			ok: !0,
@@ -6858,29 +6871,29 @@ function ra(e = {}, t = {}) {
 			ok: !1,
 			preset: void 0,
 			json: void 0,
-			errors: [Xi(Ai.NORMALIZATION_FAILED, "The workspace preset could not be serialized.")]
+			errors: [Zi(ji.NORMALIZATION_FAILED, "The workspace preset could not be serialized.")]
 		};
 	}
 }
-function ia(e, t = {}) {
+function aa(e, t = {}) {
 	if (typeof e == "string") try {
-		return na(JSON.parse(e.replace(/^\uFEFF/, "")), t);
+		return ra(JSON.parse(e.replace(/^\uFEFF/, "")), t);
 	} catch {
 		return {
 			ok: !1,
 			preset: void 0,
-			errors: [Xi(Ai.INVALID_JSON, "The workspace preset is not valid JSON.")]
+			errors: [Zi(ji.INVALID_JSON, "The workspace preset is not valid JSON.")]
 		};
 	}
-	return Pi(e) ? na(e, t) : {
+	return Fi(e) ? ra(e, t) : {
 		ok: !1,
 		preset: void 0,
-		errors: [Xi(Ai.INVALID_INPUT, "Provide a preset JSON string or parsed object.")]
+		errors: [Zi(ji.INVALID_INPUT, "Provide a preset JSON string or parsed object.")]
 	};
 }
 //#endregion
 //#region src/CadWorkspacePresetUi.jsx
-var aa = (e) => String(e ?? "").trim(), oa = (e) => String(e ?? ""), sa = (e) => !!e && typeof e == "object" && !Array.isArray(e), ca = Object.freeze({
+var oa = (e) => String(e ?? "").trim(), sa = (e) => String(e ?? ""), ca = (e) => !!e && typeof e == "object" && !Array.isArray(e), la = Object.freeze({
 	SELECT: "select",
 	DRAFT_NAME_CHANGE: "draft-name-change",
 	SAVE_AS: "save-as",
@@ -6889,24 +6902,24 @@ var aa = (e) => String(e ?? "").trim(), oa = (e) => String(e ?? ""), sa = (e) =>
 	DELETE: "delete",
 	EXPORT: "export",
 	IMPORT: "import"
-}), la = (e) => Array.isArray(e) ? e : Array.isArray(e?.presets) ? e.presets : [];
-function ua(e = []) {
+}), ua = (e) => Array.isArray(e) ? e : Array.isArray(e?.presets) ? e.presets : [];
+function da(e = []) {
 	let t = /* @__PURE__ */ new Set();
-	return la(e).reduce((e, n, r) => {
+	return ua(e).reduce((e, n, r) => {
 		let i = typeof n == "string" || typeof n == "number" ? {
 			id: String(n),
 			name: String(n)
 		} : n;
-		if (!sa(i)) return e;
-		let a = aa(i.id ?? i.key) || `preset-${r + 1}`;
+		if (!ca(i)) return e;
+		let a = oa(i.id ?? i.key) || `preset-${r + 1}`;
 		if (t.has(a)) return e;
 		t.add(a);
-		let o = aa(i.name ?? i.label ?? i.title) || `Preset ${e.length + 1}`, s = !!(i.readOnly ?? i.locked ?? i.protected ?? i.system), c = !!i.disabled;
+		let o = oa(i.name ?? i.label ?? i.title) || `Preset ${e.length + 1}`, s = !!(i.readOnly ?? i.locked ?? i.protected ?? i.system), c = !!i.disabled;
 		return e.push({
 			...i,
 			id: a,
 			name: o,
-			description: aa(i.description ?? i.detail),
+			description: oa(i.description ?? i.detail),
 			disabled: c,
 			readOnly: s,
 			canOverwrite: !c && (i.canOverwrite === void 0 ? !s : !!i.canOverwrite),
@@ -6914,17 +6927,17 @@ function ua(e = []) {
 		}), e;
 	}, []);
 }
-function da(e = [], t) {
-	let n = aa(t);
-	return n ? ua(e).find((e) => e.id === n) : void 0;
+function fa(e = [], t) {
+	let n = oa(t);
+	return n ? da(e).find((e) => e.id === n) : void 0;
 }
-function fa(e = [], t, { exceptId: n } = {}) {
-	let r = aa(t).toLocaleLowerCase(), i = aa(n);
-	return !!r && ua(e).some((e) => e.id !== i && e.name.toLocaleLowerCase() === r);
+function pa(e = [], t, { exceptId: n } = {}) {
+	let r = oa(t).toLocaleLowerCase(), i = oa(n);
+	return !!r && da(e).some((e) => e.id !== i && e.name.toLocaleLowerCase() === r);
 }
-var pa = (e) => e === "error" || e === "warning" ? "alert" : "status";
-function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSelectedPresetIdChange: r, onDraftNameChange: i, onSaveAs: a, onLoad: s, onOverwrite: c, onDelete: l, onExport: f, onImport: p, onAction: m, title: v = "Workspace presets", description: y = "Save, restore and exchange workspace arrangements.", presetListLabel: b = "Saved presets", draftNameLabel: x = "Preset name", draftNamePlaceholder: S = "e.g. Focused drafting", saveAsLabel: C = "Save as", loadLabel: w = "Load", overwriteLabel: T = "Overwrite", deleteLabel: E = "Delete", exportLabel: D = "Export", importLabel: O = "Import", selectedLabel: ee = "Selected preset", noSelectionLabel: k = "Choose a saved preset", emptyLabel: A = "No saved presets yet.", emptyStateGuideLabel: j = "First preset checklist", emptyStateGuideSteps: M, duplicateNameLabel: N = "A preset with this name already exists.", readOnlyLabel: te = "Protected preset", importDescription: P = "The host chooses a file and validates its contents.", status: F, statusTone: I = "neutral", busy: L = !1, disabled: R = !1, allowDuplicateNames: z = !1, maxNameLength: B = 64, className: V, children: H, ...U }) {
-	let W = u(), ne = `cad-workspace-preset-manager-${W}-title`, re = `cad-workspace-preset-manager-${W}-description`, G = `cad-workspace-preset-manager-${W}-name`, K = `cad-workspace-preset-manager-${W}-list`, q = `cad-workspace-preset-manager-${W}-status`, J = d(() => ua(e), [e]), ie = J.length > 0, ae = aa(t), Y = d(() => J.find((e) => e.id === ae), [J, ae]), oe = aa(n), se = d(() => [
+var ma = (e) => e === "error" || e === "warning" ? "alert" : "status";
+function ha({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSelectedPresetIdChange: r, onDraftNameChange: i, onSaveAs: a, onLoad: s, onOverwrite: c, onDelete: l, onExport: f, onImport: p, onAction: m, title: v = "Workspace presets", description: y = "Save, restore and exchange workspace arrangements.", presetListLabel: b = "Saved presets", draftNameLabel: x = "Preset name", draftNamePlaceholder: S = "e.g. Focused drafting", saveAsLabel: C = "Save as", loadLabel: w = "Load", overwriteLabel: T = "Overwrite", deleteLabel: E = "Delete", exportLabel: D = "Export", importLabel: O = "Import", selectedLabel: ee = "Selected preset", noSelectionLabel: k = "Choose a saved preset", emptyLabel: A = "No saved presets yet.", emptyStateGuideLabel: j = "First preset checklist", emptyStateGuideSteps: M, duplicateNameLabel: N = "A preset with this name already exists.", readOnlyLabel: P = "Protected preset", importDescription: F = "The host chooses a file and validates its contents.", status: I, statusTone: L = "neutral", busy: R = !1, disabled: z = !1, allowDuplicateNames: te = !1, maxNameLength: B = 64, className: V, children: H, ...U }) {
+	let W = u(), ne = `cad-workspace-preset-manager-${W}-title`, re = `cad-workspace-preset-manager-${W}-description`, G = `cad-workspace-preset-manager-${W}-name`, K = `cad-workspace-preset-manager-${W}-list`, q = `cad-workspace-preset-manager-${W}-status`, J = d(() => da(e), [e]), ie = J.length > 0, ae = oa(t), Y = d(() => J.find((e) => e.id === ae), [J, ae]), oe = oa(n), se = d(() => [
 		"Name the current workspace below.",
 		`Choose ${C} to store it.`,
 		`Later, choose it from ${b} and select ${w}.`
@@ -6933,9 +6946,9 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 		b,
 		C
 	]), ce = d(() => {
-		let e = Array.isArray(M) ? M.map((e) => aa(e)).filter(Boolean) : [];
+		let e = Array.isArray(M) ? M.map((e) => oa(e)).filter(Boolean) : [];
 		return e.length ? e : se;
-	}, [se, M]), le = aa(j) || "First preset checklist", ue = !z && fa(J, oe), de = !!(R || L), fe = !de && ie && typeof r == "function", pe = !de && typeof i == "function", me = !de && !!oe && !ue && typeof a == "function", he = !de && !!Y && !Y.disabled && typeof s == "function", ge = !de && !!Y?.canOverwrite && typeof c == "function", _e = !de && !!Y?.canDelete && typeof l == "function", ve = !de && ie && typeof f == "function", ye = !de && typeof p == "function", be = o((e, t, n = {}) => {
+	}, [se, M]), le = oa(j) || "First preset checklist", ue = !te && pa(J, oe), de = !!(z || R), fe = !de && ie && typeof r == "function", pe = !de && typeof i == "function", me = !de && !!oe && !ue && typeof a == "function", he = !de && !!Y && !Y.disabled && typeof s == "function", ge = !de && !!Y?.canOverwrite && typeof c == "function", _e = !de && !!Y?.canDelete && typeof l == "function", ve = !de && ie && typeof f == "function", ye = !de && typeof p == "function", be = o((e, t, n = {}) => {
 		let r = {
 			type: e,
 			source: "workspace-preset-manager",
@@ -6952,10 +6965,10 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 		m,
 		Y
 	]), xe = o((e) => {
-		let t = e.target.value, n = be(ca.DRAFT_NAME_CHANGE, e, { name: aa(t) });
+		let t = e.target.value, n = be(la.DRAFT_NAME_CHANGE, e, { name: oa(t) });
 		i?.(t, n, e);
 	}, [i, be]), Se = o((e) => {
-		let t = aa(e.target.value), n = J.find((e) => e.id === t), i = be(ca.SELECT, e, {
+		let t = oa(e.target.value), n = J.find((e) => e.id === t), i = be(la.SELECT, e, {
 			selectedPresetId: t,
 			preset: n
 		});
@@ -6966,7 +6979,7 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 		be
 	]), Ce = o((e) => {
 		if (e.preventDefault(), !me) return;
-		let t = be(ca.SAVE_AS, e);
+		let t = be(la.SAVE_AS, e);
 		a?.(t, e);
 	}, [
 		me,
@@ -6974,7 +6987,7 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 		be
 	]), Z = o((e) => {
 		if (!he) return;
-		let t = be(ca.LOAD, e);
+		let t = be(la.LOAD, e);
 		s?.(t, e);
 	}, [
 		he,
@@ -6982,7 +6995,7 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 		be
 	]), Q = o((e) => {
 		if (!ge) return;
-		let t = be(ca.OVERWRITE, e);
+		let t = be(la.OVERWRITE, e);
 		c?.(t, e);
 	}, [
 		ge,
@@ -6990,7 +7003,7 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 		be
 	]), $ = o((e) => {
 		if (!_e) return;
-		let t = be(ca.DELETE, e);
+		let t = be(la.DELETE, e);
 		l?.(t, e);
 	}, [
 		_e,
@@ -6998,7 +7011,7 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 		be
 	]), we = o((e) => {
 		if (!ve) return;
-		let t = be(ca.EXPORT, e);
+		let t = be(la.EXPORT, e);
 		f?.(t, e);
 	}, [
 		ve,
@@ -7006,19 +7019,19 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 		be
 	]), Te = o((e) => {
 		if (!ye) return;
-		let t = be(ca.IMPORT, e);
+		let t = be(la.IMPORT, e);
 		p?.(t, e);
 	}, [
 		ye,
 		p,
 		be
-	]), Ee = [y ? re : "", F ? q : ""].filter(Boolean).join(" ") || void 0;
+	]), Ee = [y ? re : "", I ? q : ""].filter(Boolean).join(" ") || void 0;
 	return /* @__PURE__ */ _("section", {
 		...U,
 		className: X("cad-workspace-preset-manager", V),
 		"aria-labelledby": ne,
 		"aria-describedby": Ee,
-		"data-busy": L ? "true" : "false",
+		"data-busy": R ? "true" : "false",
 		"data-has-presets": ie ? "true" : "false",
 		"data-selected-preset-id": Y?.id || void 0,
 		children: [
@@ -7087,7 +7100,7 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 						Y.description && /* @__PURE__ */ g("small", { children: Y.description }),
 						Y.readOnly && /* @__PURE__ */ g("small", {
 							className: "cad-workspace-preset-manager__protected",
-							children: te
+							children: P
 						})
 					]
 				}) : /* @__PURE__ */ g("span", {
@@ -7107,7 +7120,7 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 						className: "cad-workspace-preset-manager__save-controls",
 						children: [/* @__PURE__ */ g("input", {
 							id: G,
-							value: oa(n),
+							value: sa(n),
 							maxLength: B,
 							placeholder: S,
 							disabled: !pe,
@@ -7168,37 +7181,37 @@ function ma({ presets: e = [], selectedPresetId: t = "", draftName: n = "", onSe
 						onClick: Te,
 						children: O
 					}),
-					P && /* @__PURE__ */ g("small", { children: P })
+					F && /* @__PURE__ */ g("small", { children: F })
 				]
 			}),
-			F && /* @__PURE__ */ g("p", {
+			I && /* @__PURE__ */ g("p", {
 				id: q,
 				className: "cad-workspace-preset-manager__status",
-				"data-tone": I,
-				role: pa(I),
-				children: F
+				"data-tone": L,
+				role: ma(L),
+				children: I
 			}),
 			H
 		]
 	});
 }
-var ha = ma, ga = (e) => String(e ?? "").trim(), _a = (e, t) => ga(e?.id ?? e?.key) || `control-${t + 1}`, va = (e, t) => ga(e?.ariaLabel ?? e?.accessibleLabel ?? Q(e)) || `Workspace control ${t + 1}`, ya = (e) => e?.active !== void 0 || e?.pressed !== void 0, ba = (e) => !!(e?.active ?? e?.pressed), xa = (t, n) => e.isValidElement(t?.icon) ? t.icon : typeof t?.icon == "function" ? e.createElement(t.icon, {
+var ga = ha, _a = (e) => String(e ?? "").trim(), va = (e, t) => _a(e?.id ?? e?.key) || `control-${t + 1}`, ya = (e, t) => _a(e?.ariaLabel ?? e?.accessibleLabel ?? Q(e)) || `Workspace control ${t + 1}`, ba = (e) => e?.active !== void 0 || e?.pressed !== void 0, xa = (e) => !!(e?.active ?? e?.pressed), Sa = (t, n) => e.isValidElement(t?.icon) ? t.icon : typeof t?.icon == "function" ? e.createElement(t.icon, {
 	size: 14,
 	"aria-hidden": !0
 }) : t?.icon !== void 0 && t?.icon !== null && t.icon !== "" ? t.icon : /* @__PURE__ */ g("span", {
 	className: "cad-workspace-chrome-controls__fallback-icon",
 	"aria-hidden": "true",
 	children: n.slice(0, 1)
-}), Sa = i(function({ items: e = [], label: t = "Workspace controls", onItemClick: n, className: r, style: i, role: a = "group", ...o }, s) {
+}), Ca = i(function({ items: e = [], label: t = "Workspace controls", onItemClick: n, className: r, style: i, role: a = "group", ...o }, s) {
 	let c = d(() => Z(e).filter((e) => e && typeof e == "object").map((e, t) => ({
 		item: e,
 		index: t,
-		id: _a(e, t),
-		accessibleLabel: va(e, t),
-		activeState: ba(e),
-		mode: ga(e.mode),
-		shortcut: ga(e.shortcut),
-		toggle: ya(e)
+		id: va(e, t),
+		accessibleLabel: ya(e, t),
+		activeState: xa(e),
+		mode: _a(e.mode),
+		shortcut: _a(e.shortcut),
+		toggle: ba(e)
 	})), [e]);
 	return /* @__PURE__ */ g("div", {
 		...o,
@@ -7208,7 +7221,7 @@ var ha = ma, ga = (e) => String(e ?? "").trim(), _a = (e, t) => ga(e?.id ?? e?.k
 		className: X("cad-workspace-chrome-controls", r),
 		style: i,
 		children: c.map((e) => {
-			let { item: t, index: r, id: i, accessibleLabel: a, activeState: o, mode: s, shortcut: c, toggle: l } = e, u = ga(t.title) || [a, c].filter(Boolean).join(" · "), d = {
+			let { item: t, index: r, id: i, accessibleLabel: a, activeState: o, mode: s, shortcut: c, toggle: l } = e, u = _a(t.title) || [a, c].filter(Boolean).join(" · "), d = {
 				id: i,
 				index: r,
 				label: a,
@@ -7237,12 +7250,12 @@ var ha = ma, ga = (e) => String(e ?? "").trim(), _a = (e, t) => ga(e?.id ?? e?.k
 				children: /* @__PURE__ */ g("span", {
 					className: "cad-workspace-chrome-controls__icon",
 					"aria-hidden": "true",
-					children: xa(t, a)
+					children: Sa(t, a)
 				})
 			}, i);
 		})
 	});
 });
-Sa.displayName = "CadWorkspaceChromeControls";
+Ca.displayName = "CadWorkspaceChromeControls";
 //#endregion
-export { P as CAD_CUI_RUNTIME_VERSION, dr as CAD_WORKSPACE_DOCK_MODES, Fn as CAD_WORKSPACE_MODEL_ID, cn as CAD_WORKSPACE_PANEL_ACTIONS, sn as CAD_WORKSPACE_PANEL_DOCK_ZONES, on as CAD_WORKSPACE_PANEL_PLACEMENTS, ca as CAD_WORKSPACE_PRESET_ACTIONS, Ai as CAD_WORKSPACE_PRESET_ERROR_CODES, Oi as CAD_WORKSPACE_PRESET_SCHEMA, ki as CAD_WORKSPACE_PRESET_VERSION, D as CadActionButton, Fe as CadAngleInput, Hr as CadAnnotationScalePicker, li as CadBlockInsertOptions, ci as CadBlockPalette, si as CadBlockTile, ri as CadColorPicker, ii as CadColorPickerButton, Le as CadColorSwatch, tr as CadCommandHistory, ir as CadCommandLine, nr as CadCommandOptions, Dt as CadCommandPrompt, Vt as CadCompactWorkspaceRibbon, xt as CadConfirmDialog, Vr as CadConstraintBar, Ie as CadCoordinateInput, Se as CadCuiCommandPalette, xe as CadCuiContextMenu, Ce as CadCuiCustomizer, me as CadCuiProvider, be as CadCuiQuickAccess, ye as CadCuiRibbon, wi as CadDataGrid, ee as CadDataRow, bt as CadDialog, Xn as CadDockPanel, Zn as CadDockTabs, Jn as CadDocumentTabs, Kn as CadDrawingSpaceTabs, Rr as CadDynamicInput, j as CadEmptyState, ui as CadFilterBar, Br as CadGripToolbar, O as CadIconButton, _i as CadLayerPanel, hi as CadLayerPicker, gi as CadLayerRow, qn as CadLayoutTabs, ai as CadLinetypePicker, Re as CadLinetypePreview, oi as CadLineweightPicker, ze as CadLineweightPreview, ur as CadMeasureReadout, He as CadMenu, ni as CadMenuBar, Ve as CadMenuItem, Be as CadMenuSeparator, yt as CadMovableOverlay, Jt as CadNavigationBar, Ne as CadNumericInput, Gr as CadObjectSnapMarker, zr as CadObjectSnapMenu, yi as CadObjectTree, Ue as CadOverflowMenu, A as CadPanelFooter, w as CadPanelHeader, T as CadPanelSection, C as CadPanelShell, Wr as CadPolarTracker, wt as CadPopover, di as CadPropertyField, mi as CadPropertyGrid, fi as CadPropertyRow, pi as CadPropertySection, Di as CadQuickProperties, xi as CadReferenceList, E as CadSegmentTabs, Ei as CadSelectionCycler, Ti as CadSelectionFilter, Kr as CadSelectionGrip, Zt as CadSelectionSetPanel, lr as CadSelectionSummary, Ee as CadShortcutHint, Et as CadShortcutReference, ke as CadSplitButton, $r as CadSplitPane, k as CadStatGrid, er as CadStatusBar, Qn as CadStatusToggle, ti as CadSubmenu, bi as CadTaskProgress, St as CadToast, Ct as CadToastStack, Oe as CadToggleButton, De as CadToolButton, Me as CadToolPalette, je as CadToolbar, Ae as CadToolbarGroup, Tt as CadTooltip, or as CadUcsIndicator, Pe as CadUnitInput, ar as CadViewCube, Ur as CadViewPresetPicker, cr as CadViewportControls, Xt as CadViewportScalePicker, Yt as CadVisualStylePicker, Sa as CadWorkspaceChromeControls, Tr as CadWorkspaceDockModeControl, Ar as CadWorkspaceDockRail, Er as CadWorkspaceDockResizeHandle, jr as CadWorkspaceDockZone, Nn as CadWorkspaceFocusToggle, kn as CadWorkspacePanelManager, An as CadWorkspacePanelPreferences, ma as CadWorkspacePresetManager, ha as CadWorkspacePresetPanel, Yn as CadWorkspaceProfileTabs, ot as CadWorkspaceRibbon, q as DEFAULT_CAD_CUI_SYSTEM, Cn as createCadWorkspacePanelPreferencesKey, ea as createCadWorkspacePreset, $i as createCadWorkspacePresetSnapshot, Bn as createCadWorkspaceProfile, K as defineCadCuiSystem, ra as exportCadWorkspacePreset, _n as getCadWorkspacePanelPreference, da as getCadWorkspacePreset, vn as groupCadWorkspacePanelsByDockZone, nt as groupCadWorkspaceRibbonCommands, ia as importCadWorkspacePreset, fa as isCadWorkspacePresetNameTaken, le as loadCadCuiState, zn as nextCadWorkspaceLayoutName, un as normalizeCadWorkspacePanelDockZone, ln as normalizeCadWorkspacePanelPlacement, gn as normalizeCadWorkspacePanelPreferences, mn as normalizeCadWorkspacePanels, ta as normalizeCadWorkspacePreset, ua as normalizeCadWorkspacePresets, Rn as normalizeCadWorkspaceProfiles, Hn as removeCadWorkspaceProfile, Vn as renameCadWorkspaceProfile, Sn as resetCadWorkspacePanelPreferences, Rt as resolveCadCompactWorkspaceRibbonGroups, Y as resolveCadCuiCommand, oe as resolveCadCuiCommandState, ce as sanitizeCadCuiState, ue as saveCadCuiState, fe as selectCadCuiCommandGroups, de as selectCadCuiCommands, xn as updateCadWorkspacePanelPreference, he as useCadCui, ge as useCadCuiCommand, wr as useCadWorkspaceDock, Or as useCadWorkspaceDockRail, Mn as useCadWorkspaceFocus, wn as useCadWorkspacePanelPreferences, na as validateCadWorkspacePreset };
+export { F as CAD_CUI_RUNTIME_VERSION, fr as CAD_WORKSPACE_DOCK_MODES, In as CAD_WORKSPACE_MODEL_ID, ln as CAD_WORKSPACE_PANEL_ACTIONS, cn as CAD_WORKSPACE_PANEL_DOCK_ZONES, sn as CAD_WORKSPACE_PANEL_PLACEMENTS, la as CAD_WORKSPACE_PRESET_ACTIONS, ji as CAD_WORKSPACE_PRESET_ERROR_CODES, ki as CAD_WORKSPACE_PRESET_SCHEMA, Ai as CAD_WORKSPACE_PRESET_VERSION, D as CadActionButton, Fe as CadAngleInput, Ur as CadAnnotationScalePicker, ui as CadBlockInsertOptions, li as CadBlockPalette, ci as CadBlockTile, ii as CadColorPicker, ai as CadColorPickerButton, Le as CadColorSwatch, nr as CadCommandHistory, ar as CadCommandLine, rr as CadCommandOptions, Ot as CadCommandPrompt, Ht as CadCompactWorkspaceRibbon, St as CadConfirmDialog, Hr as CadConstraintBar, Ie as CadCoordinateInput, Se as CadCuiCommandPalette, xe as CadCuiContextMenu, Ce as CadCuiCustomizer, me as CadCuiProvider, be as CadCuiQuickAccess, ye as CadCuiRibbon, Ti as CadDataGrid, ee as CadDataRow, xt as CadDialog, Zn as CadDockPanel, Qn as CadDockTabs, Yn as CadDocumentTabs, qn as CadDrawingSpaceTabs, zr as CadDynamicInput, j as CadEmptyState, di as CadFilterBar, Vr as CadGripToolbar, O as CadIconButton, vi as CadLayerPanel, gi as CadLayerPicker, _i as CadLayerRow, Jn as CadLayoutTabs, oi as CadLinetypePicker, Re as CadLinetypePreview, si as CadLineweightPicker, ze as CadLineweightPreview, dr as CadMeasureReadout, He as CadMenu, ri as CadMenuBar, Ve as CadMenuItem, Be as CadMenuSeparator, bt as CadMovableOverlay, Yt as CadNavigationBar, Ne as CadNumericInput, Kr as CadObjectSnapMarker, Br as CadObjectSnapMenu, bi as CadObjectTree, Ue as CadOverflowMenu, A as CadPanelFooter, w as CadPanelHeader, T as CadPanelSection, C as CadPanelShell, Gr as CadPolarTracker, Tt as CadPopover, fi as CadPropertyField, hi as CadPropertyGrid, pi as CadPropertyRow, mi as CadPropertySection, Oi as CadQuickProperties, Si as CadReferenceList, E as CadSegmentTabs, Di as CadSelectionCycler, Ei as CadSelectionFilter, qr as CadSelectionGrip, Qt as CadSelectionSetPanel, ur as CadSelectionSummary, Ee as CadShortcutHint, Dt as CadShortcutReference, ke as CadSplitButton, ei as CadSplitPane, k as CadStatGrid, tr as CadStatusBar, $n as CadStatusToggle, ni as CadSubmenu, xi as CadTaskProgress, Ct as CadToast, wt as CadToastStack, Oe as CadToggleButton, De as CadToolButton, Me as CadToolPalette, je as CadToolbar, Ae as CadToolbarGroup, Et as CadTooltip, sr as CadUcsIndicator, Pe as CadUnitInput, or as CadViewCube, Wr as CadViewPresetPicker, lr as CadViewportControls, Zt as CadViewportScalePicker, Xt as CadVisualStylePicker, Ca as CadWorkspaceChromeControls, Er as CadWorkspaceDockModeControl, jr as CadWorkspaceDockRail, Dr as CadWorkspaceDockResizeHandle, Mr as CadWorkspaceDockZone, Pn as CadWorkspaceFocusToggle, An as CadWorkspacePanelManager, jn as CadWorkspacePanelPreferences, ha as CadWorkspacePresetManager, ga as CadWorkspacePresetPanel, Xn as CadWorkspaceProfileTabs, ot as CadWorkspaceRibbon, q as DEFAULT_CAD_CUI_SYSTEM, wn as createCadWorkspacePanelPreferencesKey, ta as createCadWorkspacePreset, ea as createCadWorkspacePresetSnapshot, Vn as createCadWorkspaceProfile, K as defineCadCuiSystem, ia as exportCadWorkspacePreset, vn as getCadWorkspacePanelPreference, fa as getCadWorkspacePreset, yn as groupCadWorkspacePanelsByDockZone, nt as groupCadWorkspaceRibbonCommands, aa as importCadWorkspacePreset, pa as isCadWorkspacePresetNameTaken, le as loadCadCuiState, Bn as nextCadWorkspaceLayoutName, dn as normalizeCadWorkspacePanelDockZone, un as normalizeCadWorkspacePanelPlacement, _n as normalizeCadWorkspacePanelPreferences, hn as normalizeCadWorkspacePanels, na as normalizeCadWorkspacePreset, da as normalizeCadWorkspacePresets, zn as normalizeCadWorkspaceProfiles, Un as removeCadWorkspaceProfile, Hn as renameCadWorkspaceProfile, Cn as resetCadWorkspacePanelPreferences, zt as resolveCadCompactWorkspaceRibbonGroups, Y as resolveCadCuiCommand, oe as resolveCadCuiCommandState, ce as sanitizeCadCuiState, ue as saveCadCuiState, fe as selectCadCuiCommandGroups, de as selectCadCuiCommands, Sn as updateCadWorkspacePanelPreference, he as useCadCui, ge as useCadCuiCommand, Tr as useCadWorkspaceDock, kr as useCadWorkspaceDockRail, Nn as useCadWorkspaceFocus, Tn as useCadWorkspacePanelPreferences, ra as validateCadWorkspacePreset };

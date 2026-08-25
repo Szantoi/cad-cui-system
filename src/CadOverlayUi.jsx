@@ -28,6 +28,11 @@ const focusElement = element => {
   }
 };
 
+const targetIsInside = (container, target) => {
+  if (!container || !target) return false;
+  try { return container === target || Boolean(container.contains?.(target)); } catch { return false; }
+};
+
 const isTopmostDialog = dialog => {
   if (typeof document === 'undefined' || !dialog) return false;
   const dialogs = document.querySelectorAll('[data-cad-dialog="true"]');
@@ -505,7 +510,28 @@ export function CadToastStack({ toasts = [], onDismiss, placement = 'bottom-righ
 }
 
 /** Lightweight popover with a composable trigger, useful for quick CAD selectors. */
-export function CadPopover({ trigger, content, open, defaultOpen = false, onOpenChange, placement = 'bottom-start', label = 'More options', contentRole = 'region', closeOnOutside = true, closeOnEscape = true, restoreFocus = true, focusOnOpen, className, contentClassName, ...props }) {
+export function CadPopover({
+  trigger,
+  content,
+  open,
+  defaultOpen = false,
+  onOpenChange,
+  placement = 'bottom-start',
+  label = 'More options',
+  contentRole = 'region',
+  closeOnOutside = true,
+  closeOnEscape = true,
+  closeOnFocusOutside = false,
+  closeOnPointerLeave = false,
+  restoreFocus = true,
+  focusOnOpen,
+  className,
+  contentClassName,
+  onKeyDown,
+  onBlur,
+  onPointerLeave,
+  ...props
+}) {
   const generatedId = useId();
   const panelId = `cad-popover-${generatedId}`;
   const rootRef = useRef(null);
@@ -567,7 +593,23 @@ export function CadPopover({ trigger, content, open, defaultOpen = false, onOpen
       onClick: callBoth(trigger.props.onClick, toggle)
     })
     : <button type="button" data-cad-popover-trigger="true" className="cad-popover__fallback-trigger" aria-haspopup={popupAriaHasPopup} aria-expanded={isOpen} aria-controls={isOpen ? panelId : undefined} onClick={toggle}>{trigger || 'Options'}</button>;
-  return <div {...props} ref={rootRef} className={cx('cad-popover', `cad-popover--${placement}`, className)} onKeyDown={event => { props.onKeyDown?.(event); if (!event.defaultPrevented && closeOnEscape && event.key === 'Escape' && isOpen) { event.preventDefault(); close(event); } }}>
+  const handleKeyDown = event => {
+    onKeyDown?.(event);
+    if (!event.defaultPrevented && closeOnEscape && event.key === 'Escape' && isOpen) {
+      event.preventDefault();
+      close(event);
+    }
+  };
+  const handleBlur = event => {
+    onBlur?.(event);
+    if (!event.defaultPrevented && closeOnFocusOutside && isOpen && !targetIsInside(event.currentTarget, event.relatedTarget)) close(event);
+  };
+  const handlePointerLeave = event => {
+    onPointerLeave?.(event);
+    if (!event.defaultPrevented && closeOnPointerLeave && isOpen && !targetIsInside(event.currentTarget, event.relatedTarget)) close(event);
+  };
+
+  return <div {...props} ref={rootRef} className={cx('cad-popover', `cad-popover--${placement}`, className)} onKeyDown={handleKeyDown} onBlur={handleBlur} onPointerLeave={handlePointerLeave}>
     {triggerElement}
     {isOpen && <div id={panelId} ref={contentRef} tabIndex={shouldFocusOnOpen ? -1 : undefined} className={cx('cad-popover__content', contentClassName)} role={resolvedContentRole} aria-label={label}>{typeof content === 'function' ? content({ close }) : content}</div>}
   </div>;
