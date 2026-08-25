@@ -1,4 +1,4 @@
-const text = value => String(value ?? '').trim();
+import { toTrimmedString as text } from './cadValueUtils.js';
 
 export const CAD_WORKSPACE_MODEL_ID = 'model';
 

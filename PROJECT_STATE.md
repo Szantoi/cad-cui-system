@@ -1,7 +1,7 @@
 # Project State
 
-Updated: 2026-08-25 · Package version: `0.5.1` · Lifecycle: active development — stable, engine-free UI layer
-Latest committed baseline: `1e58401 fix: support forwarded workspace panel icons`
+Updated: 2026-08-25 · Package version: `0.7.1` · Lifecycle: active development — stable, engine-free UI layer
+Latest published baseline: `14ccc65 fix: close compact ribbon popovers on leave`
 
 ## Current working-tree increment
 
@@ -145,6 +145,16 @@ compact titlebar layout controls, and panel-local responsive composition.
   corner above movable overlays, exposes an explicit Open/Collapse toggle in
   the `VIEW` Ribbon, and saves only `layout.viewCube.collapsed` with current
   and named workspace presets.
+- Added a maintainable quality gate: zero-warning ESLint with stable React Hook
+  rules, V8 coverage reporting, `check` / `check:package` scripts, and a
+  GitHub Actions workflow that validates lint, coverage, both builds, and
+  regenerated `dist/` artifacts on pushes and pull requests.
+- Extracted `toTrimmedString` and the intentionally broad `isRecord` guard to
+  React-free `cadValueUtils.js`, with direct unit coverage. Runtime, preset,
+  workspace, ribbon, and chrome modules now share the same value semantics.
+- `CadPopover` now owns opt-in pointer-leave and focus-leave closure instead of
+  leaking compact-ribbon control props to the DOM. The compact ribbon therefore
+  closes predictably without React attribute warnings.
 
 ## Delivered workspace foundation
 
@@ -172,7 +182,9 @@ compact titlebar layout controls, and panel-local responsive composition.
 | Check | Result |
 | --- | --- |
 | Preset codec / manager tests | `8/8` focused tests passed |
-| Unit/integration tests | `16` files, `117/117` tests passed |
+| Unit/integration tests | `18` files, `128/128` tests passed |
+| Lint | passed (`npm run lint`, zero warnings) |
+| Coverage baseline | `78.41%` statements, `71.99%` branches, `76.00%` functions, `85.60%` lines (`npm run test:coverage`) |
 | Focused overlay / playground tests | `2` files, `29/29` tests passed |
 | Library build | passed (`npm run build`) |
 | Playground build | passed (`npm run demo:build`) |

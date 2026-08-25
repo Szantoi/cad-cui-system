@@ -218,12 +218,15 @@ shared component library.
 After source changes, run:
 
 ```bash
-npm test
-npm run build
-npm run demo:build
-npm pack --dry-run
-git diff --check
+npm run check
+npm run test:coverage
+npm run check:package
 ```
 
-The package checks `dist/` into source control. Rebuild it whenever public
-source or shared CSS changes.
+`npm run check` is the fast local gate: ESLint (with stable Rules of Hooks and
+dependency checks), the full Vitest suite, both production builds, and the
+whitespace diff check. Coverage is reported with Vitest V8 but deliberately has
+no threshold until the recorded baseline has had time to stabilize. GitHub
+Actions repeats lint, coverage, both builds, and verifies that committed
+`dist/` matches the source build. Rebuild `dist/` whenever public source or
+shared CSS changes.

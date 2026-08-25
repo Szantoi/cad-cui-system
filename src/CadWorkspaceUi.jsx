@@ -52,7 +52,7 @@ export function CadDrawingSpaceTabs({ items = [], activeId, defaultActiveId, onC
       if (event.key === 'End') { const next = [...normalizedItems].reverse().find(item => !item.disabled); if (next) { event.preventDefault(); selectItem(next, event); focusItem(next); } }
       if ((event.key === 'Delete' || event.key === 'Backspace') && onClose) { const activeItem = normalizedItems.find(item => item.id === resolvedActiveId); if (activeItem?.closable && !activeItem?.pinned) { event.preventDefault(); onClose(activeItem, event); } }
     }}>
-        {normalizedItems.map((item, index) => {
+        {normalizedItems.map(item => {
           const itemId = item.id;
           const selected = itemId === resolvedActiveId;
           const tabId = `cad-space-tab-${generatedId}-${itemId}`;

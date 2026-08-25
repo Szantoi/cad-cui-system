@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   CadAnnotationScalePicker,
@@ -11,7 +11,6 @@ import {
   CadDataGrid,
   CadDialog,
   CadDockPanel,
-  CadDockTabs,
   CadGripToolbar,
   CadLayerPanel,
   CadLineweightPicker,
@@ -662,6 +661,7 @@ function Playground() {
   const focusRestoreRef = useRef(null);
   const presetImportRef = useRef(null);
   const persistenceReadyRef = useRef(false);
+  const hasRestoredWorkspaceRef = useRef(false);
   const skipInitialWorkspacePersistenceRef = useRef(true);
   const [profiles, setProfiles] = useState(INITIAL_PROFILES);
   const [activeProfileId, setActiveProfileId] = useState(CAD_WORKSPACE_MODEL_ID);
@@ -782,7 +782,7 @@ function Playground() {
     if (query) report('Search', `“${query}” requested.`);
   };
 
-  const createWorkspacePreset = ({ id, name = 'Current workspace', description, savedAt = new Date().toISOString() } = {}) => createCadWorkspacePresetSnapshot({
+  const createWorkspacePreset = useCallback(({ id, name = 'Current workspace', description, savedAt = new Date().toISOString() } = {}) => createCadWorkspacePresetSnapshot({
     id,
     name,
     description,
@@ -828,57 +828,7 @@ function Playground() {
       },
       profiles: { items: profiles, activeId: activeProfileId }
     }
-  }, WORKSPACE_PRESET_OPTIONS);
-
-  const applyWorkspacePreset = preset => {
-    const next = normalizeWorkspacePresetForPlayground(preset, layers);
-    setFocusMode(false);
-    setWorkspacePanelPreferences(next.panels);
-    setLeftPanelMode(next.layout.leftPanelMode);
-    setRightPanelMode(next.layout.rightPanelMode);
-    setBottomPanelMode(next.layout.bottomPanelMode);
-    setLeftDockTab(next.layout.leftDockTab);
-    setActiveInspectorTab(next.layout.activeInspectorTab);
-    setBottomDockTab(next.layout.bottomDockTab);
-    setLeftDockWidth(next.layout.leftDockWidth);
-    setRightDockWidth(next.layout.rightDockWidth);
-    setBottomDockHeight(next.layout.bottomDockHeight);
-    setCommandLineHeight(next.layout.commandLineHeight);
-    setRibbonTab(next.layout.ribbonTab);
-    setQuickPropertiesOpen(next.layout.quickPropertiesOpen);
-    setQuickPropertiesPinned(next.layout.quickPropertiesPinned);
-    setNavigationOverlayPosition(next.layout.viewportNavigation.position);
-    setNavigationOverlayCollapsed(next.layout.viewportNavigation.collapsed);
-    setSelectionSummaryOverlayPosition(next.layout.selectionSummary.position);
-    setSelectionSummaryOverlayCollapsed(next.layout.selectionSummary.collapsed);
-    setDynamicInputOverlayPosition(next.layout.dynamicInput.position);
-    setDynamicInputOverlayCollapsed(next.layout.dynamicInput.collapsed);
-    setViewCubeCollapsed(next.layout.viewCubeCollapsed);
-    setActiveTool(next.controls.activeTool);
-    setActiveView(next.controls.activeView);
-    setZoom(next.controls.zoom);
-    setNavigationMode(next.controls.navigationMode);
-    setVisualStyle(next.controls.visualStyle);
-    setViewportScale(next.controls.viewportScale);
-    setActiveLayerId(next.controls.activeLayerId);
-    setSnapIds(next.controls.snapIds);
-    setConstraintIds(next.controls.constraintIds);
-    setSelectionFilterIds(next.controls.selectionFilterIds);
-    setDrafting(next.controls.drafting);
-    setPropertyState(next.controls.propertyState);
-    setSelectedBlockId(next.controls.selectedBlockId);
-    setInsertOptions(next.controls.insertOptions);
-    setProfiles(next.profiles.items);
-    setActiveProfileId(next.profiles.activeId);
-  };
-
-  const replaceWorkspacePresets = nextPresets => {
-    const normalized = normalizeWorkspacePresetCatalog(nextPresets);
-    setWorkspacePresets(normalized);
-    return { presets: normalized, persisted: persistWorkspacePresetCatalog(normalized) };
-  };
-
-  const currentWorkspacePreset = useMemo(() => createWorkspacePreset(), [
+  }, WORKSPACE_PRESET_OPTIONS), [
     activeInspectorTab,
     activeLayerId,
     activeProfileId,
@@ -918,14 +868,66 @@ function Playground() {
     zoom
   ]);
 
+  const applyWorkspacePreset = useCallback(preset => {
+    const next = normalizeWorkspacePresetForPlayground(preset, layers);
+    setFocusMode(false);
+    setWorkspacePanelPreferences(next.panels);
+    setLeftPanelMode(next.layout.leftPanelMode);
+    setRightPanelMode(next.layout.rightPanelMode);
+    setBottomPanelMode(next.layout.bottomPanelMode);
+    setLeftDockTab(next.layout.leftDockTab);
+    setActiveInspectorTab(next.layout.activeInspectorTab);
+    setBottomDockTab(next.layout.bottomDockTab);
+    setLeftDockWidth(next.layout.leftDockWidth);
+    setRightDockWidth(next.layout.rightDockWidth);
+    setBottomDockHeight(next.layout.bottomDockHeight);
+    setCommandLineHeight(next.layout.commandLineHeight);
+    setRibbonTab(next.layout.ribbonTab);
+    setQuickPropertiesOpen(next.layout.quickPropertiesOpen);
+    setQuickPropertiesPinned(next.layout.quickPropertiesPinned);
+    setNavigationOverlayPosition(next.layout.viewportNavigation.position);
+    setNavigationOverlayCollapsed(next.layout.viewportNavigation.collapsed);
+    setSelectionSummaryOverlayPosition(next.layout.selectionSummary.position);
+    setSelectionSummaryOverlayCollapsed(next.layout.selectionSummary.collapsed);
+    setDynamicInputOverlayPosition(next.layout.dynamicInput.position);
+    setDynamicInputOverlayCollapsed(next.layout.dynamicInput.collapsed);
+    setViewCubeCollapsed(next.layout.viewCubeCollapsed);
+    setActiveTool(next.controls.activeTool);
+    setActiveView(next.controls.activeView);
+    setZoom(next.controls.zoom);
+    setNavigationMode(next.controls.navigationMode);
+    setVisualStyle(next.controls.visualStyle);
+    setViewportScale(next.controls.viewportScale);
+    setActiveLayerId(next.controls.activeLayerId);
+    setSnapIds(next.controls.snapIds);
+    setConstraintIds(next.controls.constraintIds);
+    setSelectionFilterIds(next.controls.selectionFilterIds);
+    setDrafting(next.controls.drafting);
+    setPropertyState(next.controls.propertyState);
+    setSelectedBlockId(next.controls.selectedBlockId);
+    setInsertOptions(next.controls.insertOptions);
+    setProfiles(next.profiles.items);
+    setActiveProfileId(next.profiles.activeId);
+  }, [layers]);
+
+  const replaceWorkspacePresets = nextPresets => {
+    const normalized = normalizeWorkspacePresetCatalog(nextPresets);
+    setWorkspacePresets(normalized);
+    return { presets: normalized, persisted: persistWorkspacePresetCatalog(normalized) };
+  };
+
+  const currentWorkspacePreset = useMemo(() => createWorkspacePreset(), [createWorkspacePreset]);
+
   useEffect(() => {
+    if (hasRestoredWorkspaceRef.current) return;
+    hasRestoredWorkspaceRef.current = true;
     const restored = loadCurrentWorkspacePreset();
     if (restored) {
       applyWorkspacePreset(restored);
       setWorkspacePresetStatus({ message: 'Current workspace restored from this browser.', tone: 'success' });
     }
     persistenceReadyRef.current = true;
-  }, []);
+  }, [applyWorkspacePreset]);
 
   useEffect(() => {
     if (!persistenceReadyRef.current) return;

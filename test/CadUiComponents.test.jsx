@@ -40,7 +40,7 @@ describe('CAD workspace primitives', () => {
       />
     );
 
-    const tablist = screen.getByRole('tablist', { name: 'Drawing spaces' });
+    expect(screen.getByRole('tablist', { name: 'Drawing spaces' })).toBeInTheDocument();
     const modelTab = screen.getByRole('tab', { name: 'Model' });
     const layoutOneTab = screen.getByRole('tab', { name: 'Layout 1' });
 

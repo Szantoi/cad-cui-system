@@ -857,11 +857,12 @@ For a production-style sandbox bundle, run `npm run demo:build`.
 ## Verification
 
 ```bash
-npm test
-npm run build
-npm pack --dry-run
+npm run check
+npm run test:coverage
+npm run check:package
 ```
 
-The package checks its built `dist/` artifacts into source control, so run the
-build after making source changes before publishing or consuming the local
-package.
+`npm run check` combines linting, the full test suite, library and demo builds,
+and a whitespace diff check. `test:coverage` writes V8 coverage reports to the
+ignored `coverage/` directory. GitHub Actions runs the same quality gates on
+pushes and pull requests, including a check that committed `dist/` is current.

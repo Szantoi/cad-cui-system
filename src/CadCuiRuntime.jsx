@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useReducer, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CadActionButton, CadDataRow, CadEmptyState, CadPanelFooter, CadPanelHeader, CadPanelSection, CadPanelShell, CadSegmentTabs } from './GraphCadUi.jsx';
+import { toTrimmedString as text } from './cadValueUtils.js';
 
 const EMPTY_LIST = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
@@ -8,7 +9,6 @@ const CadCuiContext = createContext(null);
 
 export const CAD_CUI_RUNTIME_VERSION = 1;
 
-const text = value => String(value ?? '').trim();
 const unique = values => [...new Set((Array.isArray(values) ? values : EMPTY_LIST).map(text).filter(Boolean))];
 const copyOption = option => ({ id: text(option?.id), label: text(option?.label) || text(option?.id), detail: text(option?.detail), color: text(option?.color) });
 const copyIntent = intent => Object.freeze({ ...(intent && typeof intent === 'object' ? intent : EMPTY_OBJECT) });

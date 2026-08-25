@@ -1,7 +1,6 @@
 import React, { forwardRef, useMemo } from 'react';
 import { asArray, cx, itemLabel } from './cadUiUtils.js';
-
-const text = value => String(value ?? '').trim();
+import { toTrimmedString as text } from './cadValueUtils.js';
 
 const controlId = (item, index) => text(item?.id ?? item?.key) || `control-${index + 1}`;
 const controlLabel = (item, index) => text(item?.ariaLabel ?? item?.accessibleLabel ?? itemLabel(item)) || `Workspace control ${index + 1}`;

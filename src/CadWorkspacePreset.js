@@ -7,6 +7,8 @@
  * make a snapshot conform to their panel declarations.
  */
 
+import { isRecord, toTrimmedString as text } from './cadValueUtils.js';
+
 export const CAD_WORKSPACE_PRESET_SCHEMA = 'cad-cui-workspace-preset';
 export const CAD_WORKSPACE_PRESET_VERSION = 1;
 
@@ -24,8 +26,6 @@ export const CAD_WORKSPACE_PRESET_ERROR_CODES = Object.freeze({
 const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 const OMIT = Symbol('omit');
 
-const text = value => String(value ?? '').trim();
-const isRecord = value => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const isPlainRecord = value => isRecord(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
 const isSafeKey = key => !UNSAFE_KEYS.has(key);
 

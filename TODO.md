@@ -45,6 +45,10 @@ completed item to `PROJECT_STATE.md` rather than leaving it here.
 
 ## Quality and delivery
 
+- [x] Add a zero-warning ESLint gate, V8 coverage reporting, and GitHub Actions
+      checks for lint, coverage, builds, and current `dist/` artifacts.
+- [ ] Set coverage thresholds once the reported baseline has stabilized across
+      the next feature increments.
 - [ ] Add a release checklist or changeset flow if the package is prepared for
       external publishing.
 - [ ] Commit the reviewed project-tracking documents (`PROJECT_MEMORY.md`,

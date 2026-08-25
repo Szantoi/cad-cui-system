@@ -1,8 +1,8 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CadShortcutHint } from './CadCommandUi.jsx';
 import { asArray, cx, itemLabel, useControllableState } from './cadUiUtils.js';
+import { toTrimmedString as text } from './cadValueUtils.js';
 
-const text = value => String(value ?? '').trim();
 const numericOrder = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const commandTabId = command => text(command?.tabId || command?.tab || command?.placement?.tab);
 const commandGroupId = (command, fallback) => text(command?.groupId || command?.group || command?.placement?.groupId || command?.placement?.group) || fallback;

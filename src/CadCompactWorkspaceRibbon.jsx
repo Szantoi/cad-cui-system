@@ -3,8 +3,8 @@ import { CadToolButton } from './CadCommandUi.jsx';
 import { CadPopover } from './CadOverlayUi.jsx';
 import { groupCadWorkspaceRibbonCommands } from './CadWorkspaceRibbon.jsx';
 import { asArray, cx, itemLabel, useControllableState } from './cadUiUtils.js';
+import { toTrimmedString as text } from './cadValueUtils.js';
 
-const text = value => String(value ?? '').trim();
 const numericOrder = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const safeId = value => text(value).replace(/[^a-zA-Z0-9_-]+/g, '-') || 'workspace';
 const commandTabId = command => text(command?.tabId || command?.tab || command?.placement?.tab);
@@ -32,12 +32,10 @@ const normalizeExplicitGroups = ({ groups, activeTabId, defaultGroupLabel }) => 
     id: text(group.id) || `group-${index + 1}`,
     label: text(group.label) || defaultGroupLabel,
     order: numericOrder(group.order, index),
-    index,
     commands: groupItems(group).filter(command => !activeTabId || !commandTabId(command) || commandTabId(command) === activeTabId)
   }))
   .filter(group => group.commands.length)
-  .sort((first, second) => first.order - second.order || first.index - second.index)
-  .map(({ index, ...group }) => group);
+  .sort((first, second) => first.order - second.order);
 
 /**
  * Resolves a tab's hierarchical command groups without coupling the menu to

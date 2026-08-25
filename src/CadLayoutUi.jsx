@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import { CadColorSwatch, CadLineweightPreview, CadLinetypePreview, CadShortcutHint } from './CadCommandUi.jsx';
 import { CadPopover } from './CadOverlayUi.jsx';
 import { asArray, clamp, cx, itemLabel, useControllableState } from './cadUiUtils.js';
@@ -181,22 +181,22 @@ export function CadMenuBar({ items = [], openId, defaultOpenId = '', onOpenChang
   const pendingFirstItemFocusRef = useRef('');
   const openMenu = normalizedItems.find(item => item.id === currentOpenId && !item.disabled && normalizeItems(item.items).length > 0);
   const activeOpenId = openMenu?.id || '';
-  const focusTopLevelMenu = menuId => {
+  const focusTopLevelMenu = useCallback(menuId => {
     if (!menuId || typeof window === 'undefined') return;
     window.requestAnimationFrame(() => {
       const menu = [...(rootRef.current?.querySelectorAll('.cad-menu-bar__menu') || [])].find(element => element.dataset.menuId === menuId);
       menu?.querySelector(':scope > button:not(:disabled)')?.focus?.();
     });
-  };
-  const focusFirstMenuItem = menuId => {
+  }, []);
+  const focusFirstMenuItem = useCallback(menuId => {
     const menu = [...(rootRef.current?.querySelectorAll('.cad-menu-bar__menu') || [])].find(element => element.dataset.menuId === menuId);
     menu?.querySelector('.cad-menu-bar__popup [role^="menuitem"]:not(:disabled)')?.focus?.();
-  };
-  const closeMenu = (item, event, restoreFocus = false) => {
+  }, []);
+  const closeMenu = useCallback((item, event, restoreFocus = false) => {
     if (!activeOpenId) return;
     setOpenId('', item || openMenu, event);
     if (restoreFocus) focusTopLevelMenu(item?.id || activeOpenId);
-  };
+  }, [activeOpenId, focusTopLevelMenu, openMenu, setOpenId]);
   const changeMenu = (item, event) => {
     if (item?.disabled || normalizeItems(item?.items).length === 0) return;
     if (item.id === activeOpenId) {
@@ -211,7 +211,7 @@ export function CadMenuBar({ items = [], openId, defaultOpenId = '', onOpenChang
     pendingFirstItemFocusRef.current = '';
     const frame = window.requestAnimationFrame(() => focusFirstMenuItem(pendingMenuId));
     return () => window.cancelAnimationFrame(frame);
-  }, [activeOpenId]);
+  }, [activeOpenId, focusFirstMenuItem]);
   useEffect(() => {
     if (!activeOpenId || typeof document === 'undefined') return undefined;
     const onPointerDown = event => {
@@ -228,7 +228,7 @@ export function CadMenuBar({ items = [], openId, defaultOpenId = '', onOpenChang
       document.removeEventListener('pointerdown', onPointerDown, true);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [activeOpenId, openMenu, setOpenId]);
+  }, [activeOpenId, closeMenu, openMenu, setOpenId]);
   const focusRelative = (event, offset) => {
     const buttons = [...event.currentTarget.querySelectorAll(':scope > .cad-menu-bar__menu > button:not(:disabled)')];
     if (!buttons.length) return;

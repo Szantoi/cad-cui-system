@@ -20,7 +20,12 @@
     "build": "vite build",
     "demo": "vite --config demo/vite.config.js",
     "demo:build": "vite build --config demo/vite.config.js",
+    "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "check": "npm run lint && npm test && npm run build && npm run demo:build && git diff --check",
+    "check:package": "npm pack --dry-run",
     "prepack": "npm run build"
   },
   "peerDependencies": {
@@ -28,9 +33,14 @@
     "react-router-dom": ">=6.4 <8"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.11",
+    "eslint": "^10.9.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.11.0",
     "jsdom": "^29.1.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

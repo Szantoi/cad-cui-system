@@ -1,9 +1,8 @@
 import React, { useCallback, useId, useMemo } from 'react';
 import { cx } from './cadUiUtils.js';
+import { isRecord, toTrimmedString as text } from './cadValueUtils.js';
 
-const text = value => String(value ?? '').trim();
 const displayText = value => String(value ?? '');
-const isRecord = value => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
 export const CAD_WORKSPACE_PRESET_ACTIONS = Object.freeze({
   SELECT: 'select',

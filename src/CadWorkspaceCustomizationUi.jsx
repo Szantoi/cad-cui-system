@@ -1,9 +1,8 @@
 import React, { useCallback, useId, useMemo } from 'react';
 import { CadPopover } from './CadOverlayUi.jsx';
 import { asArray, cx, itemLabel, useControllableState } from './cadUiUtils.js';
+import { isRecord, toTrimmedString as text } from './cadValueUtils.js';
 
-const text = value => String(value ?? '').trim();
-const isRecord = value => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const samePreference = (first, second) => Boolean(first) && Boolean(second)
   && first.open === second.open
   && first.placement === second.placement
@@ -14,10 +13,11 @@ const recordFrom = value => {
   return isRecord(value) ? value : {};
 };
 
+const PANEL_PREFERENCE_STATE_FIELDS = new Set(['open', 'visible', 'isOpen', 'placement', 'mode']);
+
 const omitStateFields = value => {
   if (!isRecord(value)) return {};
-  const { open, visible, isOpen, placement, mode, ...metadata } = value;
-  return metadata;
+  return Object.fromEntries(Object.entries(value).filter(([key]) => !PANEL_PREFERENCE_STATE_FIELDS.has(key)));
 };
 
 const booleanValue = (...values) => {
