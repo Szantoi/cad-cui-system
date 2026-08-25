@@ -161,6 +161,41 @@ describe('interactive CAD CUI playground', () => {
     expect(input).toHaveValue('');
   });
 
+  it('offers only selection-compatible actions from the shared desktop selection snapshot', () => {
+    render(<Playground />);
+
+    const selectionToolbar = screen.getByRole('toolbar', { name: 'Selection actions' });
+    expect(within(selectionToolbar).getByRole('button', { name: 'MOVE' })).toBeInTheDocument();
+    expect(within(selectionToolbar).getByRole('button', { name: 'TRIM' })).toBeInTheDocument();
+    expect(within(selectionToolbar).getByRole('button', { name: 'OFFSET' })).toBeInTheDocument();
+    expect(within(selectionToolbar).queryByRole('button', { name: 'ROTATE' })).not.toBeInTheDocument();
+    expect(document.querySelector('[data-cad-group="MODIFY"]')).toBeNull();
+
+    fireEvent.click(within(selectionToolbar).getByRole('button', { name: 'MOVE' }));
+    showCommandActivity();
+    expect(screen.getByText('Selection action: MOVE offered for 1 selected object.')).toBeInTheDocument();
+
+    const inspectorTabs = screen.getByRole('tablist', { name: 'Inspector dock panels' });
+    fireEvent.click(within(inspectorTabs).getByRole('tab', { name: 'Object Data' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select line-01' }));
+    expect(screen.queryByRole('toolbar', { name: 'Selection actions' })).not.toBeInTheDocument();
+    expect(document.querySelector('[data-cad-group="MODIFY"]')).not.toBeNull();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select block-03' }));
+
+    const blockToolbar = screen.getByRole('toolbar', { name: 'Selection actions' });
+    expect(within(blockToolbar).getByRole('button', { name: 'ROTATE' })).toBeInTheDocument();
+    expect(within(blockToolbar).getByRole('button', { name: 'EXPLODE' })).toBeInTheDocument();
+    expect(within(blockToolbar).queryByRole('button', { name: 'TRIM' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'EDIT BLOCK' })).toBeInTheDocument();
+    expect(document.querySelector('[data-cad-group="MODIFY"]')).toBeNull();
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select block-03' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select dim-04' }));
+    const lockedToolbar = screen.getByRole('toolbar', { name: 'Selection actions' });
+    expect(within(lockedToolbar).getByRole('button', { name: 'PROPERTIES' })).toBeInTheDocument();
+    expect(within(lockedToolbar).queryByRole('button', { name: 'MOVE' })).not.toBeInTheDocument();
+  });
+
   it('shows one context-appropriate scale control as Model Space changes to a Layout', () => {
     render(<Playground />);
 

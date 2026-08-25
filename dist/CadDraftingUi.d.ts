@@ -7,7 +7,13 @@ import React from 'react';
 export declare function CadDynamicInput({ mode, fields, value, defaultValue, onChange, onSubmit, prompt, unit, visible, submitLabel, className, children, ...props }: CadAnyProps): React.JSX.Element;
 /** Object-snap chooser for endpoint/midpoint/intersection-style drafting. */
 export declare function CadObjectSnapMenu({ modes, activeIds, defaultActiveIds, multiple, onChange, onClose, label, className, ...props }: CadAnyProps): React.JSX.Element;
-/** Compact context toolbar intended for a selected object or active grip. */
+/**
+ * Compact context toolbar intended for a selected object or active grip.
+ *
+ * Pass it only host-resolved tools (for example with `useCadSelectionActions`)
+ * so unavailable commands never become tempting, disabled clutter. A zero
+ * selection intentionally renders nothing; the canvas remains the focus.
+ */
 export declare function CadGripToolbar({ tools, selectionCount, label, onAction, onDismiss, className, ...props }: CadAnyProps): React.JSX.Element;
 /**
  * Parametric constraint actions. `strip` preserves a conventional compact

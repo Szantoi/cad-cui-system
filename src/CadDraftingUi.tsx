@@ -104,11 +104,20 @@ export function CadObjectSnapMenu({ modes = DEFAULT_SNAP_MODES, activeIds, defau
   </aside>;
 }
 
-/** Compact context toolbar intended for a selected object or active grip. */
+/**
+ * Compact context toolbar intended for a selected object or active grip.
+ *
+ * Pass it only host-resolved tools (for example with `useCadSelectionActions`)
+ * so unavailable commands never become tempting, disabled clutter. A zero
+ * selection intentionally renders nothing; the canvas remains the focus.
+ */
 export function CadGripToolbar({ tools = [], selectionCount, label = 'Selection tools', onAction, onDismiss, className, ...props }: CadAnyProps) {
+  const visibleTools = asArray(tools).filter(tool => tool?.type === 'separator' || !tool?.hidden);
+  if (selectionCount !== undefined && Number(selectionCount) <= 0) return null;
+  if (!visibleTools.some(tool => tool?.type !== 'separator')) return null;
   return <aside {...props} className={cx('cad-grip-toolbar', className)} aria-label={label}>
     {selectionCount !== undefined && <output className="cad-grip-toolbar__selection">{selectionCount} selected</output>}
-    <div role="group" aria-label={label}>{asArray(tools).map((tool, index) => tool?.type === 'separator'
+    <div role="toolbar" aria-label={label}>{visibleTools.map((tool, index) => tool?.type === 'separator'
       ? <span key={tool.id || index} className="cad-grip-toolbar__separator" role="separator" />
       : <CadToolButton key={tool?.id || index} icon={tool?.icon} label={itemLabel(tool)} shortcut={tool?.shortcut} tone={tool?.tone} active={tool?.active} toggle={tool?.toggle} disabled={tool?.disabled} compact onClick={event => { tool?.onClick?.(tool, event); onAction?.(tool, event); }} />)}</div>
     {onDismiss && <button type="button" className="cad-grip-toolbar__dismiss" aria-label={`Dismiss ${label}`} onClick={onDismiss}>×</button>}

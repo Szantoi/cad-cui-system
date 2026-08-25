@@ -15,21 +15,22 @@ export declare const DEFAULT_CAD_CUI_SYSTEM: any;
  * visibility, disabled state, selected/pressed treatment and badges never
  * drift apart between the ribbon, palette and quick access bar.
  */
-export declare function resolveCadCuiCommand(command: any, { state, capabilities, commandStates, placement }?: CadAnyProps): any;
+export declare function resolveCadCuiCommand(command: any, { state, capabilities, commandStates, selection, placement, surface, unavailablePresentation }?: CadAnyProps): any;
 export declare const resolveCadCuiCommandState: typeof resolveCadCuiCommand;
 export declare function sanitizeCadCuiState(system: any, candidate: any): CadAnyProps;
 export declare function loadCadCuiState(system: any, storage?: Pick<Storage, 'getItem'> | null): CadAnyProps;
 export declare function saveCadCuiState(system: any, state: any, storage?: Pick<Storage, 'setItem'> | null): boolean;
-export declare function selectCadCuiCommands(system: any, state: any, { surface, tabId, menuId, groupId, capabilities, commandStates }?: CadAnyProps): any;
+export declare function selectCadCuiCommands(system: any, state: any, { surface, tabId, menuId, groupId, capabilities, commandStates, selection, unavailablePresentation }?: CadAnyProps): any;
 /**
  * Returns command groups with their resolved commands. Groups are opt-in:
  * registries with no `groups` keep the legacy flat ribbon output untouched.
  */
-export declare function selectCadCuiCommandGroups(system: any, state: any, { surface, tabId, menuId, capabilities, commandStates }?: CadAnyProps): any;
+export declare function selectCadCuiCommandGroups(system: any, state: any, { surface, tabId, menuId, capabilities, commandStates, selection, unavailablePresentation }?: CadAnyProps): any;
 /**
  * Copy/paste integration:
  *
  * <CadCuiProvider registry={registry} capabilities={{ admin: isAdmin }}
+ *   selection={{ ids: selectedIds, entityTypes: selectedTypes, traits: ['editable'] }}
  *   commandStates={{ 'draw.line': { active: true, badge: 2 } }} handlers={{
  *   'panel.open': ({ intent }) => openWorkspacePanel(intent.panelId),
  *   'panel.place': ({ intent }) => placeWorkspacePanel(intent.panelId, intent.placement),
@@ -46,9 +47,19 @@ export declare function selectCadCuiCommandGroups(system: any, state: any, { sur
  * The provider owns only serializable UI preferences. Domain data, window
  * manager handles and authorization remain in the application adapter.
  */
-export declare function CadCuiProvider({ registry, capabilities, commandStates, handlers, onCommand, children }: CadAnyProps): React.JSX.Element;
+export declare function CadCuiProvider({ registry, capabilities, selection, commandStates, handlers, onCommand, children }: CadAnyProps): React.JSX.Element;
 export declare function useCadCui(): CadAnyProps;
 export declare function useCadCuiCommand(commandId: any, source?: string): (payload?: any) => any;
+/**
+ * Resolves only the currently meaningful commands for a selection surface.
+ * It is a thin adapter over the shared CUI registry, so a host can feed the
+ * result directly into `CadGripToolbar` without creating another command list.
+ */
+export declare function useCadSelectionActions({ surface, tabId, menuId, groupId }?: CadAnyProps): {
+    selection: any;
+    actions: any;
+    execute: (action: any, payload?: any) => any;
+};
 export declare function CadCuiRibbon({ iconMap, className, title, description, renderBadge, ...props }: CadAnyProps): React.JSX.Element;
 export declare function CadCuiQuickAccess({ iconMap, commandIds, className, ...props }: CadAnyProps): React.JSX.Element;
 export declare function CadCuiContextMenu({ menuId, iconMap, className, onClose, ...props }: CadAnyProps): React.JSX.Element;

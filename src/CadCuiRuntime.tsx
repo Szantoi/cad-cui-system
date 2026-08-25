@@ -2,10 +2,12 @@ import type { CadAnyProps } from './cad-types';
 import React, { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useReducer, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CadActionButton, CadDataRow, CadEmptyState, CadPanelFooter, CadPanelHeader, CadPanelSection, CadPanelShell, CadSegmentTabs } from './GraphCadUi';
+import { matchesCadSelection, normalizeCadSelection, normalizeCadSelectionRule } from './CadSelectionActions';
 import { toTrimmedString as text } from './cadValueUtils';
 
 const EMPTY_LIST: readonly any[] = Object.freeze([]);
 const EMPTY_OBJECT: CadAnyProps = Object.freeze({});
+const EMPTY_SELECTION = normalizeCadSelection();
 const CadCuiContext = createContext<CadAnyProps | null>(null);
 
 export const CAD_CUI_RUNTIME_VERSION = 1;
@@ -15,6 +17,7 @@ const copyOption = option => ({ id: text(option?.id), label: text(option?.label)
 const copyIntent = intent => Object.freeze({ ...(intent && typeof intent === 'object' ? intent : EMPTY_OBJECT) });
 const hasOwn = (value, key) => Boolean(value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, key));
 const copyBadge = value => value === undefined || value === null ? '' : value;
+const copySelectionRule = selection => normalizeCadSelectionRule(selection);
 const copyPlacement = placement => Object.freeze({
   surface: text(placement?.surface),
   tab: text(placement?.tab),
@@ -86,6 +89,7 @@ export function defineCadCuiSystem(definition: CadAnyProps = EMPTY_OBJECT) {
       disabled: Boolean(command?.disabled),
       active: Boolean(command?.active),
       badge: copyBadge(command?.badge),
+      selection: copySelectionRule(command?.selection),
       intent: copyIntent(command?.intent),
       placements: (Array.isArray(command?.placements) ? command.placements : EMPTY_LIST).map(copyPlacement)
     }))
@@ -138,9 +142,9 @@ export const DEFAULT_CAD_CUI_SYSTEM = defineCadCuiSystem({ id: 'cad-cui-default'
 
 const commandMapFor = (system: any) => new Map<any, CadAnyProps>(system.commands.map((command: any) => [command.id, command]));
 const optionExists = (options: any[], value: any) => options.some(option => option.id === value);
-const commandStateFor = (commandStates: any, command: any): CadAnyProps => {
+const commandStateFor = (commandStates: any, command: any, context: CadAnyProps = EMPTY_OBJECT): CadAnyProps => {
   const candidate = typeof commandStates === 'function'
-    ? commandStates(command)
+    ? commandStates(command, context)
     : commandStates instanceof Map
       ? commandStates.get(command?.id)
       : commandStates?.[command?.id];
@@ -153,22 +157,53 @@ const commandStateFor = (commandStates: any, command: any): CadAnyProps => {
  * visibility, disabled state, selected/pressed treatment and badges never
  * drift apart between the ribbon, palette and quick access bar.
  */
-export function resolveCadCuiCommand(command: any, { state = EMPTY_OBJECT, capabilities = EMPTY_OBJECT, commandStates = EMPTY_OBJECT, placement = command?.placement }: CadAnyProps = EMPTY_OBJECT) {
+export function resolveCadCuiCommand(command: any, {
+  state = EMPTY_OBJECT,
+  capabilities = EMPTY_OBJECT,
+  commandStates = EMPTY_OBJECT,
+  selection = EMPTY_SELECTION,
+  placement = command?.placement,
+  surface = placement?.surface || '',
+  unavailablePresentation = 'hide'
+}: CadAnyProps = EMPTY_OBJECT) {
   if (!command) return null;
-  const dynamicState = commandStateFor(commandStates, command);
+  const normalizedSelection = normalizeCadSelection(selection);
+  const selectionMatch = matchesCadSelection(command.selection, normalizedSelection);
+  const dynamicState = commandStateFor(commandStates, command, {
+    command,
+    selection: normalizedSelection,
+    state,
+    capabilities,
+    placement,
+    surface
+  });
   const hiddenCommandIds = new Set(state?.hiddenCommandIds || EMPTY_LIST);
   const requirements = Array.isArray(command.requires) ? command.requires : EMPTY_LIST;
-  const visible = (command.alwaysVisible || !hiddenCommandIds.has(command.id))
+  let visible = (command.alwaysVisible || !hiddenCommandIds.has(command.id))
     && requirements.every(requirement => capabilityEnabled(capabilities, requirement))
     && dynamicState.visible !== false;
-  const disabled = Boolean(command.disabled || dynamicState.disabled || dynamicState.enabled === false);
+  let disabled = Boolean(command.disabled || dynamicState.disabled || dynamicState.enabled === false);
+  if (!selectionMatch.matches) {
+    if (unavailablePresentation === 'disable') disabled = true;
+    else visible = false;
+  }
   const active = hasOwn(dynamicState, 'active') ? Boolean(dynamicState.active) : Boolean(command.active);
   const badge = hasOwn(dynamicState, 'badge')
     ? copyBadge(dynamicState.badge)
     : hasOwn(placement, 'badge') && placement.badge !== ''
       ? placement.badge
       : command.badge;
-  return { ...command, placement, visible, disabled, active, badge };
+  return {
+    ...command,
+    placement,
+    visible,
+    disabled,
+    active,
+    badge,
+    selection: normalizedSelection,
+    selectionMatched: selectionMatch.matches,
+    unavailableReason: selectionMatch.reason
+  };
 }
 
 // A descriptive alias for adapters that consume just the effective view state.
@@ -234,8 +269,18 @@ export function saveCadCuiState(system: any, state: any, storage: Pick<Storage, 
   }
 }
 
-export function selectCadCuiCommands(system: any, state: any, { surface = 'palette', tabId = '', menuId = '', groupId = '', capabilities = EMPTY_OBJECT, commandStates = EMPTY_OBJECT }: CadAnyProps = EMPTY_OBJECT) {
+export function selectCadCuiCommands(system: any, state: any, {
+  surface = 'palette',
+  tabId = '',
+  menuId = '',
+  groupId = '',
+  capabilities = EMPTY_OBJECT,
+  commandStates = EMPTY_OBJECT,
+  selection = EMPTY_SELECTION,
+  unavailablePresentation = 'hide'
+}: CadAnyProps = EMPTY_OBJECT) {
   const hidden = new Set(state?.hiddenCommandIds || EMPTY_LIST);
+  const normalizedSelection = normalizeCadSelection(selection);
   return system.commands.flatMap(command => {
     if (hidden.has(command.id) && !command.alwaysVisible) return EMPTY_LIST;
     if (command.requires.some(requirement => !capabilityEnabled(capabilities, requirement))) return EMPTY_LIST;
@@ -243,7 +288,15 @@ export function selectCadCuiCommands(system: any, state: any, { surface = 'palet
       ? { surface: 'palette', order: 0 }
       : command.placements.find(item => item.surface === surface && (!tabId || item.tab === tabId) && (!menuId || item.menu === menuId) && (!groupId || item.groupId === groupId));
     if (!placement) return EMPTY_LIST;
-    const resolved = resolveCadCuiCommand(presentedCommand(command, placement), { state, capabilities, commandStates, placement });
+    const resolved = resolveCadCuiCommand(presentedCommand(command, placement), {
+      state,
+      capabilities,
+      commandStates,
+      selection: normalizedSelection,
+      placement,
+      surface,
+      unavailablePresentation
+    });
     return resolved?.visible ? [resolved] : EMPTY_LIST;
   }).sort((first, second) => first.placement.order - second.placement.order || first.label.localeCompare(second.label, 'hu'));
 }
@@ -252,12 +305,28 @@ export function selectCadCuiCommands(system: any, state: any, { surface = 'palet
  * Returns command groups with their resolved commands. Groups are opt-in:
  * registries with no `groups` keep the legacy flat ribbon output untouched.
  */
-export function selectCadCuiCommandGroups(system: any, state: any, { surface = 'ribbon', tabId = '', menuId = '', capabilities = EMPTY_OBJECT, commandStates = EMPTY_OBJECT }: CadAnyProps = EMPTY_OBJECT) {
+export function selectCadCuiCommandGroups(system: any, state: any, {
+  surface = 'ribbon',
+  tabId = '',
+  menuId = '',
+  capabilities = EMPTY_OBJECT,
+  commandStates = EMPTY_OBJECT,
+  selection = EMPTY_SELECTION,
+  unavailablePresentation = 'hide'
+}: CadAnyProps = EMPTY_OBJECT) {
   const configuredGroups = (Array.isArray(system?.groups) ? system.groups : EMPTY_LIST)
     .filter(group => (!group.surface || group.surface === surface) && (!tabId || !group.tab || group.tab === tabId) && (!menuId || !group.menu || group.menu === menuId))
     .sort((first, second) => first.order - second.order || first.label.localeCompare(second.label, 'hu'));
   if (!configuredGroups.length) return EMPTY_LIST;
-  const commands = selectCadCuiCommands(system, state, { surface, tabId, menuId, capabilities, commandStates });
+  const commands = selectCadCuiCommands(system, state, {
+    surface,
+    tabId,
+    menuId,
+    capabilities,
+    commandStates,
+    selection,
+    unavailablePresentation
+  });
   const groupedIds = new Set();
   const groups = configuredGroups.map(group => {
     const groupCommands = commands
@@ -305,6 +374,7 @@ const createCadCuiReducer = (system: any) => (state: any, action: any): any => {
  * Copy/paste integration:
  *
  * <CadCuiProvider registry={registry} capabilities={{ admin: isAdmin }}
+ *   selection={{ ids: selectedIds, entityTypes: selectedTypes, traits: ['editable'] }}
  *   commandStates={{ 'draw.line': { active: true, badge: 2 } }} handlers={{
  *   'panel.open': ({ intent }) => openWorkspacePanel(intent.panelId),
  *   'panel.place': ({ intent }) => placeWorkspacePanel(intent.panelId, intent.placement),
@@ -321,25 +391,42 @@ const createCadCuiReducer = (system: any) => (state: any, action: any): any => {
  * The provider owns only serializable UI preferences. Domain data, window
  * manager handles and authorization remain in the application adapter.
  */
-export function CadCuiProvider({ registry = DEFAULT_CAD_CUI_SYSTEM, capabilities = EMPTY_OBJECT, commandStates = EMPTY_OBJECT, handlers = EMPTY_OBJECT, onCommand, children }: CadAnyProps) {
+export function CadCuiProvider({ registry = DEFAULT_CAD_CUI_SYSTEM, capabilities = EMPTY_OBJECT, selection = EMPTY_SELECTION, commandStates = EMPTY_OBJECT, handlers = EMPTY_OBJECT, onCommand, children }: CadAnyProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [state, dispatch] = useReducer(createCadCuiReducer(registry), registry, system => loadCadCuiState(system));
   const commandMap = useMemo(() => commandMapFor(registry), [registry]);
+  const normalizedSelection = useMemo(() => normalizeCadSelection(selection), [selection]);
 
   useEffect(() => {
     saveCadCuiState(registry, state);
   }, [registry, state]);
 
-  const resolveCommand = useCallback((command: any, placement?: any) => resolveCadCuiCommand(command, { state, capabilities, commandStates, placement }), [capabilities, commandStates, state]);
+  const resolveCommand = useCallback((command: any, placement?: any) => resolveCadCuiCommand(command, {
+    state,
+    capabilities,
+    commandStates,
+    selection: normalizedSelection,
+    placement
+  }), [capabilities, commandStates, normalizedSelection, state]);
 
   const canExecute = useCallback(command => {
     const resolved = resolveCommand(command);
     return Boolean(resolved?.visible && !resolved.disabled);
   }, [resolveCommand]);
 
-  const selectCommands = useCallback((options = EMPTY_OBJECT) => selectCadCuiCommands(registry, state, { ...options, capabilities, commandStates }), [capabilities, commandStates, registry, state]);
-  const selectCommandGroups = useCallback((options = EMPTY_OBJECT) => selectCadCuiCommandGroups(registry, state, { ...options, capabilities, commandStates }), [capabilities, commandStates, registry, state]);
+  const selectCommands = useCallback((options = EMPTY_OBJECT) => selectCadCuiCommands(registry, state, {
+    ...options,
+    capabilities,
+    commandStates,
+    selection: options.selection ?? normalizedSelection
+  }), [capabilities, commandStates, normalizedSelection, registry, state]);
+  const selectCommandGroups = useCallback((options = EMPTY_OBJECT) => selectCadCuiCommandGroups(registry, state, {
+    ...options,
+    capabilities,
+    commandStates,
+    selection: options.selection ?? normalizedSelection
+  }), [capabilities, commandStates, normalizedSelection, registry, state]);
 
   const executeCommand = useCallback(async (commandId, { source = 'api', payload = EMPTY_OBJECT } = EMPTY_OBJECT) => {
     const command = commandMap.get(commandId);
@@ -350,7 +437,7 @@ export function CadCuiProvider({ registry = DEFAULT_CAD_CUI_SYSTEM, capabilities
     // Keep `command` as the immutable registry declaration for existing host
     // handlers. Consumers that need the host-resolved visual/executable state
     // can opt into the additive `resolvedCommand` field.
-    const event = { commandId, command, resolvedCommand, intent, payload, source, state, location };
+    const event = { commandId, command, resolvedCommand, intent, payload, source, state, selection: normalizedSelection, location };
     try {
       if (intent.type === 'route.navigate') navigate(intent.to, intent.options);
       else {
@@ -365,7 +452,7 @@ export function CadCuiProvider({ registry = DEFAULT_CAD_CUI_SYSTEM, capabilities
       dispatch({ type: 'command.failed', commandId, error: error instanceof Error ? error.message : String(error) });
       return { ok: false, reason: 'COMMAND_FAILED', error };
     }
-  }, [commandMap, handlers, location, navigate, onCommand, resolveCommand, state]);
+  }, [commandMap, handlers, location, navigate, normalizedSelection, onCommand, resolveCommand, state]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -385,6 +472,7 @@ export function CadCuiProvider({ registry = DEFAULT_CAD_CUI_SYSTEM, capabilities
     registry,
     state,
     capabilities,
+    selection: normalizedSelection,
     commandStates,
     resolveCommand,
     selectCommands,
@@ -395,7 +483,7 @@ export function CadCuiProvider({ registry = DEFAULT_CAD_CUI_SYSTEM, capabilities
     toggleCommandVisibility: commandId => dispatch({ type: 'command.visibility', commandId }),
     resetPreferences: () => dispatch({ type: 'preferences.reset' }),
     canExecute
-  }), [canExecute, capabilities, commandStates, executeCommand, registry, resolveCommand, selectCommands, selectCommandGroups, state]);
+  }), [canExecute, capabilities, commandStates, executeCommand, normalizedSelection, registry, resolveCommand, selectCommands, selectCommandGroups, state]);
 
   return <CadCuiContext.Provider value={value}>{children}</CadCuiContext.Provider>;
 }
@@ -409,6 +497,21 @@ export function useCadCui() {
 export function useCadCuiCommand(commandId: any, source = 'api') {
   const { executeCommand } = useCadCui();
   return useCallback((payload?: any) => executeCommand(commandId, { source, payload }), [commandId, executeCommand, source]);
+}
+
+/**
+ * Resolves only the currently meaningful commands for a selection surface.
+ * It is a thin adapter over the shared CUI registry, so a host can feed the
+ * result directly into `CadGripToolbar` without creating another command list.
+ */
+export function useCadSelectionActions({ surface = 'selection-toolbar', tabId = '', menuId = '', groupId = '' }: CadAnyProps = EMPTY_OBJECT) {
+  const { selection, selectCommands, executeCommand } = useCadCui();
+  const actions = useMemo(() => selectCommands({ surface, tabId, menuId, groupId, unavailablePresentation: 'hide' }), [groupId, menuId, selectCommands, surface, tabId]);
+  const execute = useCallback((action: any, payload?: any) => {
+    const commandId = typeof action === 'string' ? action : action?.id;
+    return executeCommand(commandId, { source: surface, payload });
+  }, [executeCommand, surface]);
+  return { selection, actions, execute };
 }
 
 const resolveIcon = (iconMap, icon) => iconMap?.[icon] || null;

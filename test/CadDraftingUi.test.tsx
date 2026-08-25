@@ -5,6 +5,7 @@ import {
   CadAnnotationScalePicker,
   CadConstraintBar,
   CadDynamicInput,
+  CadGripToolbar,
   CadObjectSnapMenu,
   CadPolarTracker,
   CadSelectionGrip
@@ -124,5 +125,32 @@ describe('CAD drafting primitives', () => {
     expect(grip).not.toHaveAttribute('aria-pressed');
     fireEvent.pointerDown(grip);
     expect(onPointerDown).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the contextual selection toolbar focused on executable actions', () => {
+    const onAction = vi.fn();
+    const onDismiss = vi.fn();
+    const { rerender } = render(<CadGripToolbar
+      selectionCount={2}
+      onAction={onAction}
+      onDismiss={onDismiss}
+      tools={[
+        { id: 'move', label: 'Move', shortcut: 'M' },
+        { id: 'delete', label: 'Delete', tone: 'danger' },
+        { id: 'locked', label: 'Locked action', disabled: true }
+      ]}
+    />);
+
+    const toolbar = screen.getByRole('toolbar', { name: 'Selection tools' });
+    expect(toolbar).toBeInTheDocument();
+    expect(screen.getByText('2 selected')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Move/ }));
+    expect(onAction).toHaveBeenCalledWith(expect.objectContaining({ id: 'move' }), expect.any(Object));
+    expect(screen.getByRole('button', { name: /Locked action/ })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss Selection tools' }));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+
+    rerender(<CadGripToolbar selectionCount={0} tools={[{ id: 'move', label: 'Move' }]} />);
+    expect(screen.queryByRole('toolbar', { name: 'Selection tools' })).not.toBeInTheDocument();
   });
 });

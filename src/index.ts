@@ -2,6 +2,7 @@ export type { CadAnyProps, CadUnknownRecord } from './cad-types';
 
 export * from './GraphCadUi';
 export * from './CadCuiRuntime';
+export * from './CadSelectionActions';
 export * from './CadCommandUi';
 export * from './CadWorkspaceRibbon';
 export * from './CadCompactWorkspaceRibbon';

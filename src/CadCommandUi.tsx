@@ -16,6 +16,11 @@ export function CadShortcutHint({ shortcut, className }: CadAnyProps) {
 /** A compact tool button suitable for a ribbon, a tool palette or a menu bar. */
 export function CadToolButton({ icon: Icon, label, shortcut, active = false, toggle = false, tone = 'inherit', badge, compact = false, className, children, title, type = 'button', ...props }: CadAnyProps) {
   const accessibleLabel = label || (typeof children === 'string' ? children : 'CAD tool');
+  const icon = React.isValidElement(Icon)
+    ? Icon
+    : typeof Icon === 'function'
+      ? <Icon size={compact ? 13 : 16} />
+      : null;
   return <button
     {...props}
     type={type}
@@ -26,7 +31,7 @@ export function CadToolButton({ icon: Icon, label, shortcut, active = false, tog
     title={title || [accessibleLabel, shortcut].filter(Boolean).join(' · ')}
     className={cx('cad-tool-button', compact && 'cad-tool-button--compact', className)}
   >
-    {Icon && <span className="cad-tool-button__icon" aria-hidden="true"><Icon size={compact ? 13 : 16} /></span>}
+    {icon && <span className="cad-tool-button__icon" aria-hidden="true">{icon}</span>}
     {(label || children) && <span className="cad-tool-button__label">{children || label}</span>}
     {badge && <span className="cad-tool-button__badge">{badge}</span>}
     {shortcut && <CadShortcutHint shortcut={shortcut} />}

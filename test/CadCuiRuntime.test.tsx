@@ -39,6 +39,19 @@ const GROUPED_CUI = defineCadCuiSystem({
   ]
 });
 
+const SELECTION_CUI = defineCadCuiSystem({
+  id: 'selection-package-test',
+  storageKey: 'cad-cui-selection-package-test:v1',
+  defaults: { activeTab: 'home' },
+  tabs: [{ id: 'home', label: 'HOME', tone: 'cyan' }],
+  groups: [{ id: 'selection', label: 'KIJELÖLÉS', tab: 'home', order: 10 }],
+  commands: [
+    { id: 'move', label: 'MOZGATÁS', intent: { type: 'modify.move' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 10 }] },
+    { id: 'explode', label: 'SZÉTBONTÁS', intent: { type: 'modify.explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 20 }] },
+    { id: 'properties', label: 'TULAJDONSÁGOK', intent: { type: 'inspect.properties' }, selection: { count: 'any' }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 30 }] }
+  ]
+});
+
 function StateProbe() {
   const { state } = useCadCui();
   return <output data-testid="cui-state" data-density={state.density} data-detail={state.detail} />;
@@ -79,6 +92,18 @@ function GroupedFixture({ commandStates = {}, handlers = {} }: CadAnyProps) {
 function renderGroupedFixture(options: CadAnyProps = {}) {
   return render(<MemoryRouter initialEntries={['/graph']}>
     <Routes><Route path="*" element={<GroupedFixture {...options} />} /></Routes>
+  </MemoryRouter>);
+}
+
+function SelectionFixture({ selection = {}, commandStates = {}, handlers = {} }: CadAnyProps) {
+  return <CadCuiProvider registry={SELECTION_CUI} selection={selection} commandStates={commandStates} handlers={handlers}>
+    <CadCuiRibbon data-testid="selection-ribbon" />
+  </CadCuiProvider>;
+}
+
+function renderSelectionFixture(options: CadAnyProps = {}) {
+  return render(<MemoryRouter initialEntries={['/graph']}>
+    <Routes><Route path="*" element={<SelectionFixture {...options} />} /></Routes>
   </MemoryRouter>);
 }
 
@@ -179,6 +204,38 @@ describe('CAD CUI runtime', () => {
     })));
     fireEvent.click(moveButton);
     expect(commandHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('filters selection commands at the shared registry boundary and passes the snapshot to hosts', async () => {
+    const empty = selectCadCuiCommands(SELECTION_CUI, SELECTION_CUI.defaultState, { surface: 'ribbon', tabId: 'home', selection: {} });
+    expect(empty).toEqual([]);
+    expect(selectCadCuiCommands(SELECTION_CUI, SELECTION_CUI.defaultState, {
+      surface: 'ribbon',
+      tabId: 'home',
+      selection: { ids: ['line-01'], entityTypes: ['line'], traits: ['editable'] }
+    }).map(command => command.id)).toEqual(['move', 'properties']);
+
+    const modifyExplode = vi.fn();
+    const commandStates = vi.fn(() => ({}));
+    renderSelectionFixture({
+      selection: { ids: ['block-03'], entityTypes: ['block'], traits: ['editable'], source: 'canvas' },
+      commandStates,
+      handlers: { 'modify.explode': modifyExplode }
+    });
+
+    const ribbon = screen.getByTestId('selection-ribbon');
+    expect(within(ribbon).getByRole('button', { name: 'MOZGATÁS' })).toBeInTheDocument();
+    const explode = within(ribbon).getByRole('button', { name: 'SZÉTBONTÁS' });
+    expect(commandStates).toHaveBeenCalledWith(expect.objectContaining({ id: 'explode' }), expect.objectContaining({
+      selection: expect.objectContaining({ ids: ['block-03'], entityTypes: ['block'], traits: ['editable'], source: 'canvas' }),
+      surface: 'ribbon'
+    }));
+
+    fireEvent.click(explode);
+    await waitFor(() => expect(modifyExplode).toHaveBeenCalledWith(expect.objectContaining({
+      commandId: 'explode',
+      selection: expect.objectContaining({ ids: ['block-03'], source: 'canvas' })
+    })));
   });
 
   it('keeps the original flat ribbon markup when no registry groups are declared', () => {

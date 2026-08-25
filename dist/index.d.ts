@@ -1,6 +1,7 @@
 export type { CadAnyProps, CadUnknownRecord } from './cad-types.js';
 export * from './GraphCadUi.js';
 export * from './CadCuiRuntime.js';
+export * from './CadSelectionActions.js';
 export * from './CadCommandUi.js';
 export * from './CadWorkspaceRibbon.js';
 export * from './CadCompactWorkspaceRibbon.js';

@@ -121,6 +121,75 @@ and `badge`; `commandStates` may be an object, `Map`, or a resolver function.
 Handlers keep receiving the immutable registry record as `event.command`; the
 additive `event.resolvedCommand` includes the live effective state.
 
+### Selection-aware commands
+
+Use the same registry for contextual CAD actions. The host passes a transient
+selection snapshot to `CadCuiProvider`; command declarations then state exactly
+which count, entity types, and aggregate traits they support. A rule mismatch
+is hidden by default, so the toolbar and context menu do not fill up with
+disabled operations. The selection is never written into CUI preferences or a
+workspace preset.
+
+```jsx
+import {
+  CadCuiProvider,
+  CadGripToolbar,
+  useCadSelectionActions,
+  defineCadCuiSystem
+} from '@szantoi/cad-cui-system';
+
+const registry = defineCadCuiSystem({
+  id: 'model-space',
+  commands: [{
+    id: 'modify.explode',
+    label: 'EXPLODE',
+    shortcut: 'X',
+    intent: { type: 'modify.explode' },
+    selection: {
+      count: 'one',
+      entityTypes: ['block'],
+      traits: ['editable']
+    },
+    placements: [
+      { surface: 'ribbon', tab: 'home', groupId: 'selection' },
+      { surface: 'selection-toolbar', order: 20 },
+      { surface: 'context', menu: 'selection', order: 20 }
+    ]
+  }]
+});
+
+function SelectionToolbar() {
+  const { selection, actions, execute } = useCadSelectionActions();
+  return <CadGripToolbar
+    selectionCount={selection.ids.length}
+    tools={actions}
+    onAction={action => execute(action)}
+  />;
+}
+
+<CadCuiProvider
+  registry={registry}
+  selection={{
+    ids: selectedIds,
+    entityTypes: selectedTypes,
+    // For multi-selection, expose a trait only if all selected entities share it.
+    traits: sharedTraits,
+    source: 'canvas'
+  }}
+  handlers={{ 'modify.explode': ({ selection }) => explode(selection.ids) }}
+>
+  <CadCuiRibbon />
+  <SelectionToolbar />
+</CadCuiProvider>
+```
+
+`CadSelectionRule` supports `count: 'none' | 'one' | 'many' | 'any'`,
+`entityTypes`, `typeMatch`, `traits`, and `traitMatch`. Type matching defaults
+to `all`, preventing a mixed selection from being offered a geometry-specific
+operation. A `commandStates` resolver receives the same normalized selection in
+its second argument: `(command, { selection, state, capabilities, placement,
+surface }) => state`.
+
 ## Renderer-agnostic workspace ribbon
 
 `CadWorkspaceRibbon` is a self-contained Model Space ribbon surface: it does
@@ -507,7 +576,7 @@ technology.
 | Drafting overlays | `CadDynamicInput`, `CadObjectSnapMenu`, `CadGripToolbar`, `CadConstraintBar`, `CadAnnotationScalePicker`, `CadViewPresetPicker`, `CadPolarTracker`, `CadObjectSnapMarker`, `CadSelectionGrip` |
 | Viewport feedback and navigation | `CadViewCube`, `CadUcsIndicator`, `CadViewportControls`, `CadNavigationBar`, `CadMovableOverlay`, `CadVisualStylePicker`, `CadViewportScalePicker`, `CadSelectionSummary`, `CadMeasureReadout` |
 | Inspector and catalog palettes | `CadFilterBar`, `CadPropertyGrid`, `CadPropertySection`, `CadPropertyRow`, `CadPropertyField`, `CadLayerPicker`, `CadLayerPanel`, `CadLayerRow`, `CadObjectTree`, `CadTaskProgress`, `CadReferenceList`, `CadBlockPalette`, `CadBlockTile`, `CadBlockInsertOptions`, `CadQuickProperties` |
-| Data and selection | `CadDataGrid`, `CadSelectionFilter`, `CadSelectionCycler`, `CadSelectionSetPanel` |
+| Data and selection | `CadDataGrid`, `CadSelectionFilter`, `CadSelectionCycler`, `CadSelectionSetPanel`, `CadSelectionSnapshot`, `CadSelectionRule`, `normalizeCadSelection`, `matchesCadSelection`, `useCadSelectionActions` |
 | Dialogs and feedback | `CadDialog`, `CadConfirmDialog`, `CadToast`, `CadToastStack`, `CadPopover`, `CadTooltip`, `CadShortcutReference`, `CadCommandPrompt` |
 
 All workspace components use the `.cad-*` CSS namespace and inherit the host

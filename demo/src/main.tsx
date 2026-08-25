@@ -50,12 +50,14 @@ import {
   CadWorkspaceProfileTabs,
   createCadWorkspacePresetSnapshot,
   createCadWorkspaceProfile,
+  defineCadCuiSystem,
   exportCadWorkspacePreset,
   groupCadWorkspacePanelsByDockZone,
   importCadWorkspacePreset,
   normalizeCadWorkspacePanelPreferences,
   normalizeCadWorkspaceProfiles,
-  removeCadWorkspaceProfile
+  removeCadWorkspaceProfile,
+  selectCadCuiCommands
 } from '../../src/entry';
 import './playground.css';
 
@@ -87,6 +89,46 @@ const OBJECT_ROWS = [
   { id: 'block-03', entity: 'Block reference', layer: 'A-FURN', length: '—', status: 'Ready' },
   { id: 'dim-04', entity: 'Aligned dimension', layer: 'A-DIM', length: '2400 mm', status: 'Locked' }
 ];
+
+// The drawing engine never enters the UI library. The host exposes only the
+// selection capabilities needed for command availability.
+const OBJECT_SELECTION_METADATA = Object.freeze({
+  'line-01': { entityType: 'line', traits: ['editable', 'curve', 'planar'] },
+  'arc-02': { entityType: 'arc', traits: ['editable', 'curve', 'planar'] },
+  'block-03': { entityType: 'block', traits: ['editable', 'transformable', 'block'] },
+  'dim-04': { entityType: 'dimension', traits: ['locked', 'annotation'] }
+});
+
+const SELECTION_ACTION_GLYPHS = Object.freeze({
+  'selection.move': '↗',
+  'selection.copy': '⧉',
+  'selection.trim': '✂',
+  'selection.offset': '⇆',
+  'selection.rotate': '⟳',
+  'selection.explode': '⊞',
+  'selection.edit-block': '✎',
+  'selection.edit-dimension': '↕',
+  'selection.properties': '▤',
+  'selection.delete': '⌫'
+});
+
+// One serializable registry powers the contextual ribbon group and the
+// viewport toolbar. A real host can reuse it with CadCuiProvider too.
+const DEMO_SELECTION_ACTIONS = defineCadCuiSystem({
+  id: 'playground-selection-actions',
+  commands: [
+    { id: 'selection.move', label: 'MOVE', detail: 'Move the current selection', shortcut: 'M', tone: 'cyan', intent: { type: 'selection.action', action: 'move' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 10 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 10 }] },
+    { id: 'selection.copy', label: 'COPY', detail: 'Copy the current selection', shortcut: 'Ctrl+C', tone: 'cyan', intent: { type: 'selection.action', action: 'copy' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 20 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 20 }] },
+    { id: 'selection.trim', label: 'TRIM', detail: 'Trim selected curves', shortcut: 'TR', tone: 'cyan', intent: { type: 'selection.action', action: 'trim' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }] },
+    { id: 'selection.offset', label: 'OFFSET', detail: 'Offset selected curves', shortcut: 'O', tone: 'cyan', intent: { type: 'selection.action', action: 'offset' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }] },
+    { id: 'selection.rotate', label: 'ROTATE', detail: 'Rotate selected blocks', shortcut: 'R', tone: 'cyan', intent: { type: 'selection.action', action: 'rotate' }, selection: { count: 'any', entityTypes: ['block'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }] },
+    { id: 'selection.explode', label: 'EXPLODE', detail: 'Explode one block reference', shortcut: 'X', tone: 'cyan', intent: { type: 'selection.action', action: 'explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }] },
+    { id: 'selection.edit-block', label: 'EDIT BLOCK', detail: 'Edit the selected block definition', shortcut: 'BE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-block' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 50 }] },
+    { id: 'selection.edit-dimension', label: 'EDIT DIM', detail: 'Edit the selected dimension', shortcut: 'DDE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-dimension' }, selection: { count: 'one', entityTypes: ['dimension'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }] },
+    { id: 'selection.properties', label: 'PROPERTIES', detail: 'Inspect the selection properties', shortcut: 'Ctrl+1', tone: 'cyan', intent: { type: 'selection.action', action: 'properties' }, selection: { count: 'any' }, placements: [{ surface: 'selection-toolbar', order: 60 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 60 }] },
+    { id: 'selection.delete', label: 'DELETE', detail: 'Delete the current selection', shortcut: 'Del', tone: 'danger', intent: { type: 'selection.action', action: 'delete' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 70 }] }
+  ]
+});
 
 const INITIAL_SELECTION_SETS = [
   { id: 'primary-shell', label: 'Primary shell', description: 'External walls and core', group: 'Architecture', count: 18 },
@@ -702,7 +744,8 @@ function Playground() {
   const [constraintIds, setConstraintIds] = useState(['horizontal', 'perpendicular']);
   const [selectionFilterIds, setSelectionFilterIds] = useState(['line', 'arc', 'block']);
   const [selectedRowIds, setSelectedRowIds] = useState(['line-01']);
-  const [selectionCount, setSelectionCount] = useState(1);
+  const [selectionExtras, setSelectionExtras] = useState<CadAnyProps[]>([]);
+  const [selectionSource, setSelectionSource] = useState('data-grid');
   const [selectionSets, setSelectionSets] = useState(INITIAL_SELECTION_SETS);
   const [activeSelectionSetId, setActiveSelectionSetId] = useState('primary-shell');
   const [selectionSetFilter, setSelectionSetFilter] = useState('');
@@ -726,6 +769,26 @@ function Playground() {
     || INITIAL_PROFILES[0];
   const isModelSpace = activeProfile?.id === CAD_WORKSPACE_MODEL_ID;
   const activeSpaceLabel = isModelSpace ? 'MODEL SPACE' : `PAPER SPACE / ${(activeProfile?.name || 'Layout').toUpperCase()}`;
+  const selectedRowItems = useMemo(() => selectedRowIds.flatMap(id => {
+    const row = OBJECT_ROWS.find(item => item.id === id);
+    const metadata = OBJECT_SELECTION_METADATA[id];
+    return row && metadata ? [{ id, label: row.entity, ...metadata }] : [];
+  }), [selectedRowIds]);
+  const selectedEntities = useMemo(() => [...selectedRowItems, ...selectionExtras], [selectedRowItems, selectionExtras]);
+  const selectionCount = selectedEntities.length;
+  const selectionSnapshot = useMemo(() => {
+    const entityTypes = [...new Set(selectedEntities.map(item => item.entityType).filter(Boolean))];
+    const commonTraits = selectedEntities.reduce((traits, item, index) => {
+      const currentTraits = new Set(item.traits || []);
+      return index === 0 ? [...currentTraits] : traits.filter(trait => currentTraits.has(trait));
+    }, [] as string[]);
+    return {
+      ids: selectedEntities.map(item => item.id),
+      entityTypes,
+      traits: commonTraits,
+      source: selectionSource
+    };
+  }, [selectedEntities, selectionSource]);
 
   const enterFocusMode = () => {
     if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
@@ -1121,6 +1184,33 @@ function Playground() {
     report('Command', `${String(tool.label || tool.id).toUpperCase()} is active.`);
   };
 
+  const selectRows = (ids, source = 'data-grid') => {
+    setSelectedRowIds(ids);
+    setSelectionExtras([]);
+    setSelectionSource(source);
+  };
+
+  const applySelectionAction = command => {
+    const action = command?.intent?.action || String(command?.id || '').replace(/^selection\./, '');
+    if (!action || !selectionCount) return;
+    if (action === 'properties') {
+      setActiveInspectorTab('properties');
+      setRightPanelMode('open');
+    } else if (action === 'edit-block') {
+      setActiveInspectorTab('blocks');
+      setRightPanelMode('open');
+    } else if (action === 'edit-dimension') {
+      setActiveInspectorTab('properties');
+      setRightPanelMode('open');
+    } else if (action === 'delete') {
+      setClearDialogOpen(true);
+      return;
+    } else {
+      setActiveTool(action);
+    }
+    report('Selection action', `${String(command?.label || action).toUpperCase()} offered for ${selectionCount} selected object${selectionCount === 1 ? '' : 's'}.`);
+  };
+
   const runCommand = command => {
     const normalized = String(command || '').trim().toLowerCase();
     if (!normalized) return;
@@ -1203,14 +1293,37 @@ function Playground() {
     { id: 'workspace', label: 'WORKSPACE / PANELS', color: '#ef97ff' }
   ], []);
 
+  const selectionToolbarTools = useMemo(() => selectCadCuiCommands(
+    DEMO_SELECTION_ACTIONS,
+    DEMO_SELECTION_ACTIONS.defaultState,
+    { surface: 'selection-toolbar', selection: selectionSnapshot, unavailablePresentation: 'hide' }
+  ).map(command => ({
+    ...command,
+    icon: <span>{SELECTION_ACTION_GLYPHS[command.id] || '•'}</span>
+  })), [selectionSnapshot]);
+
+  const selectionRibbonCommands = useMemo(() => selectCadCuiCommands(
+    DEMO_SELECTION_ACTIONS,
+    DEMO_SELECTION_ACTIONS.defaultState,
+    { surface: 'ribbon', tabId: 'home', selection: selectionSnapshot, unavailablePresentation: 'hide' }
+  ).map(command => ({
+    ...command,
+    groupId: 'selection',
+    groupLabel: 'SELECTION',
+    icon: <span>{SELECTION_ACTION_GLYPHS[command.id] || '•'}</span>
+  })), [selectionSnapshot]);
+
   const workspaceRibbonCommands = useMemo(() => [
     { id: 'line', tabId: 'home', groupId: 'draw', groupLabel: 'DRAW', order: 10, label: 'LINE', shortcut: 'L', icon: <span>╱</span>, active: activeTool === 'line', toggle: true },
     { id: 'circle', tabId: 'home', groupId: 'draw', groupLabel: 'DRAW', order: 20, label: 'CIRCLE', shortcut: 'C', icon: <span>○</span>, active: activeTool === 'circle', toggle: true },
     { id: 'arc', tabId: 'home', groupId: 'draw', groupLabel: 'DRAW', order: 30, label: 'ARC', shortcut: 'A', icon: <span>◜</span>, active: activeTool === 'arc', toggle: true },
-    { id: 'move', tabId: 'home', groupId: 'modify', groupLabel: 'MODIFY', order: 40, label: 'MOVE', shortcut: 'M', icon: <span>↗</span>, active: activeTool === 'move', toggle: true },
-    { id: 'trim', tabId: 'home', groupId: 'modify', groupLabel: 'MODIFY', order: 50, label: 'TRIM', shortcut: 'TR', icon: <span>✂</span>, active: activeTool === 'trim', toggle: true },
-    { id: 'offset', tabId: 'home', groupId: 'modify', groupLabel: 'MODIFY', order: 60, label: 'OFFSET', shortcut: 'O', icon: <span>⇆</span>, active: activeTool === 'offset', toggle: true },
+    ...(selectionCount ? [] : [
+      { id: 'move', tabId: 'home', groupId: 'modify', groupLabel: 'MODIFY', order: 40, label: 'MOVE', shortcut: 'M', icon: <span>↗</span>, active: activeTool === 'move', toggle: true },
+      { id: 'trim', tabId: 'home', groupId: 'modify', groupLabel: 'MODIFY', order: 50, label: 'TRIM', shortcut: 'TR', icon: <span>✂</span>, active: activeTool === 'trim', toggle: true },
+      { id: 'offset', tabId: 'home', groupId: 'modify', groupLabel: 'MODIFY', order: 60, label: 'OFFSET', shortcut: 'O', icon: <span>⇆</span>, active: activeTool === 'offset', toggle: true }
+    ]),
     { id: 'insert', tabId: 'home', groupId: 'content', groupLabel: 'CONTENT', order: 70, label: 'INSERT', shortcut: 'I', icon: <span>⊞</span> },
+    ...selectionRibbonCommands,
 
     { id: 'view-top', tabId: 'view', groupId: 'views', groupLabel: 'VIEWS', order: 10, label: 'TOP', icon: <span>▣</span>, active: activeView === 'top', toggle: true },
     { id: 'view-iso', tabId: 'view', groupId: 'views', groupLabel: 'VIEWS', order: 20, label: 'ISO', icon: <span>◇</span>, active: activeView === 'iso', toggle: true },
@@ -1228,11 +1341,16 @@ function Playground() {
 
     { id: 'panel-layout', tabId: 'workspace', groupId: 'panels', groupLabel: 'PANEL LAYOUT', order: 10, label: 'PANEL LAYOUT', icon: <span>▦</span> },
     { id: 'workspace-presets', tabId: 'workspace', groupId: 'presets', groupLabel: 'PRESETS', order: 20, label: 'WORKSPACE PRESETS', icon: <span>▣</span>, badge: workspacePresets.length || undefined }
-  ], [activeTool, activeView, drafting, viewCubeCollapsed, workspacePresets.length]);
+  ], [activeTool, activeView, drafting, selectionCount, selectionRibbonCommands, viewCubeCollapsed, workspacePresets.length]);
 
   const handleRibbonCommand = command => {
     const commandId = command?.id;
     if (!commandId) return;
+
+    if (commandId.startsWith('selection.')) {
+      applySelectionAction(command);
+      return;
+    }
 
     if (commandId === 'panel-layout') {
       report('Workspace', 'Panel layout opened.');
@@ -1307,7 +1425,13 @@ function Playground() {
   const confirmInsert = () => {
     if (!pendingBlock) return;
     setInsertDialogOpen(false);
-    setSelectionCount(count => count + 1);
+    setSelectionExtras(current => [...current, {
+      id: nextId('inserted-block'),
+      label: pendingBlock.label,
+      entityType: 'block',
+      traits: ['editable', 'transformable', 'block']
+    }]);
+    setSelectionSource('insert');
     report('Insert complete', `${pendingBlock.label} inserted at ${formatPoint(dynamicPoint)}.`);
     setPendingBlock(null);
   };
@@ -1431,7 +1555,10 @@ function Playground() {
         ]}
         rows={OBJECT_ROWS}
         selectedIds={selectedRowIds}
-        onSelectionChange={(ids, row) => { setSelectedRowIds(ids); if (row) report('Data selection', `${row.entity} toggled.`); }}
+        onSelectionChange={(ids, row) => {
+          selectRows(ids, 'data-grid');
+          if (row) report('Data selection', `${row.entity} toggled.`);
+        }}
         onRowActivate={row => report('Data selection', `${row.entity} activated.`)}
       />
     </section>,
@@ -1447,8 +1574,8 @@ function Playground() {
       />
       <CadSelectionCycler
         layout="auto"
-        candidates={[{ id: 'line', label: 'Line 01', detail: 'A-WALL · 4200 mm' }, { id: 'arc', label: 'Arc 02', detail: 'A-DOOR · 1414 mm' }, { id: 'block', label: 'Block 03', detail: 'A-FURN' }]}
-        onAccept={candidate => { setSelectionCount(1); report('Selection', `${candidate.label} accepted.`); }}
+        candidates={[{ id: 'line-01', label: 'Line 01', detail: 'A-WALL · 4200 mm' }, { id: 'arc-02', label: 'Arc 02', detail: 'A-DOOR · 1414 mm' }, { id: 'block-03', label: 'Block 03', detail: 'A-FURN' }]}
+        onAccept={candidate => { selectRows([candidate.id], 'selection-cycler'); report('Selection', `${candidate.label} accepted.`); }}
         onCancel={() => report('Selection', 'Cycle cancelled.')}
       />
     </section>,
@@ -1464,7 +1591,16 @@ function Playground() {
         }}
         onApply={selectionSet => {
           const count = Number(selectionSet?.count ?? 0);
-          setSelectionCount(count);
+          const entityType = selectionSet?.id === 'annotations' ? 'dimension' : '';
+          const traits = selectionSet?.locked ? ['locked'] : ['editable'];
+          setSelectedRowIds([]);
+          setSelectionExtras(Array.from({ length: Math.max(0, count) }, (_, index) => ({
+            id: `${selectionSet?.id || 'selection-set'}-${index + 1}`,
+            label: selectionSet?.label || 'Selection set item',
+            entityType,
+            traits
+          })));
+          setSelectionSource('selection-set');
           report('Selection set', `${selectionSet.label} applied (${count} objects).`);
         }}
         onCreate={() => {
@@ -1872,7 +2008,13 @@ function Playground() {
               />
             </CadMovableOverlay>
             <CadPolarTracker className="cad-demo-viewport__polar" angle="45°" increment="15°" distance="1200 mm" active={drafting.polar} onActiveChange={polar => setDrafting(current => ({ ...current, polar }))} />
-            <CadGripToolbar className="cad-demo-viewport__grip-tools" selectionCount={selectionCount} tools={[{ id: 'move', label: 'Move' }, { id: 'rotate', label: 'Rotate' }, { id: 'delete', label: 'Delete', tone: 'danger' }]} onAction={selectTool} />
+            <CadGripToolbar
+              className="cad-demo-viewport__grip-tools"
+              label="Selection actions"
+              selectionCount={selectionCount}
+              tools={selectionToolbarTools}
+              onAction={applySelectionAction}
+            />
             <CadObjectSnapMarker className="cad-demo-viewport__snap-marker" type="endpoint" label="Endpoint" />
             <CadSelectionGrip className="cad-demo-viewport__grip cad-demo-viewport__grip--one" label="Move selected object" active onClick={() => report('Grip', 'Base grip activated.')} />
             <CadSelectionGrip className="cad-demo-viewport__grip cad-demo-viewport__grip--two" label="Stretch selected object" onClick={() => report('Grip', 'Stretch grip activated.')} />
@@ -1951,7 +2093,7 @@ function Playground() {
       description="This changes only the sandbox state; no drawing data exists behind the demo."
       confirmLabel="Clear selection"
       onCancel={() => setClearDialogOpen(false)}
-      onConfirm={() => { setSelectionCount(0); setSelectedRowIds([]); setClearDialogOpen(false); report('Selection', 'Selection cleared.'); }}
+      onConfirm={() => { setSelectedRowIds([]); setSelectionExtras([]); setSelectionSource('clear'); setClearDialogOpen(false); report('Selection', 'Selection cleared.'); }}
     />
     <CadDialog open={insertDialogOpen} title={`Insert ${pendingBlock?.label || 'block'}`} description="The host owns insertion; this dialog collects UI input only." onClose={() => setInsertDialogOpen(false)} actions={<><button type="button" className="cad-dialog__button cad-dialog__button--quiet" onClick={() => setInsertDialogOpen(false)}>Cancel</button><button type="button" className="cad-dialog__button" onClick={confirmInsert}>Insert block</button></>}>
       <CadBlockInsertOptions value={insertOptions} onChange={setInsertOptions} />
