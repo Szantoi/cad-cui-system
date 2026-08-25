@@ -196,7 +196,7 @@ describe('interactive CAD CUI playground', () => {
     expect(within(lockedToolbar).queryByRole('button', { name: 'MOVE' })).not.toBeInTheDocument();
   });
 
-  it('uses the same filtered selection actions for viewport shortcuts and the right-click menu', async () => {
+  it('derives grouped radial actions and flat right-click actions from the same filtered selection registry', async () => {
     render(<Playground />);
 
     const viewport = screen.getByLabelText('SVG drawing viewport mockup');
@@ -207,17 +207,42 @@ describe('interactive CAD CUI playground', () => {
 
     fireEvent.keyDown(viewport, { key: 'q' });
     const radialMenu = await screen.findByRole('menu', { name: 'Selection radial menu' });
-    expect(within(radialMenu).getByRole('menuitem', { name: 'MOVE' })).toBeInTheDocument();
+    const modifyCollector = within(radialMenu).getByRole('menuitem', { name: 'MODIFY, submenu' });
+    expect(within(radialMenu).getByRole('menuitem', { name: 'OPTIONS, submenu' })).toBeInTheDocument();
+    expect(within(radialMenu).queryByRole('menuitem', { name: 'ROTATE' })).not.toBeInTheDocument();
+    await waitFor(() => expect(modifyCollector).toHaveFocus());
+    fireEvent.keyDown(modifyCollector, { key: 'ArrowRight' });
+    const radialMove = await within(radialMenu).findByRole('menuitem', { name: 'MOVE' });
     expect(within(radialMenu).getByRole('menuitem', { name: 'TRIM' })).toBeInTheDocument();
     expect(within(radialMenu).getByRole('menuitem', { name: 'OFFSET' })).toBeInTheDocument();
-    expect(within(radialMenu).queryByRole('menuitem', { name: 'ROTATE' })).not.toBeInTheDocument();
-    const radialMove = within(radialMenu).getByRole('menuitem', { name: 'MOVE' });
-    await waitFor(() => expect(radialMove).toHaveFocus());
+    expect(radialMove).toHaveAttribute('data-radial-ring', '0');
     fireEvent.keyDown(radialMove, { key: 'ArrowRight' });
     expect(within(radialMenu).getByRole('menuitem', { name: 'COPY' })).toHaveFocus();
     fireEvent.keyDown(radialMenu, { key: 'Escape' });
+    await waitFor(() => expect(modifyCollector).toHaveFocus());
+    fireEvent.keyDown(modifyCollector, { key: 'Escape' });
     await waitFor(() => expect(screen.queryByRole('menu', { name: 'Selection radial menu' })).not.toBeInTheDocument());
     expect(viewport).toHaveFocus();
+
+    const collectorMode = screen.getByLabelText('Radial collector opening mode');
+    const presentationMode = screen.getByLabelText('Radial submenu presentation');
+    expect(collectorMode).toHaveValue('hover');
+    expect(presentationMode).toHaveValue('cascade');
+    fireEvent.change(collectorMode, { target: { value: 'click' } });
+    fireEvent.change(presentationMode, { target: { value: 'rings' } });
+    viewport.focus();
+    fireEvent.keyDown(viewport, { key: 'q' });
+    const configuredRadial = await screen.findByRole('menu', { name: 'Selection radial menu' });
+    expect(configuredRadial).toHaveAttribute('data-presentation', 'rings');
+    const configuredModify = within(configuredRadial).getByRole('menuitem', { name: 'MODIFY, submenu' });
+    fireEvent.pointerEnter(configuredModify);
+    expect(within(configuredRadial).queryByRole('menuitem', { name: 'MOVE' })).not.toBeInTheDocument();
+    fireEvent.click(configuredModify);
+    expect(await within(configuredRadial).findByRole('menuitem', { name: 'MOVE' })).toBeInTheDocument();
+    fireEvent.keyDown(configuredRadial, { key: 'Escape' });
+    await waitFor(() => expect(configuredModify).toHaveFocus());
+    fireEvent.keyDown(configuredModify, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('menu', { name: 'Selection radial menu' })).not.toBeInTheDocument());
 
     fireEvent.keyDown(viewport, { key: 'F10', shiftKey: true });
     const contextMenu = await screen.findByRole('menu', { name: 'Selection context menu' });
@@ -236,7 +261,8 @@ describe('interactive CAD CUI playground', () => {
 
     fireEvent.contextMenu(viewport, { clientX: 160, clientY: 120, altKey: true });
     const pointerRadial = await screen.findByRole('menu', { name: 'Selection radial menu' });
-    fireEvent.click(within(pointerRadial).getByRole('menuitem', { name: 'OFFSET' }));
+    fireEvent.click(within(pointerRadial).getByRole('menuitem', { name: 'MODIFY, submenu' }));
+    fireEvent.click(await within(pointerRadial).findByRole('menuitem', { name: 'OFFSET' }));
     await waitFor(() => expect(screen.queryByRole('menu', { name: 'Selection radial menu' })).not.toBeInTheDocument());
     expect(screen.getByText('Selection action: OFFSET offered for 1 selected object.')).toBeInTheDocument();
     await waitFor(() => expect(viewport).toHaveFocus());
@@ -524,6 +550,12 @@ describe('interactive CAD CUI playground', () => {
     const { unmount } = render(<Playground />);
 
     const workspace = document.querySelector('.cad-demo-workspace');
+    const collectorMode = screen.getByLabelText('Radial collector opening mode');
+    const presentationMode = screen.getByLabelText('Radial submenu presentation');
+    fireEvent.change(collectorMode, { target: { value: 'click' } });
+    fireEvent.change(presentationMode, { target: { value: 'rings' } });
+    expect(collectorMode).toHaveValue('click');
+    expect(presentationMode).toHaveValue('rings');
     const navigationDock = screen.getByRole('complementary', { name: 'Viewport navigation dock' });
     const navigationHandle = screen.getByRole('button', { name: 'Collapse Viewport navigation dock' });
     const viewportControls = screen.getByRole('complementary', { name: 'Viewport controls' });
@@ -585,16 +617,20 @@ describe('interactive CAD CUI playground', () => {
     expect(navigationDock).toHaveAttribute('data-position-x', '-16');
     expect(navigationDock).toHaveAttribute('data-collapsed', 'true');
     expect(viewportControls).toHaveAttribute('data-collapsed', 'true');
+    expect(collectorMode).toHaveValue('click');
+    expect(presentationMode).toHaveValue('rings');
 
     unmount();
     render(<Playground />);
     await waitFor(() => {
       expect(document.querySelector('.cad-demo-workspace')).toHaveAttribute('data-left-width', '304');
       expect(document.getElementById('cad-demo-tools-panel')).toHaveAttribute('data-mode', 'rail');
-      expect(screen.getByRole('complementary', { name: 'Viewport navigation dock' })).toHaveAttribute('data-position-x', '-16');
-      expect(screen.getByRole('complementary', { name: 'Viewport navigation dock' })).toHaveAttribute('data-collapsed', 'true');
-      expect(screen.getByRole('complementary', { name: 'Viewport controls' })).toHaveAttribute('data-collapsed', 'true');
-    });
+       expect(screen.getByRole('complementary', { name: 'Viewport navigation dock' })).toHaveAttribute('data-position-x', '-16');
+       expect(screen.getByRole('complementary', { name: 'Viewport navigation dock' })).toHaveAttribute('data-collapsed', 'true');
+       expect(screen.getByRole('complementary', { name: 'Viewport controls' })).toHaveAttribute('data-collapsed', 'true');
+       expect(screen.getByLabelText('Radial collector opening mode')).toHaveValue('click');
+       expect(screen.getByLabelText('Radial submenu presentation')).toHaveValue('rings');
+     });
 
     const restoredPresetDialog = openWorkspacePresets();
     expect(within(restoredPresetDialog).getByRole('option', { name: 'Focused drafting' })).toBeInTheDocument();

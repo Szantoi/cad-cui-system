@@ -60,6 +60,7 @@ import {
   normalizeCadWorkspaceProfiles,
   removeCadWorkspaceProfile,
   selectCadCuiCommands,
+  selectCadCuiRadialTree,
   shouldHandleCadShortcut
 } from '../../src/entry';
 import './playground.css';
@@ -144,21 +145,26 @@ const selectionActionForAlias = (commands, input) => {
 };
 
 // One serializable registry powers the contextual ribbon group, viewport
-// toolbar, right-click menu and keyboard resolver. A real host can reuse it
-// with CadCuiProvider too.
+// toolbar, right-click menu, multi-ring radial tree, and keyboard resolver.
+// A real host can reuse the exact selection metadata with CadCuiProvider too.
 const DEMO_SELECTION_ACTIONS = defineCadCuiSystem({
   id: 'playground-selection-actions',
+  groups: [
+    { id: 'radial-modify', label: 'MODIFY', detail: 'Move, copy, and reshape the selection', icon: '✥', tone: 'cyan', surface: 'radial', menu: 'selection', order: 10 },
+    { id: 'radial-edit', label: 'EDIT', detail: 'Open the available object editor', icon: '✎', tone: 'cyan', surface: 'radial', menu: 'selection', order: 20 },
+    { id: 'radial-options', label: 'OPTIONS', detail: 'Inspect or remove the selection', icon: '▤', tone: 'cyan', surface: 'radial', menu: 'selection', order: 30 }
+  ],
   commands: [
-    { id: 'selection.move', label: 'MOVE', detail: 'Move the current selection', shortcut: 'M', tone: 'cyan', intent: { type: 'selection.action', action: 'move' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 10 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 10 }, { surface: 'context', menu: 'selection', order: 10 }] },
-    { id: 'selection.copy', label: 'COPY', detail: 'Copy the current selection', shortcut: 'Ctrl+C', tone: 'cyan', intent: { type: 'selection.action', action: 'copy' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 20 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 20 }, { surface: 'context', menu: 'selection', order: 20 }] },
-    { id: 'selection.trim', label: 'TRIM', detail: 'Trim selected curves', shortcut: 'TR', tone: 'cyan', intent: { type: 'selection.action', action: 'trim' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }] },
-    { id: 'selection.offset', label: 'OFFSET', detail: 'Offset selected curves', shortcut: 'O', tone: 'cyan', intent: { type: 'selection.action', action: 'offset' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }, { surface: 'context', menu: 'selection', order: 40 }] },
-    { id: 'selection.rotate', label: 'ROTATE', detail: 'Rotate selected blocks', shortcut: 'R', tone: 'cyan', intent: { type: 'selection.action', action: 'rotate' }, selection: { count: 'any', entityTypes: ['block'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }] },
-    { id: 'selection.explode', label: 'EXPLODE', detail: 'Explode one block reference', shortcut: 'X', tone: 'cyan', intent: { type: 'selection.action', action: 'explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }, { surface: 'context', menu: 'selection', order: 40 }] },
-    { id: 'selection.edit-block', label: 'EDIT BLOCK', detail: 'Edit the selected block definition', shortcut: 'BE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-block' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 50 }, { surface: 'context', menu: 'selection', order: 50 }] },
-    { id: 'selection.edit-dimension', label: 'EDIT DIM', detail: 'Edit the selected dimension', shortcut: 'DDE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-dimension' }, selection: { count: 'one', entityTypes: ['dimension'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }] },
-    { id: 'selection.properties', label: 'PROPERTIES', detail: 'Inspect the selection properties', shortcut: 'Ctrl+1', tone: 'cyan', intent: { type: 'selection.action', action: 'properties' }, selection: { count: 'any' }, placements: [{ surface: 'selection-toolbar', order: 60 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 60 }, { surface: 'context', menu: 'selection', order: 60 }] },
-    { id: 'selection.delete', label: 'DELETE', detail: 'Delete the current selection', shortcut: 'Delete', tone: 'danger', intent: { type: 'selection.action', action: 'delete' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 70 }, { surface: 'context', menu: 'selection', order: 70 }] }
+    { id: 'selection.move', label: 'MOVE', detail: 'Move the current selection', shortcut: 'M', tone: 'cyan', intent: { type: 'selection.action', action: 'move' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 10 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 10 }, { surface: 'context', menu: 'selection', order: 10 }, { surface: 'radial', menu: 'selection', groupId: 'radial-modify', order: 10 }] },
+    { id: 'selection.copy', label: 'COPY', detail: 'Copy the current selection', shortcut: 'Ctrl+C', tone: 'cyan', intent: { type: 'selection.action', action: 'copy' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 20 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 20 }, { surface: 'context', menu: 'selection', order: 20 }, { surface: 'radial', menu: 'selection', groupId: 'radial-modify', order: 20 }] },
+    { id: 'selection.trim', label: 'TRIM', detail: 'Trim selected curves', shortcut: 'TR', tone: 'cyan', intent: { type: 'selection.action', action: 'trim' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }, { surface: 'radial', menu: 'selection', groupId: 'radial-modify', order: 30 }] },
+    { id: 'selection.offset', label: 'OFFSET', detail: 'Offset selected curves', shortcut: 'O', tone: 'cyan', intent: { type: 'selection.action', action: 'offset' }, selection: { count: 'any', entityTypes: ['line', 'arc'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }, { surface: 'context', menu: 'selection', order: 40 }, { surface: 'radial', menu: 'selection', groupId: 'radial-modify', order: 40 }] },
+    { id: 'selection.rotate', label: 'ROTATE', detail: 'Rotate selected blocks', shortcut: 'R', tone: 'cyan', intent: { type: 'selection.action', action: 'rotate' }, selection: { count: 'any', entityTypes: ['block'], typeMatch: 'all', traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }, { surface: 'radial', menu: 'selection', groupId: 'radial-modify', order: 30 }] },
+    { id: 'selection.explode', label: 'EXPLODE', detail: 'Explode one block reference', shortcut: 'X', tone: 'cyan', intent: { type: 'selection.action', action: 'explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 40 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 40 }, { surface: 'context', menu: 'selection', order: 40 }, { surface: 'radial', menu: 'selection', groupId: 'radial-modify', order: 40 }] },
+    { id: 'selection.edit-block', label: 'EDIT BLOCK', detail: 'Edit the selected block definition', shortcut: 'BE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-block' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 50 }, { surface: 'context', menu: 'selection', order: 50 }, { surface: 'radial', menu: 'selection', groupId: 'radial-edit', order: 10 }] },
+    { id: 'selection.edit-dimension', label: 'EDIT DIM', detail: 'Edit the selected dimension', shortcut: 'DDE', tone: 'cyan', intent: { type: 'selection.action', action: 'edit-dimension' }, selection: { count: 'one', entityTypes: ['dimension'], traits: ['editable'] }, placements: [{ surface: 'selection-toolbar', order: 30 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }, { surface: 'radial', menu: 'selection', groupId: 'radial-edit', order: 10 }] },
+    { id: 'selection.properties', label: 'PROPERTIES', detail: 'Inspect the selection properties', shortcut: 'Ctrl+1', tone: 'cyan', intent: { type: 'selection.action', action: 'properties' }, selection: { count: 'any' }, placements: [{ surface: 'selection-toolbar', order: 60 }, { surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 60 }, { surface: 'context', menu: 'selection', order: 60 }, { surface: 'radial', menu: 'selection', groupId: 'radial-options', order: 10 }] },
+    { id: 'selection.delete', label: 'DELETE', detail: 'Delete the current selection', shortcut: 'Delete', tone: 'danger', intent: { type: 'selection.action', action: 'delete' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', group: 'SELECTION', order: 70 }, { surface: 'context', menu: 'selection', order: 70 }, { surface: 'radial', menu: 'selection', groupId: 'radial-options', order: 20 }] }
   ]
 });
 
@@ -669,6 +675,7 @@ const normalizeWorkspacePresetForPlayground = (preset: CadAnyProps, availableLay
   const selectionSummary = normalizeMovableOverlayLayout(layout.selectionSummary, DEFAULT_VIEWPORT_SELECTION_SUMMARY_OVERLAY);
   const dynamicInput = normalizeMovableOverlayLayout(layout.dynamicInput, DEFAULT_VIEWPORT_DYNAMIC_INPUT_OVERLAY);
   const viewCube = isRecord(layout.viewCube) ? layout.viewCube : {};
+  const radialMenu = isRecord(layout.radialMenu) ? layout.radialMenu : {};
   const layerIds = availableLayers.map(layer => layer.id);
   const profiles = normalizeCadWorkspaceProfiles(profileSettings.items ?? profileSettings.profiles);
   const requestedProfileId = text(profileSettings.activeId);
@@ -709,6 +716,8 @@ const normalizeWorkspacePresetForPlayground = (preset: CadAnyProps, availableLay
       viewportNavigation,
       selectionSummary,
       dynamicInput,
+      radialSubmenuTrigger: validValue(text(radialMenu.submenuTrigger), ['hover', 'click'], 'hover'),
+      radialPresentation: validValue(text(radialMenu.presentation), ['cascade', 'rings'], 'cascade'),
       viewCubeCollapsed: typeof viewCube.collapsed === 'boolean'
         ? viewCube.collapsed
         : DEFAULT_VIEW_CUBE.collapsed
@@ -806,6 +815,8 @@ function Playground() {
   const [selectionSetFilter, setSelectionSetFilter] = useState('');
   const [selectionContextMenuPosition, setSelectionContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [selectionRadialMenuPosition, setSelectionRadialMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [radialSubmenuTrigger, setRadialSubmenuTrigger] = useState<'hover' | 'click'>('hover');
+  const [radialPresentation, setRadialPresentation] = useState<'cascade' | 'rings'>('cascade');
   const [dynamicPoint, setDynamicPoint] = useState({ x: 1180, y: 640, z: 0 });
   const [drafting, setDrafting] = useState<CadAnyProps>(DEFAULT_DRAFTING);
   const [propertyState, setPropertyState] = useState<CadAnyProps>(DEFAULT_PROPERTY_STATE);
@@ -929,6 +940,7 @@ function Playground() {
           position: dynamicInputOverlayPosition,
           collapsed: dynamicInputOverlayCollapsed
         },
+        radialMenu: { submenuTrigger: radialSubmenuTrigger, presentation: radialPresentation },
         viewCube: { collapsed: viewCubeCollapsed }
       },
       controls: {
@@ -974,6 +986,8 @@ function Playground() {
     propertyState,
     quickPropertiesOpen,
     quickPropertiesPinned,
+    radialPresentation,
+    radialSubmenuTrigger,
     ribbonTab,
     rightDockWidth,
     rightPanelMode,
@@ -1012,6 +1026,8 @@ function Playground() {
     setSelectionSummaryOverlayCollapsed(next.layout.selectionSummary.collapsed);
     setDynamicInputOverlayPosition(next.layout.dynamicInput.position);
     setDynamicInputOverlayCollapsed(next.layout.dynamicInput.collapsed);
+    setRadialSubmenuTrigger(next.layout.radialSubmenuTrigger);
+    setRadialPresentation(next.layout.radialPresentation);
     setViewCubeCollapsed(next.layout.viewCubeCollapsed);
     setActiveTool(next.controls.activeTool);
     setActiveView(next.controls.activeView);
@@ -1297,10 +1313,11 @@ function Playground() {
     const bounds = viewport.getBoundingClientRect();
     const preferredX = Number.isFinite(clientX) ? Number(clientX) - bounds.left : bounds.width / 2;
     const preferredY = Number.isFinite(clientY) ? Number(clientY) - bounds.top : bounds.height / 2;
-    // Keep every spoke inside the viewport. On very small hosts this collapses
-    // to the safest centre point rather than letting the wheel be clipped.
+    // Leave room for an expanded collector as well as the root wheel. On very
+    // small hosts this collapses to the safest centre point rather than letting
+    // a cascading or multi-ring branch be immediately clipped.
     const maximumInset = Math.max(24, Math.floor(Math.min(bounds.width, bounds.height) / 2 - 8));
-    const inset = Math.max(24, Math.min(132, maximumInset));
+    const inset = Math.max(24, Math.min(192, maximumInset));
     const x = Math.max(inset, Math.min(preferredX, Math.max(inset, bounds.width - inset)));
     const y = Math.max(inset, Math.min(preferredY, Math.max(inset, bounds.height - inset)));
     setSelectionContextMenuPosition(null);
@@ -1421,6 +1438,25 @@ function Playground() {
     ...command,
     icon: <span>{SELECTION_ACTION_GLYPHS[command.id] || '•'}</span>
   })), [selectionSnapshot]);
+
+  // The radial tree comes from the same serializable selection registry. Its
+  // group metadata makes collector nodes while the leaves stay host-resolved
+  // commands, so selection filtering cannot diverge between surfaces.
+  const selectionRadialTree = useMemo(() => {
+    const addActionGlyphs = nodes => nodes.map(node => ({
+      ...node,
+      children: addActionGlyphs(node.children || []),
+      commands: (node.commands || []).map(command => ({
+        ...command,
+        icon: SELECTION_ACTION_GLYPHS[command.id] || '•'
+      }))
+    }));
+    return addActionGlyphs(selectCadCuiRadialTree(
+      DEMO_SELECTION_ACTIONS,
+      DEMO_SELECTION_ACTIONS.defaultState,
+      { surface: 'radial', menuId: 'selection', selection: selectionSnapshot, unavailablePresentation: 'hide' }
+    ));
+  }, [selectionSnapshot]);
 
   useEffect(() => {
     if (!selectionCount) {
@@ -2189,24 +2225,43 @@ function Playground() {
               tools={selectionToolbarTools}
               onAction={applySelectionAction}
             />
-            {selectionCount > 0 && <button
-              type="button"
-              className="cad-demo-viewport__radial-trigger"
-              aria-label="Open radial selection menu"
-              aria-haspopup="menu"
-              aria-expanded={Boolean(selectionRadialMenuPosition)}
-              title={`${selectionRadialMenuPosition ? 'Close' : 'Open'} radial selection menu · Q`}
-              onClick={() => selectionRadialMenuPosition ? setSelectionRadialMenuPosition(null) : openSelectionRadialMenu()}
-            ><span aria-hidden="true">◎</span><strong>RADIAL</strong><kbd>Q</kbd></button>}
+            {selectionCount > 0 && <div className="cad-demo-viewport__radial-launcher" role="group" aria-label="Radial menu controls">
+              <button
+                type="button"
+                className="cad-demo-viewport__radial-trigger"
+                aria-label="Open radial selection menu"
+                aria-haspopup="menu"
+                aria-expanded={Boolean(selectionRadialMenuPosition)}
+                title={`${selectionRadialMenuPosition ? 'Close' : 'Open'} radial selection menu · Q`}
+                onClick={() => selectionRadialMenuPosition ? setSelectionRadialMenuPosition(null) : openSelectionRadialMenu()}
+              ><span aria-hidden="true">◎</span><strong>RADIAL</strong><kbd>Q</kbd></button>
+              <label className="cad-demo-viewport__radial-mode" title="Choose how radial collector groups open">
+                <span>GROUPS</span>
+                <select aria-label="Radial collector opening mode" value={radialSubmenuTrigger} onChange={event => setRadialSubmenuTrigger(event.target.value === 'click' ? 'click' : 'hover')}>
+                  <option value="hover">HOVER</option>
+                  <option value="click">CLICK</option>
+                </select>
+              </label>
+              <label className="cad-demo-viewport__radial-mode" title="Choose the default nested radial presentation">
+                <span>VIEW</span>
+                <select aria-label="Radial submenu presentation" value={radialPresentation} onChange={event => setRadialPresentation(event.target.value === 'rings' ? 'rings' : 'cascade')}>
+                  <option value="cascade">CASCADE</option>
+                  <option value="rings">RINGS</option>
+                </select>
+              </label>
+            </div>}
             <CadRadialMenu
               className="cad-demo-viewport__selection-radial"
               open={Boolean(selectionRadialMenuPosition)}
               position={selectionRadialMenuPosition || { x: 0, y: 0 }}
-              items={selectionContextActions}
+              items={selectionRadialTree}
               label="Selection radial menu"
               centerLabel={`${selectionCount} SELECTED`}
               menuRef={selectionRadialMenuRef}
               restoreFocusRef={viewportRef}
+              submenuTrigger={radialSubmenuTrigger}
+              presentation={radialPresentation}
+              maxItemsPerRing={3}
               onAction={handleSelectionMenuAction}
               onClose={() => setSelectionRadialMenuPosition(null)}
             />

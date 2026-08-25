@@ -39,13 +39,21 @@ export declare function CadMenu({ items, label, onAction, onClose, className, ch
  */
 export declare function CadContextMenuPopup({ open, position, items, label, onAction, onClose, restoreFocusRef, returnFocusRef, className, style, children, menuRef: externalMenuRef, onContextMenu, ...props }: CadAnyProps): React.JSX.Element;
 /**
- * A controlled, pointer-positioned radial menu for a small set of contextual
- * CAD actions. `position` describes the centre of the menu, so it can be
- * anchored directly at a pointer, grip, or selection centroid.
+ * A controlled, pointer-positioned radial menu for contextual CAD actions.
  *
- * Escape and outside presses dismiss the menu and return focus to the
- * supplied trigger. Activating an action intentionally does not restore
- * focus: commands may instead move focus to a prompt or dialog.
+ * `position` describes its centre. Items may declare a `children` or `items`
+ * array to become a collector: that collector opens another radial layer. Use
+ * `maxItemsPerRing` (or the `ringCapacity` alias) to set the number of actions
+ * before a level grows another concentric ring. `expandedPath` /
+ * `defaultExpandedPath` use collector ids and make a preferred initial radial
+ * mode host-configurable. `presentation="cascade"` (the default) grows child
+ * radial layers from their collector; `presentation="rings"` keeps the active
+ * path centred and renders child actions in outward concentric rings.
+ *
+ * Escape and outside presses dismiss the menu and return focus to the supplied
+ * trigger. Escape first collapses the innermost collector layer. Activating a
+ * leaf action intentionally does not restore focus: commands may instead move
+ * focus to a prompt or dialog.
  */
-export declare function CadRadialMenu({ open, position, items, label, centerLabel, onAction, onClose, restoreFocusRef, returnFocusRef, className, style, children, menuRef: externalMenuRef, onKeyDown, ...props }: CadAnyProps): React.JSX.Element;
+export declare function CadRadialMenu({ open, position, items, label, centerLabel, onAction, onClose, restoreFocusRef, returnFocusRef, className, style, children, menuRef: externalMenuRef, onKeyDown, submenuTrigger, submenuDelay, expandedPath, defaultExpandedPath, onExpandedPathChange, maxItemsPerRing, ringCapacity, presentation, ...props }: CadAnyProps): React.JSX.Element;
 export declare function CadOverflowMenu({ items, label, open, defaultOpen, onOpenChange, onAction, className, triggerLabel, ...props }: CadAnyProps): React.JSX.Element;

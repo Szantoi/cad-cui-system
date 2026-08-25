@@ -284,11 +284,16 @@ button { cursor: pointer; }
 .cad-demo-viewport__command-console .cad-command-line__submit:hover:not(:disabled), .cad-demo-viewport__command-console .cad-command-line__submit:focus-visible { color: #191209; background: #ffc261; }
 .cad-demo-viewport__polar { position: absolute; z-index: 5; top: 64%; left: 57%; }
 .cad-demo-viewport__grip-tools { position: absolute; z-index: 5; top: 34%; left: 51%; }
-.cad-demo-viewport__radial-trigger {
+.cad-demo-viewport__radial-launcher {
   position: absolute;
   z-index: 7;
   top: calc(34% + 2.35rem);
   left: 51%;
+  display: flex;
+  align-items: stretch;
+  gap: 0.18rem;
+}
+.cad-demo-viewport__radial-trigger {
   display: inline-flex;
   min-height: 1.55rem;
   align-items: center;
@@ -306,6 +311,10 @@ button { cursor: pointer; }
 .cad-demo-viewport__radial-trigger > strong { font: inherit; }
 .cad-demo-viewport__radial-trigger > kbd { border-left: 1px solid rgba(100, 216, 255, 0.28); padding-left: 0.25rem; color: #b7df6a; font: 900 0.43rem/1 "Cascadia Mono", monospace; }
 .cad-demo-viewport__radial-trigger:hover, .cad-demo-viewport__radial-trigger:focus-visible, .cad-demo-viewport__radial-trigger[aria-expanded='true'] { border-color: #64d8ff; color: #ecfbff; background: rgba(41, 94, 110, 0.92); outline: 0; }
+.cad-demo-viewport__radial-mode { display: grid; min-height: 1.55rem; grid-template-columns: auto auto; align-items: center; gap: 0.2rem; border: 1px solid rgba(100, 216, 255, 0.26); padding: 0.14rem 0.22rem; color: #91a8b0; background: rgba(20, 33, 38, 0.82); font: 800 0.38rem/1 "Cascadia Mono", monospace; letter-spacing: 0.055em; }
+.cad-demo-viewport__radial-mode > span { color: #778b93; }
+.cad-demo-viewport__radial-mode select { min-width: 3.65rem; border: 0; padding: 0; color: #b7df6a; background: transparent; font: 900 0.42rem/1 "Cascadia Mono", monospace; letter-spacing: 0.04em; outline: 0; cursor: pointer; }
+.cad-demo-viewport__radial-mode:focus-within { border-color: rgba(183, 223, 106, 0.8); background: rgba(69, 86, 51, 0.72); }
 .cad-demo-viewport__selection-radial { z-index: 21; }
 .cad-demo-viewport__selection-context { position: absolute; z-index: 20; min-width: min(14.5rem, calc(100% - 1rem)); max-width: calc(100% - 1rem); }
 .cad-demo-viewport__snap-marker { position: absolute; z-index: 5; top: 43%; left: 34%; }

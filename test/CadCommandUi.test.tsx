@@ -1,11 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { CadContextMenuPopup, CadRadialMenu } from '../src';
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 const actions = [
@@ -22,6 +23,34 @@ const radialActions = [
   { id: 'copy', label: 'Copy', icon: RadialCopyIcon, shortcut: 'C' },
   { id: 'rotate', label: 'Rotate', shortcut: 'R' }
 ];
+
+const radialCollectorTree = [
+  {
+    id: 'modify',
+    label: 'Modify',
+    icon: '✥',
+    commands: [
+      { id: 'move', label: 'Move' },
+      { id: 'copy', label: 'Copy' }
+    ],
+    children: [
+      {
+        id: 'advanced',
+        label: 'Advanced',
+        icon: '✎',
+        commands: [
+          { id: 'offset', label: 'Offset' },
+          { id: 'trim', label: 'Trim' }
+        ]
+      }
+    ]
+  }
+];
+
+const sevenRadialActions = Array.from({ length: 7 }, (_, index) => ({
+  id: `action-${index + 1}`,
+  label: `Action ${index + 1}`
+}));
 
 function ContextMenuHarness({ onAction = vi.fn(), onClose = vi.fn(), useReturnFocusRef = false }: { onAction?: (item: unknown, event: unknown) => void; onClose?: (event: unknown, meta: unknown) => void; useReturnFocusRef?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -236,5 +265,106 @@ describe('CadRadialMenu', () => {
       expect(screen.queryByRole('menu', { name: 'Radial selection actions' })).not.toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Radial command destination' })).toHaveFocus();
     });
+  });
+
+  it('accepts registry-style commands and children as collectors, including string glyph icons', async () => {
+    render(<CadRadialMenu
+      open
+      position={{ x: 64, y: 64 }}
+      items={radialCollectorTree}
+      label="Registry radial actions"
+      defaultExpandedPath={['modify']}
+    />);
+
+    const menu = await screen.findByRole('menu', { name: 'Registry radial actions' });
+    const modify = screen.getByRole('menuitem', { name: /Modify, submenu/i });
+    expect(modify).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('✥')).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Move' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /Advanced, submenu/i })).toBeInTheDocument();
+    expect(menu).toHaveClass('cad-radial-menu--cascade');
+    expect(menu.style.getPropertyValue('--cad-radial-menu-safe-inset')).toContain('--cad-radial-menu-radius');
+  });
+
+  it('opens collector layers by hover, keeps them open across the child handoff, and collapses only after leaving the constellation', async () => {
+    vi.useFakeTimers();
+    render(<CadRadialMenu
+      open
+      position={{ x: 64, y: 64 }}
+      items={radialCollectorTree}
+      label="Hover radial actions"
+      submenuDelay={30}
+    />);
+
+    const menu = screen.getByRole('menu', { name: 'Hover radial actions' });
+    const modify = screen.getByRole('menuitem', { name: /Modify, submenu/i });
+    fireEvent.pointerEnter(modify);
+    await act(async () => { await vi.advanceTimersByTimeAsync(31); });
+    const advanced = screen.getByRole('menuitem', { name: /Advanced, submenu/i });
+    expect(screen.getByRole('menuitem', { name: 'Move' })).toBeInTheDocument();
+
+    fireEvent.pointerLeave(menu, { relatedTarget: advanced });
+    await act(async () => { await vi.advanceTimersByTimeAsync(31); });
+    expect(screen.getByRole('menuitem', { name: 'Move' })).toBeInTheDocument();
+
+    fireEvent.pointerLeave(menu);
+    await act(async () => { await vi.advanceTimersByTimeAsync(31); });
+    expect(screen.queryByRole('menuitem', { name: 'Move' })).not.toBeInTheDocument();
+  });
+
+  it('supports click-only collector opening and nested keyboard backtracking before root Escape closes', async () => {
+    const onClose = vi.fn();
+    render(<CadRadialMenu
+      open
+      position={{ x: 64, y: 64 }}
+      items={radialCollectorTree}
+      label="Nested keyboard radial actions"
+      submenuTrigger="click"
+      onClose={onClose}
+    />);
+
+    const modify = screen.getByRole('menuitem', { name: /Modify, submenu/i });
+    fireEvent.pointerEnter(modify);
+    expect(screen.queryByRole('menuitem', { name: 'Move' })).not.toBeInTheDocument();
+
+    fireEvent.click(modify);
+    const advanced = await screen.findByRole('menuitem', { name: /Advanced, submenu/i });
+    fireEvent.keyDown(advanced, { key: 'Enter' });
+    const offset = await screen.findByRole('menuitem', { name: 'Offset' });
+    await waitFor(() => expect(offset).toHaveFocus());
+
+    fireEvent.keyDown(offset, { key: 'ArrowLeft' });
+    await waitFor(() => {
+      expect(screen.queryByRole('menuitem', { name: 'Offset' })).not.toBeInTheDocument();
+      expect(advanced).toHaveFocus();
+    });
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(advanced, { key: 'Escape' });
+    await waitFor(() => {
+      expect(screen.queryByRole('menuitem', { name: 'Advanced, submenu' })).not.toBeInTheDocument();
+      expect(modify).toHaveFocus();
+    });
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(modify, { key: 'Escape' });
+    expect(onClose).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ reason: 'escape' }));
+  });
+
+  it('wraps seven or more leaf actions into concentric rings and exposes a rings presentation', async () => {
+    render(<CadRadialMenu
+      open
+      position={{ x: 64, y: 64 }}
+      items={sevenRadialActions}
+      label="Multi-ring radial actions"
+      presentation="rings"
+    />);
+
+    const menu = await screen.findByRole('menu', { name: 'Multi-ring radial actions' });
+    expect(menu).toHaveClass('cad-radial-menu--rings', 'cad-radial-menu--multi-ring');
+    expect(menu).toHaveAttribute('data-ring-count', '2');
+    expect(menu).toHaveAttribute('data-maximum-ring-count', '2');
+    expect(screen.getByRole('menuitem', { name: 'Action 6' })).toHaveAttribute('data-radial-ring', '0');
+    expect(screen.getByRole('menuitem', { name: 'Action 7' })).toHaveAttribute('data-radial-ring', '1');
   });
 });

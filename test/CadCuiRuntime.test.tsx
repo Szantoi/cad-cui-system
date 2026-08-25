@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import type { CadAnyProps } from '../src/cad-types';
-import { CadCuiCommandPalette, CadCuiContextMenu, CadCuiCustomizer, CadCuiProvider, CadCuiQuickAccess, CadCuiRibbon, defineCadCuiSystem, loadCadCuiState, sanitizeCadCuiState, selectCadCuiCommandGroups, selectCadCuiCommands, shouldHandleCadShortcut, useCadCui } from '../src/index';
+import { CadCuiCommandPalette, CadCuiContextMenu, CadCuiCustomizer, CadCuiProvider, CadCuiQuickAccess, CadCuiRibbon, defineCadCuiSystem, loadCadCuiState, sanitizeCadCuiState, selectCadCuiCommandGroups, selectCadCuiCommands, selectCadCuiRadialTree, shouldHandleCadShortcut, useCadCui } from '../src/index';
 
 const TEST_STORAGE_KEY = 'cad-cui-package-test:v1';
 const TEST_CUI = defineCadCuiSystem({
@@ -50,6 +50,26 @@ const SELECTION_CUI = defineCadCuiSystem({
     { id: 'explode', label: 'SZÉTBONTÁS', shortcut: 'X', intent: { type: 'modify.explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 20 }, { surface: 'context', menu: 'selection', order: 20 }] },
     { id: 'properties', label: 'TULAJDONSÁGOK', shortcut: 'CTRL+1', intent: { type: 'inspect.properties' }, selection: { count: 'any' }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 30 }, { surface: 'context', menu: 'selection', order: 30 }] },
     { id: 'erase', label: 'TÖRLÉS', shortcut: 'DELETE', intent: { type: 'modify.erase' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'ribbon', tab: 'home', groupId: 'selection', order: 40 }, { surface: 'context', menu: 'selection', order: 40 }] }
+  ]
+});
+
+const RADIAL_TREE_CUI = defineCadCuiSystem({
+  id: 'radial-tree-package-test',
+  storageKey: 'cad-cui-radial-tree-package-test:v1',
+  groups: [
+    { id: 'modify', label: 'MÓDOSÍTÁS', detail: 'Kijelölés módosítása', icon: '✥', tone: 'violet', surface: 'radial', menu: 'selection', order: 10 },
+    { id: 'transform', label: 'TRANSZFORMÁLÁS', detail: 'Helyzet és alak', icon: '↗', tone: 'cyan', parentId: 'modify', surface: 'radial', menu: 'selection', control: 'radial', order: 10 },
+    { id: 'edit', label: 'SZERKESZTÉS', detail: 'Objektum szerkesztése', icon: '✎', tone: 'green', parentId: 'modify', surface: 'radial', menu: 'selection', order: 20 },
+    { id: 'inspect', label: 'VIZSGÁLAT', detail: 'Tulajdonságok', icon: '⌕', tone: 'amber', surface: 'radial', menu: 'selection', order: 20 },
+    { id: 'empty', label: 'ÜRES', surface: 'radial', menu: 'selection', order: 30 }
+  ],
+  commands: [
+    { id: 'copy', label: 'MÁSOLÁS', intent: { type: 'modify.copy' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'radial', menu: 'selection', groupId: 'modify', order: 5 }] },
+    { id: 'move', label: 'MOZGATÁS', intent: { type: 'modify.move' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'radial', menu: 'selection', groupId: 'transform', order: 10 }] },
+    { id: 'offset', label: 'PÁRHUZAMOS', intent: { type: 'modify.offset' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'radial', menu: 'selection', groupId: 'transform', order: 20 }] },
+    { id: 'explode', label: 'SZÉTBONTÁS', intent: { type: 'modify.explode' }, selection: { count: 'one', entityTypes: ['block'], traits: ['editable'] }, placements: [{ surface: 'radial', menu: 'selection', groupId: 'edit', order: 10 }] },
+    { id: 'properties', label: 'TULAJDONSÁGOK', intent: { type: 'inspect.properties' }, selection: { count: 'any' }, placements: [{ surface: 'radial', menu: 'selection', groupId: 'inspect', order: 10 }] },
+    { id: 'erase', label: 'TÖRLÉS', intent: { type: 'modify.erase' }, selection: { count: 'any', traits: ['editable'] }, placements: [{ surface: 'radial', menu: 'selection', order: 90 }] }
   ]
 });
 
@@ -194,6 +214,62 @@ describe('CAD CUI runtime', () => {
     ]);
     expect(groups[0].commands[0].placement.control).toBe('toggle');
     expect(groups[1].commands[0].placement.control).toBe('large');
+  });
+
+  it('copies nested group parent ids and presentation metadata from the declarative registry', () => {
+    const source = { id: 'child', label: 'GYEREK', parentId: 'root', icon: '◌', tone: 'green', surface: 'radial', menu: 'selection', order: 20 };
+    const system = defineCadCuiSystem({
+      id: 'group-copy-test',
+      groups: [{ id: 'root', label: 'GYÖKÉR', surface: 'radial', menu: 'selection', order: 10 }, source]
+    });
+    source.parentId = 'changed-after-copy';
+
+    expect(system.groups).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'child', parentId: 'root', icon: '◌', tone: 'green', surface: 'radial', menu: 'selection', order: 20 })
+    ]));
+    expect(system.groups.find(group => group.id === 'child')).not.toBe(source);
+  });
+
+  it('selects a stable nested radial tree while preserving direct command leaves and collector presentation', () => {
+    const tree = selectCadCuiRadialTree(RADIAL_TREE_CUI, RADIAL_TREE_CUI.defaultState, {
+      menuId: 'selection',
+      selection: { ids: ['block-03'], entityTypes: ['block'], traits: ['editable'] }
+    });
+
+    expect(tree.map(group => group.id)).toEqual(['modify', 'inspect', '__ungrouped__']);
+    expect(tree[0]).toMatchObject({
+      id: 'modify',
+      label: 'MÓDOSÍTÁS',
+      detail: 'Kijelölés módosítása',
+      icon: '✥',
+      tone: 'violet',
+      order: 10,
+      commands: [expect.objectContaining({ id: 'copy' })]
+    });
+    expect(tree[0]).not.toBe(RADIAL_TREE_CUI.groups.find(group => group.id === 'modify'));
+    expect(tree[0].children.map(group => ({ id: group.id, parentId: group.parentId, commands: group.commands.map(command => command.id) }))).toEqual([
+      { id: 'transform', parentId: 'modify', commands: ['move', 'offset'] },
+      { id: 'edit', parentId: 'modify', commands: ['explode'] }
+    ]);
+    expect(tree[0].children[0]).toMatchObject({ icon: '↗', tone: 'cyan', control: 'radial' });
+    expect(tree[0].children[0].commands[0].placement.control).toBe('radial');
+    expect(tree[1]).toMatchObject({ id: 'inspect', icon: '⌕', tone: 'amber', commands: [expect.objectContaining({ id: 'properties' })], children: [] });
+    expect(tree[2]).toMatchObject({ id: '__ungrouped__', label: 'EGYÉB PARANCSOK', commands: [expect.objectContaining({ id: 'erase' })], children: [] });
+  });
+
+  it('prunes empty radial collectors after selection filtering and skips an empty ungrouped collector', () => {
+    const lineTree = selectCadCuiRadialTree(RADIAL_TREE_CUI, RADIAL_TREE_CUI.defaultState, {
+      menuId: 'selection',
+      selection: { ids: ['line-01'], entityTypes: ['line'], traits: ['editable'] }
+    });
+    expect(lineTree.map(group => group.id)).toEqual(['modify', 'inspect', '__ungrouped__']);
+    expect(lineTree[0].children.map(group => group.id)).toEqual(['transform']);
+    expect(lineTree[0].children[0].commands.map(command => command.id)).toEqual(['move', 'offset']);
+
+    expect(selectCadCuiRadialTree(RADIAL_TREE_CUI, RADIAL_TREE_CUI.defaultState, {
+      menuId: 'selection',
+      selection: {}
+    })).toEqual([]);
   });
 
   it('shares dynamic command state across grouped ribbon, quick access, context and palette', async () => {

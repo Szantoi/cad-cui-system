@@ -38,6 +38,7 @@ const copyGroup = group => ({
   detail: text(group?.detail || group?.description),
   icon: text(group?.icon),
   tone: text(group?.tone) || 'cyan',
+  parentId: text(group?.parentId),
   surface: text(group?.surface),
   tab: text(group?.tab),
   menu: text(group?.menu),
@@ -393,6 +394,124 @@ export function selectCadCuiCommandGroups(system: any, state: any, {
     groups.push({ id: '__ungrouped__', label: 'EGYÉB PARANCSOK', detail: '', icon: '', tone: 'cyan', surface, tab: tabId, menu: menuId, control: '', order: Number.MAX_SAFE_INTEGER, commands: ungroupedCommands });
   }
   return groups;
+}
+
+const compareCadCuiGroups = (first, second) => first.order - second.order
+  || first.label.localeCompare(second.label, 'hu')
+  || first.id.localeCompare(second.id, 'hu');
+
+const radialTreeGroupParentId = (group, groupsById) => {
+  const parentId = text(group?.parentId);
+  if (!parentId || parentId === group.id || !groupsById.has(parentId)) return '';
+  const visited = new Set([group.id]);
+  let currentId = parentId;
+  while (currentId) {
+    if (visited.has(currentId)) return '';
+    visited.add(currentId);
+    const current = groupsById.get(currentId);
+    if (!current) return '';
+    currentId = text(current.parentId);
+  }
+  return parentId;
+};
+
+/**
+ * Resolves a nested, presentational command tree for radial menus.
+ *
+ * Group records form collector nodes through `parentId`; commands stay on the
+ * node named by their radial placement's `groupId`. The command filtering is
+ * deliberately delegated to `selectCadCuiCommands`, so selection, capability,
+ * hidden-state and host command-state rules cannot drift from other surfaces.
+ * Empty collectors are omitted, including empty ancestors. A synthetic
+ * ungrouped collector is appended only when an available command has no
+ * configured group on this surface.
+ */
+export function selectCadCuiRadialTree(system: any, state: any, {
+  surface = 'radial',
+  menuId = '',
+  capabilities = EMPTY_OBJECT,
+  commandStates = EMPTY_OBJECT,
+  selection = EMPTY_SELECTION,
+  unavailablePresentation = 'hide'
+}: CadAnyProps = EMPTY_OBJECT) {
+  const configuredGroups: any[] = (Array.isArray(system?.groups) ? system.groups : EMPTY_LIST)
+    .filter(group => (!group.surface || group.surface === surface) && (!menuId || !group.menu || group.menu === menuId))
+    .slice()
+    .sort(compareCadCuiGroups);
+  const commands = selectCadCuiCommands(system, state, {
+    surface,
+    menuId,
+    capabilities,
+    commandStates,
+    selection,
+    unavailablePresentation
+  });
+  const groupsById = new Map<string, any>(configuredGroups.map(group => [group.id, group]));
+  const commandsByGroupId = new Map<string, any[]>();
+  const groupedCommandIds = new Set<string>();
+
+  configuredGroups.forEach(group => commandsByGroupId.set(group.id, []));
+  commands.forEach(command => {
+    const groupId = text(command?.placement?.groupId);
+    const group = groupsById.get(groupId);
+    if (!group) return;
+    const presented = command.placement.control || !group.control ? command : {
+      ...command,
+      placement: { ...command.placement, control: group.control }
+    };
+    commandsByGroupId.get(groupId)?.push(presented);
+    groupedCommandIds.add(command.id);
+  });
+
+  const nodesById = new Map<string, any>();
+  configuredGroups.forEach(group => {
+    nodesById.set(group.id, {
+      ...group,
+      commands: commandsByGroupId.get(group.id) || EMPTY_LIST,
+      children: []
+    });
+  });
+
+  const rootNodes: any[] = [];
+  configuredGroups.forEach(group => {
+    const node = nodesById.get(group.id);
+    const parentNode = nodesById.get(radialTreeGroupParentId(group, groupsById));
+    if (parentNode) parentNode.children.push(node);
+    else rootNodes.push(node);
+  });
+
+  const pruneEmptyCollectors = nodes => nodes
+    .map(node => {
+      const children = pruneEmptyCollectors(node.children);
+      return children.length === node.children.length ? node : { ...node, children };
+    })
+    .filter(node => node.commands.length || node.children.length);
+  const tree = pruneEmptyCollectors(rootNodes);
+  const ungroupedCommands = commands.filter(command => !groupedCommandIds.has(command.id));
+  if (!ungroupedCommands.length) return tree;
+
+  const configuredIds = new Set(configuredGroups.map(group => group.id));
+  let ungroupedId = '__ungrouped__';
+  let suffix = 2;
+  while (configuredIds.has(ungroupedId)) {
+    ungroupedId = `__ungrouped__-${suffix}`;
+    suffix += 1;
+  }
+  return [...tree, {
+    id: ungroupedId,
+    label: 'EGYÉB PARANCSOK',
+    detail: '',
+    icon: '',
+    tone: 'cyan',
+    parentId: '',
+    surface,
+    tab: '',
+    menu: menuId,
+    control: '',
+    order: Number.MAX_SAFE_INTEGER,
+    commands: ungroupedCommands,
+    children: []
+  }];
 }
 
 const createCadCuiReducer = (system: any) => (state: any, action: any): any => {

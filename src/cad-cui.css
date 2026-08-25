@@ -2057,36 +2057,65 @@ button.cad-color-swatch:hover .cad-color-swatch__chip, button.cad-color-swatch:f
 .cad-menu__item .cad-shortcut-hint { font-size: 0.48rem; }
 .cad-menu__separator { height: 1px; margin: 0.18rem 0.28rem; background: var(--cad-workspace-border); }
 
-/* A small, centre-anchored action cluster for viewport and selection tools.
-   Hosts can tune the radius and button dimensions without changing markup. */
+/* Centre-anchored action constellations for viewport and selection tools.
+   `--cad-radial-menu-safe-inset` is published on every instance so a host can
+   keep a pointer-anchored menu clear of its viewport edge before it opens. */
 .cad-radial-menu {
   --cad-radial-menu-radius: clamp(3.35rem, 10vmin, 5.1rem);
+  --cad-radial-menu-ring-gap: clamp(2.45rem, 7.2vmin, 3.45rem);
+  --cad-radial-menu-level-gap: clamp(2.85rem, 8.2vmin, 4.45rem);
   --cad-radial-menu-action-size: clamp(2.45rem, 7.8vmin, 3.35rem);
   --cad-radial-menu-center-size: clamp(2.85rem, 8.5vmin, 3.75rem);
+  --cad-radial-menu-root-outer-radius: var(--cad-radial-menu-radius);
+  --cad-radial-menu-safe-inset: calc(var(--cad-radial-menu-radius) + var(--cad-radial-menu-action-size));
   --cad-radial-menu-accent: var(--cad-workspace-accent);
   position: absolute;
   z-index: 40;
-  width: calc(var(--cad-radial-menu-radius) + var(--cad-radial-menu-radius) + var(--cad-radial-menu-action-size));
-  height: calc(var(--cad-radial-menu-radius) + var(--cad-radial-menu-radius) + var(--cad-radial-menu-action-size));
+  width: calc(var(--cad-radial-menu-root-outer-radius) + var(--cad-radial-menu-root-outer-radius) + var(--cad-radial-menu-action-size));
+  height: calc(var(--cad-radial-menu-root-outer-radius) + var(--cad-radial-menu-root-outer-radius) + var(--cad-radial-menu-action-size));
   transform: translate(-50%, -50%);
   isolation: isolate;
+  overflow: visible;
   color: var(--cad-workspace-text);
   font-family: var(--cad-ui-font, "IBM Plex Mono", Consolas, monospace);
+  touch-action: manipulation;
+}
+
+.cad-radial-menu__level {
+  position: absolute;
+  z-index: var(--cad-radial-menu-level-depth, 0);
+  top: 50%;
+  left: 50%;
+  width: calc(var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-action-size));
+  height: calc(var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-action-size));
+  transform: translate(-50%, -50%);
+  isolation: isolate;
+  overflow: visible;
+}
+
+.cad-radial-menu__level--nested {
+  z-index: 3;
+  transform: translate(-50%, -50%) rotate(var(--cad-radial-menu-level-entry-angle)) translateY(calc(0px - var(--cad-radial-menu-level-entry-radius))) rotate(calc(0deg - var(--cad-radial-menu-level-entry-angle)));
 }
 
 .cad-radial-menu__ring {
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   top: 50%;
   left: 50%;
-  width: calc(var(--cad-radial-menu-radius) + var(--cad-radial-menu-radius));
-  height: calc(var(--cad-radial-menu-radius) + var(--cad-radial-menu-radius));
+  width: calc(var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-level-outer-radius));
+  height: calc(var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-level-outer-radius));
   border: 1px solid color-mix(in srgb, var(--cad-radial-menu-accent) 26%, var(--cad-workspace-border));
   border-radius: 999px;
   background: radial-gradient(circle, color-mix(in srgb, var(--cad-workspace-bg) 22%, transparent) 0 28%, transparent 29%);
   box-shadow: 0 0.5rem 1.35rem rgba(0, 0, 0, 0.35);
   transform: translate(-50%, -50%);
   pointer-events: none;
+}
+
+.cad-radial-menu__level--nested .cad-radial-menu__ring {
+  border-color: color-mix(in srgb, var(--cad-radial-menu-accent) 42%, var(--cad-workspace-border));
+  background: radial-gradient(circle, color-mix(in srgb, var(--cad-radial-menu-accent) 7%, transparent) 0 29%, transparent 30%);
 }
 
 .cad-radial-menu__center {
@@ -2135,7 +2164,7 @@ button.cad-color-swatch:hover .cad-color-swatch__chip, button.cad-color-swatch:f
   letter-spacing: 0.02em;
   text-align: center;
   cursor: pointer;
-  transform: translate(-50%, -50%) rotate(var(--cad-radial-menu-angle)) translateY(calc(0px - var(--cad-radial-menu-radius))) rotate(var(--cad-radial-menu-counter-angle));
+  transform: translate(-50%, -50%) rotate(var(--cad-radial-menu-angle)) translateY(calc(0px - var(--cad-radial-menu-item-radius))) rotate(var(--cad-radial-menu-counter-angle));
   transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, color 120ms ease, transform 120ms ease;
 }
 
@@ -2153,16 +2182,56 @@ button.cad-color-swatch:hover .cad-color-swatch__chip, button.cad-color-swatch:f
   outline: 0;
 }
 .cad-radial-menu__item:disabled { opacity: 0.42; cursor: not-allowed; }
+.cad-radial-menu__item--collector { border-style: double; border-color: color-mix(in srgb, var(--cad-radial-menu-item-accent) 58%, var(--cad-workspace-border)); }
+.cad-radial-menu__item--collector[aria-expanded='true'] { border-color: var(--cad-radial-menu-item-accent); background: linear-gradient(160deg, color-mix(in srgb, var(--cad-radial-menu-item-accent) 28%, #3a4147), #202428); }
 .cad-radial-menu__icon { display: grid; min-height: 0.8rem; place-items: center; color: var(--cad-radial-menu-item-accent); font-size: clamp(0.84rem, 2.45vmin, 1.25rem); line-height: 1; }
 .cad-radial-menu__label { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cad-radial-menu__collector-mark { position: absolute; top: 0.08rem; right: 0.16rem; display: grid; width: 0.76rem; height: 0.76rem; place-items: center; border: 1px solid color-mix(in srgb, var(--cad-radial-menu-item-accent) 62%, transparent); border-radius: 50%; color: var(--cad-radial-menu-item-accent); background: var(--cad-workspace-inset); font: 900 0.57rem/1 var(--cad-ui-font, monospace); }
 .cad-radial-menu__item .cad-shortcut-hint { display: none; }
+
+/* In rings presentation a selected path shares one centre; each child level
+   receives a further outward offset instead of becoming a rectangular flyout. */
+.cad-radial-menu--rings .cad-radial-menu__level--nested { transform: translate(-50%, -50%); }
+.cad-radial-menu--rings .cad-radial-menu__level--nested .cad-radial-menu__ring {
+  width: calc(var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-level-presentation-offset) + var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-level-presentation-offset));
+  height: calc(var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-level-presentation-offset) + var(--cad-radial-menu-level-outer-radius) + var(--cad-radial-menu-level-presentation-offset));
+  border-style: dashed;
+}
+.cad-radial-menu--rings .cad-radial-menu__level--nested .cad-radial-menu__center { display: none; }
+.cad-radial-menu--rings .cad-radial-menu__level--nested .cad-radial-menu__item {
+  transform: translate(-50%, -50%) rotate(var(--cad-radial-menu-angle)) translateY(calc(0px - var(--cad-radial-menu-item-radius) - var(--cad-radial-menu-level-presentation-offset))) rotate(var(--cad-radial-menu-counter-angle));
+}
+
+/* Extra rings trade a little scale for a substantially safer footprint. Hosts
+   can still provide their own tokens; responsive rules only affect defaults. */
+.cad-radial-menu--multi-ring {
+  --cad-radial-menu-radius: clamp(2.95rem, 8.2vmin, 4.45rem);
+  --cad-radial-menu-ring-gap: clamp(2.02rem, 5.9vmin, 2.95rem);
+  --cad-radial-menu-level-gap: clamp(2.55rem, 7vmin, 3.85rem);
+  --cad-radial-menu-action-size: clamp(2.22rem, 6.6vmin, 3.02rem);
+  --cad-radial-menu-center-size: clamp(2.55rem, 7.2vmin, 3.38rem);
+}
 
 @media (max-width: 420px), (max-height: 420px) {
   .cad-radial-menu {
-    --cad-radial-menu-radius: clamp(2.85rem, 15vmin, 3.75rem);
-    --cad-radial-menu-action-size: clamp(2.18rem, 10vmin, 2.72rem);
-    --cad-radial-menu-center-size: clamp(2.45rem, 11vmin, 3rem);
+    --cad-radial-menu-radius: clamp(2.72rem, 14vmin, 3.72rem);
+    --cad-radial-menu-ring-gap: clamp(1.82rem, 8.4vmin, 2.48rem);
+    --cad-radial-menu-level-gap: clamp(2.24rem, 10.2vmin, 3.16rem);
+    --cad-radial-menu-action-size: clamp(2.12rem, 9.6vmin, 2.72rem);
+    --cad-radial-menu-center-size: clamp(2.38rem, 10.4vmin, 3rem);
   }
+}
+
+@media (max-width: 320px), (max-height: 320px) {
+  .cad-radial-menu {
+    --cad-radial-menu-radius: 2.4rem;
+    --cad-radial-menu-ring-gap: 1.6rem;
+    --cad-radial-menu-level-gap: 2rem;
+    --cad-radial-menu-action-size: 1.96rem;
+    --cad-radial-menu-center-size: 2.2rem;
+  }
+  .cad-radial-menu__label { font-size: 0.4rem; }
+  .cad-radial-menu__collector-mark { transform: scale(0.86); transform-origin: top right; }
 }
 
 /* Workspace chrome --------------------------------------------------------- */

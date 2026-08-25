@@ -35,6 +35,18 @@ export declare function selectCadCuiCommands(system: any, state: any, { surface,
  */
 export declare function selectCadCuiCommandGroups(system: any, state: any, { surface, tabId, menuId, capabilities, commandStates, selection, unavailablePresentation }?: CadAnyProps): any;
 /**
+ * Resolves a nested, presentational command tree for radial menus.
+ *
+ * Group records form collector nodes through `parentId`; commands stay on the
+ * node named by their radial placement's `groupId`. The command filtering is
+ * deliberately delegated to `selectCadCuiCommands`, so selection, capability,
+ * hidden-state and host command-state rules cannot drift from other surfaces.
+ * Empty collectors are omitted, including empty ancestors. A synthetic
+ * ungrouped collector is appended only when an available command has no
+ * configured group on this surface.
+ */
+export declare function selectCadCuiRadialTree(system: any, state: any, { surface, menuId, capabilities, commandStates, selection, unavailablePresentation }?: CadAnyProps): any;
+/**
  * Copy/paste integration:
  *
  * <CadCuiProvider registry={registry} capabilities={{ admin: isAdmin }}
