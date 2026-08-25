@@ -614,7 +614,7 @@ label.cad-ui-data-row:focus-within {
   .cad-command-line, .cad-view-cube, .cad-viewport-controls,
   .cad-selection-summary, .cad-measure-readout, .cad-toolbar, .cad-workspace-ribbon,
   .cad-navigation-bar, .cad-visual-style-picker, .cad-viewport-scale-picker, .cad-selection-set-panel,
-  .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu,
+  .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu, .cad-radial-menu,
   .cad-overflow-menu, .cad-filter-bar, .cad-property-grid, .cad-layer-picker,
   .cad-layer-panel, .cad-object-tree, .cad-task-progress, .cad-reference-list
 ) {
@@ -636,7 +636,7 @@ label.cad-ui-data-row:focus-within {
   .cad-command-line, .cad-view-cube, .cad-viewport-controls,
   .cad-selection-summary, .cad-measure-readout, .cad-toolbar, .cad-workspace-ribbon,
   .cad-navigation-bar, .cad-visual-style-picker, .cad-viewport-scale-picker, .cad-selection-set-panel,
-  .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu,
+  .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu, .cad-radial-menu,
   .cad-overflow-menu, .cad-filter-bar, .cad-property-grid, .cad-layer-picker,
   .cad-layer-panel, .cad-object-tree, .cad-task-progress, .cad-reference-list
 ) *,
@@ -645,7 +645,7 @@ label.cad-ui-data-row:focus-within {
   .cad-command-line, .cad-view-cube, .cad-viewport-controls,
   .cad-selection-summary, .cad-measure-readout, .cad-toolbar, .cad-workspace-ribbon,
   .cad-navigation-bar, .cad-visual-style-picker, .cad-viewport-scale-picker, .cad-selection-set-panel,
-  .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu,
+  .cad-numeric-input, .cad-coordinate-input, .cad-color-swatch, .cad-menu, .cad-radial-menu,
   .cad-overflow-menu, .cad-filter-bar, .cad-property-grid, .cad-layer-picker,
   .cad-layer-panel, .cad-object-tree, .cad-task-progress, .cad-reference-list
 ) *::before,
@@ -2056,6 +2056,114 @@ button.cad-color-swatch:hover .cad-color-swatch__chip, button.cad-color-swatch:f
 .cad-menu__copy small { margin-top: 0.13rem; color: var(--cad-workspace-muted); font-size: 0.52rem; font-weight: 600; }
 .cad-menu__item .cad-shortcut-hint { font-size: 0.48rem; }
 .cad-menu__separator { height: 1px; margin: 0.18rem 0.28rem; background: var(--cad-workspace-border); }
+
+/* A small, centre-anchored action cluster for viewport and selection tools.
+   Hosts can tune the radius and button dimensions without changing markup. */
+.cad-radial-menu {
+  --cad-radial-menu-radius: clamp(3.35rem, 10vmin, 5.1rem);
+  --cad-radial-menu-action-size: clamp(2.45rem, 7.8vmin, 3.35rem);
+  --cad-radial-menu-center-size: clamp(2.85rem, 8.5vmin, 3.75rem);
+  --cad-radial-menu-accent: var(--cad-workspace-accent);
+  position: absolute;
+  z-index: 40;
+  width: calc(var(--cad-radial-menu-radius) + var(--cad-radial-menu-radius) + var(--cad-radial-menu-action-size));
+  height: calc(var(--cad-radial-menu-radius) + var(--cad-radial-menu-radius) + var(--cad-radial-menu-action-size));
+  transform: translate(-50%, -50%);
+  isolation: isolate;
+  color: var(--cad-workspace-text);
+  font-family: var(--cad-ui-font, "IBM Plex Mono", Consolas, monospace);
+}
+
+.cad-radial-menu__ring {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--cad-radial-menu-radius) + var(--cad-radial-menu-radius));
+  height: calc(var(--cad-radial-menu-radius) + var(--cad-radial-menu-radius));
+  border: 1px solid color-mix(in srgb, var(--cad-radial-menu-accent) 26%, var(--cad-workspace-border));
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--cad-workspace-bg) 22%, transparent) 0 28%, transparent 29%);
+  box-shadow: 0 0.5rem 1.35rem rgba(0, 0, 0, 0.35);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cad-radial-menu__center {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: var(--cad-radial-menu-center-size);
+  height: var(--cad-radial-menu-center-size);
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--cad-radial-menu-accent) 65%, var(--cad-workspace-border));
+  border-radius: 50%;
+  padding: 0.35rem;
+  color: var(--cad-workspace-text);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--cad-radial-menu-accent) 22%, var(--cad-workspace-raised)), var(--cad-workspace-bg));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 0.35rem 0.8rem rgba(0, 0, 0, 0.28);
+  font: 900 clamp(0.44rem, 1.45vmin, 0.58rem)/1.1 var(--cad-ui-font, "IBM Plex Mono", Consolas, monospace);
+  letter-spacing: 0.035em;
+  text-align: center;
+  text-overflow: ellipsis;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cad-radial-menu__item {
+  --cad-radial-menu-item-accent: var(--cad-radial-menu-accent);
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: var(--cad-radial-menu-action-size);
+  height: var(--cad-radial-menu-action-size);
+  place-content: center;
+  gap: 0.08rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--cad-workspace-strong-border) 88%, #fff);
+  border-radius: 50%;
+  padding: 0.26rem;
+  color: var(--cad-workspace-text);
+  background: linear-gradient(160deg, #3a4147, #202428);
+  box-shadow: 0 0.36rem 0.75rem rgba(0, 0, 0, 0.34);
+  font: 800 clamp(0.42rem, 1.35vmin, 0.56rem)/1.05 var(--cad-ui-font, "IBM Plex Mono", Consolas, monospace);
+  letter-spacing: 0.02em;
+  text-align: center;
+  cursor: pointer;
+  transform: translate(-50%, -50%) rotate(var(--cad-radial-menu-angle)) translateY(calc(0px - var(--cad-radial-menu-radius))) rotate(var(--cad-radial-menu-counter-angle));
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.cad-radial-menu__item[data-tone='green'] { --cad-radial-menu-item-accent: #9add4b; }
+.cad-radial-menu__item[data-tone='amber'] { --cad-radial-menu-item-accent: #ffb554; }
+.cad-radial-menu__item[data-tone='magenta'] { --cad-radial-menu-item-accent: #f08cff; }
+.cad-radial-menu__item[data-tone='danger'] { --cad-radial-menu-item-accent: #ff6d7a; }
+.cad-radial-menu__item[data-tone='violet'] { --cad-radial-menu-item-accent: #b9a1ff; }
+.cad-radial-menu__item[data-tone='neutral'] { --cad-radial-menu-item-accent: #b4bdc7; }
+.cad-radial-menu__item:hover:not(:disabled), .cad-radial-menu__item:focus-visible, .cad-radial-menu__item[data-active='true'], .cad-radial-menu__item[data-checked='true'] {
+  border-color: color-mix(in srgb, var(--cad-radial-menu-item-accent) 72%, var(--cad-workspace-border));
+  color: #fff;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--cad-radial-menu-item-accent) 23%, #3a4147), #202428);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cad-radial-menu-item-accent) 24%, transparent), 0 0.45rem 0.88rem rgba(0, 0, 0, 0.42);
+  outline: 0;
+}
+.cad-radial-menu__item:disabled { opacity: 0.42; cursor: not-allowed; }
+.cad-radial-menu__icon { display: grid; min-height: 0.8rem; place-items: center; color: var(--cad-radial-menu-item-accent); font-size: clamp(0.84rem, 2.45vmin, 1.25rem); line-height: 1; }
+.cad-radial-menu__label { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cad-radial-menu__item .cad-shortcut-hint { display: none; }
+
+@media (max-width: 420px), (max-height: 420px) {
+  .cad-radial-menu {
+    --cad-radial-menu-radius: clamp(2.85rem, 15vmin, 3.75rem);
+    --cad-radial-menu-action-size: clamp(2.18rem, 10vmin, 2.72rem);
+    --cad-radial-menu-center-size: clamp(2.45rem, 11vmin, 3rem);
+  }
+}
 
 /* Workspace chrome --------------------------------------------------------- */
 

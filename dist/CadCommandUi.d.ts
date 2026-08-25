@@ -38,4 +38,14 @@ export declare function CadMenu({ items, label, onAction, onClose, className, ch
  * not, so a command is free to move focus into a dialog or prompt.
  */
 export declare function CadContextMenuPopup({ open, position, items, label, onAction, onClose, restoreFocusRef, returnFocusRef, className, style, children, menuRef: externalMenuRef, onContextMenu, ...props }: CadAnyProps): React.JSX.Element;
+/**
+ * A controlled, pointer-positioned radial menu for a small set of contextual
+ * CAD actions. `position` describes the centre of the menu, so it can be
+ * anchored directly at a pointer, grip, or selection centroid.
+ *
+ * Escape and outside presses dismiss the menu and return focus to the
+ * supplied trigger. Activating an action intentionally does not restore
+ * focus: commands may instead move focus to a prompt or dialog.
+ */
+export declare function CadRadialMenu({ open, position, items, label, centerLabel, onAction, onClose, restoreFocusRef, returnFocusRef, className, style, children, menuRef: externalMenuRef, onKeyDown, ...props }: CadAnyProps): React.JSX.Element;
 export declare function CadOverflowMenu({ items, label, open, defaultOpen, onOpenChange, onAction, className, triggerLabel, ...props }: CadAnyProps): React.JSX.Element;

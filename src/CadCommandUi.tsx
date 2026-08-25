@@ -380,6 +380,147 @@ export function CadContextMenuPopup({
   >{children}</CadMenu>;
 }
 
+/**
+ * A controlled, pointer-positioned radial menu for a small set of contextual
+ * CAD actions. `position` describes the centre of the menu, so it can be
+ * anchored directly at a pointer, grip, or selection centroid.
+ *
+ * Escape and outside presses dismiss the menu and return focus to the
+ * supplied trigger. Activating an action intentionally does not restore
+ * focus: commands may instead move focus to a prompt or dialog.
+ */
+export function CadRadialMenu({
+  open = false,
+  position = { x: 0, y: 0 },
+  items = [],
+  label = 'CAD radial menu',
+  centerLabel = 'Actions',
+  onAction,
+  onClose,
+  restoreFocusRef,
+  returnFocusRef,
+  className,
+  style,
+  children,
+  menuRef: externalMenuRef,
+  onKeyDown,
+  ...props
+}: CadAnyProps) {
+  const localMenuRef = useRef(null);
+  const menuRef = externalMenuRef || localMenuRef;
+  const shouldRestoreFocusRef = useRef(false);
+  const focusTargetRef = restoreFocusRef || returnFocusRef;
+  const actionItems = asArray(items).filter(item => item && item.type !== 'separator' && !item.hidden);
+  const focusableItems = React.useCallback(() => [...(menuRef.current?.querySelectorAll('[role^="menuitem"]') || [])].filter(entry => !entry.disabled), [menuRef]);
+  const requestClose = React.useCallback((event, reason, item = undefined) => {
+    shouldRestoreFocusRef.current = reason === 'escape' || reason === 'outside';
+    onClose?.(event, { reason, item });
+  }, [onClose]);
+  const moveFocus = direction => {
+    const entries = focusableItems();
+    if (!entries.length) return;
+    const currentIndex = entries.indexOf(document.activeElement);
+    entries[(currentIndex + direction + entries.length) % entries.length].focus();
+  };
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const focusTarget = focusTargetRef?.current;
+    const timer = window.setTimeout(() => focusableItems()[0]?.focus(), 0);
+    return () => {
+      window.clearTimeout(timer);
+      if (!shouldRestoreFocusRef.current) return;
+      shouldRestoreFocusRef.current = false;
+      window.setTimeout(() => focusTarget?.focus?.(), 0);
+    };
+  }, [focusTargetRef, focusableItems, open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handlePointerDown = event => {
+      const target = event.target;
+      if (!(target instanceof Node) || menuRef.current?.contains(target)) return;
+      requestClose(event, 'outside');
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [menuRef, open, requestClose]);
+
+  if (!open) return null;
+  const resolvedPosition = position || { x: 0, y: 0 };
+  const popupStyle = {
+    ...style,
+    position: 'absolute',
+    left: resolvedPosition.x ?? 0,
+    top: resolvedPosition.y ?? 0,
+    zIndex: style?.zIndex ?? 40
+  };
+  return <div
+    {...props}
+    ref={menuRef}
+    className={cx('cad-radial-menu', className)}
+    style={popupStyle}
+    role="menu"
+    aria-label={label}
+    data-count={actionItems.length}
+    onKeyDown={event => {
+      onKeyDown?.(event);
+      if (event.defaultPrevented) return;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') { event.preventDefault(); moveFocus(1); }
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') { event.preventDefault(); moveFocus(-1); }
+      if (event.key === 'Home') { event.preventDefault(); focusableItems()[0]?.focus(); }
+      if (event.key === 'End') { event.preventDefault(); const entries = focusableItems(); entries[entries.length - 1]?.focus(); }
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation?.(); requestClose(event, 'escape'); }
+    }}
+  >
+    <span className="cad-radial-menu__ring" aria-hidden="true" />
+    <span className="cad-radial-menu__center" aria-hidden="true">{centerLabel}</span>
+    {actionItems.map((item, index) => {
+      const resolvedLabel = itemLabel(item) || 'CAD action';
+      const resolvedChecked = item.checked;
+      const resolvedDisabled = Boolean(item.disabled);
+      const itemType = item.type || (item.toggle ? 'checkbox' : 'action');
+      const menuRole = itemType === 'checkbox' ? 'menuitemcheckbox' : itemType === 'radio' ? 'menuitemradio' : 'menuitem';
+      const Icon = item.icon;
+      const icon = React.isValidElement(Icon)
+        ? Icon
+        : typeof Icon === 'function'
+          ? <Icon size={20} />
+          : null;
+      const angle = -90 + (360 * index) / Math.max(actionItems.length, 1);
+      const radialItemStyle = {
+        '--cad-radial-menu-angle': `${angle}deg`,
+        '--cad-radial-menu-counter-angle': `${-angle}deg`
+      } as React.CSSProperties;
+      return <button
+        key={item.id || `${resolvedLabel}-${index}`}
+        type="button"
+        role={menuRole}
+        disabled={resolvedDisabled}
+        data-tone={item.tone || 'inherit'}
+        data-active={item.active ? 'true' : 'false'}
+        data-checked={resolvedChecked ? 'true' : 'false'}
+        aria-checked={menuRole === 'menuitem' ? undefined : Boolean(resolvedChecked)}
+        aria-label={item['aria-label'] || resolvedLabel}
+        aria-keyshortcuts={item.shortcut || undefined}
+        title={[resolvedLabel, item.detail, item.shortcut].filter(Boolean).join(' · ')}
+        className={cx('cad-radial-menu__item', item.className)}
+        style={radialItemStyle}
+        onClick={event => {
+          shouldRestoreFocusRef.current = false;
+          callItemAction(item, event, onAction);
+          requestClose(event, 'action', item);
+        }}
+      >
+        {icon && <span className="cad-radial-menu__icon" aria-hidden="true">{icon}</span>}
+        <span className="cad-radial-menu__label">{resolvedLabel}</span>
+        {item.shortcut && <CadShortcutHint shortcut={item.shortcut} />}
+      </button>;
+    })}
+    {children}
+  </div>;
+}
+
 export function CadOverflowMenu({ items = [], label = 'More options', open, defaultOpen = false, onOpenChange, onAction, className, triggerLabel = 'More', ...props }: CadAnyProps) {
   const [isOpen, setOpen] = useControllableState(open, defaultOpen, (nextValue, event) => onOpenChange?.(nextValue, event));
   const generatedId = useId();

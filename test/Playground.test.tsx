@@ -205,6 +205,20 @@ describe('interactive CAD CUI playground', () => {
     showCommandActivity();
     expect(screen.getByText('Selection action: MOVE offered for 1 selected object.')).toBeInTheDocument();
 
+    fireEvent.keyDown(viewport, { key: 'q' });
+    const radialMenu = await screen.findByRole('menu', { name: 'Selection radial menu' });
+    expect(within(radialMenu).getByRole('menuitem', { name: 'MOVE' })).toBeInTheDocument();
+    expect(within(radialMenu).getByRole('menuitem', { name: 'TRIM' })).toBeInTheDocument();
+    expect(within(radialMenu).getByRole('menuitem', { name: 'OFFSET' })).toBeInTheDocument();
+    expect(within(radialMenu).queryByRole('menuitem', { name: 'ROTATE' })).not.toBeInTheDocument();
+    const radialMove = within(radialMenu).getByRole('menuitem', { name: 'MOVE' });
+    await waitFor(() => expect(radialMove).toHaveFocus());
+    fireEvent.keyDown(radialMove, { key: 'ArrowRight' });
+    expect(within(radialMenu).getByRole('menuitem', { name: 'COPY' })).toHaveFocus();
+    fireEvent.keyDown(radialMenu, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('menu', { name: 'Selection radial menu' })).not.toBeInTheDocument());
+    expect(viewport).toHaveFocus();
+
     fireEvent.keyDown(viewport, { key: 'F10', shiftKey: true });
     const contextMenu = await screen.findByRole('menu', { name: 'Selection context menu' });
     expect(within(contextMenu).getByRole('menuitem', { name: /MOVE/ })).toBeInTheDocument();
@@ -220,11 +234,18 @@ describe('interactive CAD CUI playground', () => {
     await waitFor(() => expect(screen.queryByRole('menu', { name: 'Selection context menu' })).not.toBeInTheDocument());
     expect(viewport).toHaveFocus();
 
+    fireEvent.contextMenu(viewport, { clientX: 160, clientY: 120, altKey: true });
+    const pointerRadial = await screen.findByRole('menu', { name: 'Selection radial menu' });
+    fireEvent.click(within(pointerRadial).getByRole('menuitem', { name: 'OFFSET' }));
+    await waitFor(() => expect(screen.queryByRole('menu', { name: 'Selection radial menu' })).not.toBeInTheDocument());
+    expect(screen.getByText('Selection action: OFFSET offered for 1 selected object.')).toBeInTheDocument();
+    await waitFor(() => expect(viewport).toHaveFocus());
+
     fireEvent.contextMenu(viewport, { clientX: 160, clientY: 120 });
     const pointerMenu = await screen.findByRole('menu', { name: 'Selection context menu' });
     fireEvent.click(within(pointerMenu).getByRole('menuitem', { name: /OFFSET/ }));
     await waitFor(() => expect(screen.queryByRole('menu', { name: 'Selection context menu' })).not.toBeInTheDocument());
-    expect(screen.getByText('Selection action: OFFSET offered for 1 selected object.')).toBeInTheDocument();
+    expect(screen.getAllByText('Selection action: OFFSET offered for 1 selected object.')).toHaveLength(2);
     await waitFor(() => expect(viewport).toHaveFocus());
 
     const commandInput = screen.getByRole('combobox', { name: 'Dynamic CAD command' });

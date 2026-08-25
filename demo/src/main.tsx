@@ -10,6 +10,7 @@ import {
   CadConfirmDialog,
   CadConstraintBar,
   CadContextMenuPopup,
+  CadRadialMenu,
   CadDataGrid,
   CadDialog,
   CadDockPanel,
@@ -185,6 +186,7 @@ const SHORTCUTS = [
   { id: 'circle', group: 'Draw', label: 'Circle', shortcut: 'C' },
   { id: 'move', group: 'Modify', label: 'Move', shortcut: 'M' },
   { id: 'selection-menu', group: 'Selection', label: 'Selection menu', shortcut: 'Shift+F10' },
+  { id: 'selection-radial', group: 'Selection', label: 'Selection radial menu', shortcut: 'Q' },
   { id: 'properties', group: 'Workspace', label: 'Properties', shortcut: 'Ctrl+1' },
   { id: 'palette', group: 'Workspace', label: 'Command palette', shortcut: 'Ctrl+P' }
 ];
@@ -754,6 +756,7 @@ function Playground() {
   const focusRestoreRef = useRef<HTMLElement | null>(null);
   const viewportRef = useRef<HTMLElement | null>(null);
   const selectionContextMenuRef = useRef<HTMLElement | null>(null);
+  const selectionRadialMenuRef = useRef<HTMLElement | null>(null);
   const presetImportRef = useRef<HTMLInputElement | null>(null);
   const persistenceReadyRef = useRef(false);
   const hasRestoredWorkspaceRef = useRef(false);
@@ -802,6 +805,7 @@ function Playground() {
   const [activeSelectionSetId, setActiveSelectionSetId] = useState('primary-shell');
   const [selectionSetFilter, setSelectionSetFilter] = useState('');
   const [selectionContextMenuPosition, setSelectionContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [selectionRadialMenuPosition, setSelectionRadialMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [dynamicPoint, setDynamicPoint] = useState({ x: 1180, y: 640, z: 0 });
   const [drafting, setDrafting] = useState<CadAnyProps>(DEFAULT_DRAFTING);
   const [propertyState, setPropertyState] = useState<CadAnyProps>(DEFAULT_PROPERTY_STATE);
@@ -1264,7 +1268,7 @@ function Playground() {
     report('Selection action', `${String(command?.label || action).toUpperCase()} offered for ${selectionCount} selected object${selectionCount === 1 ? '' : 's'}.`);
   }, [report, selectionCount]);
 
-  const handleSelectionContextAction = useCallback(command => {
+  const handleSelectionMenuAction = useCallback(command => {
     const action = command?.intent?.action || String(command?.id || '').replace(/^selection\./, '');
     applySelectionAction(command);
     if (['properties', 'edit-block', 'edit-dimension', 'delete'].includes(action) || typeof window === 'undefined') return;
@@ -1282,14 +1286,33 @@ function Playground() {
     const preferredY = Number.isFinite(clientY) ? Number(clientY) - bounds.top : bounds.height / 2;
     const x = Math.max(8, Math.min(preferredX, Math.max(8, bounds.width - menuWidth - 8)));
     const y = Math.max(8, Math.min(preferredY, Math.max(8, bounds.height - menuHeight - 8)));
+    setSelectionRadialMenuPosition(null);
     setSelectionContextMenuPosition({ x: Math.round(x), y: Math.round(y) });
+  }, [selectionCount]);
+
+  const openSelectionRadialMenu = useCallback((clientX?: number, clientY?: number) => {
+    const viewport = viewportRef.current;
+    if (!viewport || !selectionCount) return;
+
+    const bounds = viewport.getBoundingClientRect();
+    const preferredX = Number.isFinite(clientX) ? Number(clientX) - bounds.left : bounds.width / 2;
+    const preferredY = Number.isFinite(clientY) ? Number(clientY) - bounds.top : bounds.height / 2;
+    // Keep every spoke inside the viewport. On very small hosts this collapses
+    // to the safest centre point rather than letting the wheel be clipped.
+    const maximumInset = Math.max(24, Math.floor(Math.min(bounds.width, bounds.height) / 2 - 8));
+    const inset = Math.max(24, Math.min(132, maximumInset));
+    const x = Math.max(inset, Math.min(preferredX, Math.max(inset, bounds.width - inset)));
+    const y = Math.max(inset, Math.min(preferredY, Math.max(inset, bounds.height - inset)));
+    setSelectionContextMenuPosition(null);
+    setSelectionRadialMenuPosition({ x: Math.round(x), y: Math.round(y) });
   }, [selectionCount]);
 
   const handleViewportContextMenu = event => {
     if (isViewportInteractiveTarget(event.target)) return;
     event.preventDefault();
     viewportRef.current?.focus({ preventScroll: true });
-    openSelectionContextMenu(event.clientX, event.clientY);
+    if (event.altKey) openSelectionRadialMenu(event.clientX, event.clientY);
+    else openSelectionContextMenu(event.clientX, event.clientY);
   };
 
   const runCommand = command => {
@@ -1400,7 +1423,10 @@ function Playground() {
   })), [selectionSnapshot]);
 
   useEffect(() => {
-    if (!selectionCount) setSelectionContextMenuPosition(null);
+    if (!selectionCount) {
+      setSelectionContextMenuPosition(null);
+      setSelectionRadialMenuPosition(null);
+    }
   }, [selectionCount]);
 
   useEffect(() => {
@@ -1420,6 +1446,12 @@ function Playground() {
 
       const shortcut = keyboardShortcutForEvent(event);
       if (!shortcut) return;
+      if (shortcut === 'Q') {
+        if (!selectionContextActions.length) return;
+        event.preventDefault();
+        openSelectionRadialMenu();
+        return;
+      }
       const matches = selectionContextActions.filter(command => normaliseKeyboardShortcut(command.shortcut) === shortcut);
       if (matches.length !== 1) return;
       event.preventDefault();
@@ -1428,7 +1460,7 @@ function Playground() {
 
     window.addEventListener('keydown', handleSelectionShortcut);
     return () => window.removeEventListener('keydown', handleSelectionShortcut);
-  }, [applySelectionAction, openSelectionContextMenu, selectionContextActions]);
+  }, [applySelectionAction, openSelectionContextMenu, openSelectionRadialMenu, selectionContextActions]);
 
   const selectionRibbonCommands = useMemo(() => selectCadCuiCommands(
     DEMO_SELECTION_ACTIONS,
@@ -2053,7 +2085,7 @@ function Playground() {
             data-visual-style={visualStyle}
             data-viewport-scale={viewportScale}
             aria-label="SVG drawing viewport mockup"
-            aria-keyshortcuts="M O R X Delete Control+1 Shift+F10"
+            aria-keyshortcuts="M O Q R X Delete Control+1 Shift+F10"
             tabIndex={0}
             onPointerDown={event => {
               if (!isViewportInteractiveTarget(event.target)) viewportRef.current?.focus({ preventScroll: true });
@@ -2157,6 +2189,27 @@ function Playground() {
               tools={selectionToolbarTools}
               onAction={applySelectionAction}
             />
+            {selectionCount > 0 && <button
+              type="button"
+              className="cad-demo-viewport__radial-trigger"
+              aria-label="Open radial selection menu"
+              aria-haspopup="menu"
+              aria-expanded={Boolean(selectionRadialMenuPosition)}
+              title={`${selectionRadialMenuPosition ? 'Close' : 'Open'} radial selection menu · Q`}
+              onClick={() => selectionRadialMenuPosition ? setSelectionRadialMenuPosition(null) : openSelectionRadialMenu()}
+            ><span aria-hidden="true">◎</span><strong>RADIAL</strong><kbd>Q</kbd></button>}
+            <CadRadialMenu
+              className="cad-demo-viewport__selection-radial"
+              open={Boolean(selectionRadialMenuPosition)}
+              position={selectionRadialMenuPosition || { x: 0, y: 0 }}
+              items={selectionContextActions}
+              label="Selection radial menu"
+              centerLabel={`${selectionCount} SELECTED`}
+              menuRef={selectionRadialMenuRef}
+              restoreFocusRef={viewportRef}
+              onAction={handleSelectionMenuAction}
+              onClose={() => setSelectionRadialMenuPosition(null)}
+            />
             <CadContextMenuPopup
               className="cad-demo-viewport__selection-context"
               open={Boolean(selectionContextMenuPosition)}
@@ -2165,7 +2218,7 @@ function Playground() {
               label="Selection context menu"
               menuRef={selectionContextMenuRef}
               restoreFocusRef={viewportRef}
-              onAction={handleSelectionContextAction}
+              onAction={handleSelectionMenuAction}
               onClose={() => setSelectionContextMenuPosition(null)}
             />
             <CadObjectSnapMarker className="cad-demo-viewport__snap-marker" type="endpoint" label="Endpoint" />

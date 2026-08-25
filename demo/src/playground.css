@@ -284,6 +284,29 @@ button { cursor: pointer; }
 .cad-demo-viewport__command-console .cad-command-line__submit:hover:not(:disabled), .cad-demo-viewport__command-console .cad-command-line__submit:focus-visible { color: #191209; background: #ffc261; }
 .cad-demo-viewport__polar { position: absolute; z-index: 5; top: 64%; left: 57%; }
 .cad-demo-viewport__grip-tools { position: absolute; z-index: 5; top: 34%; left: 51%; }
+.cad-demo-viewport__radial-trigger {
+  position: absolute;
+  z-index: 7;
+  top: calc(34% + 2.35rem);
+  left: 51%;
+  display: inline-flex;
+  min-height: 1.55rem;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid rgba(100, 216, 255, 0.48);
+  padding: 0.2rem 0.34rem;
+  color: #9ee8ff;
+  background: rgba(20, 33, 38, 0.92);
+  box-shadow: 0 0.26rem 0.7rem rgba(0, 0, 0, 0.28);
+  font: 800 0.45rem/1 "Cascadia Mono", monospace;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.cad-demo-viewport__radial-trigger > span { color: #64d8ff; font-size: 0.86rem; line-height: 1; }
+.cad-demo-viewport__radial-trigger > strong { font: inherit; }
+.cad-demo-viewport__radial-trigger > kbd { border-left: 1px solid rgba(100, 216, 255, 0.28); padding-left: 0.25rem; color: #b7df6a; font: 900 0.43rem/1 "Cascadia Mono", monospace; }
+.cad-demo-viewport__radial-trigger:hover, .cad-demo-viewport__radial-trigger:focus-visible, .cad-demo-viewport__radial-trigger[aria-expanded='true'] { border-color: #64d8ff; color: #ecfbff; background: rgba(41, 94, 110, 0.92); outline: 0; }
+.cad-demo-viewport__selection-radial { z-index: 21; }
 .cad-demo-viewport__selection-context { position: absolute; z-index: 20; min-width: min(14.5rem, calc(100% - 1rem)); max-width: calc(100% - 1rem); }
 .cad-demo-viewport__snap-marker { position: absolute; z-index: 5; top: 43%; left: 34%; }
 .cad-demo-viewport__grip { position: absolute; z-index: 5; }
